@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Contact - Crystal Production LTD</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" href="/css/style.css" />
+</head>
+<body>
+    <header>
+        <h1>Contact Us</h1>
+        <nav>
+            <a th:href="@{/}">Home</a>
+            <a th:href="@{/services}">Services</a>
+            <a th:href="@{/portfolio}">Portfolio</a>
+            <a th:href="@{/contact}">Contact</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Get in Touch</h2>
+        <p>
+            We would love to hear about your project! Contact us using the form below or via email.
+        </p>
+        <!--
+          The form is intentionally non‑functional.  In a real application you would
+          implement a controller to handle submissions and maybe send an email.
+         -->
+        <form action="#" method="post">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required />
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required />
+
+            <label for="message">Message:</label>
+            <textarea id="message" name="message" rows="5" required></textarea>
+
+            <button type="submit" disabled>Submit</button>
+        </form>
+        <p>Crystal Production LTD<br />London, UK</p>
+    </main>
+    <footer>
+        <p>&copy; 2026 Crystal Production LTD. All rights reserved.</p>
+    </footer>
+</body>
+</html>

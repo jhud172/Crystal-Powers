@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Home - Crystal Production LTD</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" href="/css/style.css" />
+</head>
+<body>
+    <header>
+        <h1 th:text="${companyName}"></h1>
+        <p th:text="${tagline}"></p>
+        <nav>
+            <a th:href="@{/}">Home</a>
+            <a th:href="@{/services}">Services</a>
+            <a th:href="@{/portfolio}">Portfolio</a>
+            <a th:href="@{/contact}">Contact</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Welcome to Crystal Production LTD</h2>
+            <p>
+                We design and build modern, responsive websites that help your business
+                succeed online. Explore our services and see how we can bring your
+                vision to life.
+            </p>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 Crystal Production LTD. All rights reserved.</p>
+    </footer>
+</body>
+</html>
