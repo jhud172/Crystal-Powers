@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout(
+        'Portfolio',
+        'Selected examples of the visual and structural direction Crystal Production can deliver.',
+        'portfolio',
+        ~{portfolio/fragments/sections :: content},
+        ~{portfolio/fragments/sections :: scripts}
+      )}">
+</html>

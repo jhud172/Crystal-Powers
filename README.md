@@ -1,30 +1,87 @@
-# Crystal Production LTD Website
+# Crystal Production Website
 
-This repository contains a simple Spring Boot web application for **Crystal Production LTD**.  It showcases how a small web development business might present itself online, including service packages, example projects and a basic contact form.  This project was created as a starting point based on previous work and adapted specifically for Crystal Production.
+This repository currently serves a premium multi-page Crystal Production marketing site on Spring Boot and Thymeleaf. The site presents Crystal Production as a digital build studio focused on websites, community systems, automation, creative support, and structured delivery.
 
-## Features
+## Current Site Structure
 
-* **Home Page** – introduces the company with a tagline and navigation links.
-* **Services Page** – lists package options with pricing and highlights additional services like hosting and SEO.
-* **Portfolio Page** – displays three example projects with images and descriptions.  These images are illustrative placeholders generated at project creation time.
-* **Contact Page** – provides a simple contact form (the submit button is disabled by default) and location information.
+- `src/main/resources/templates/base.html`
+  Shared Thymeleaf layout shell with the global head, navigation, footer, stylesheet import, and shared script import.
+- `src/main/resources/templates/<page>/index.html`
+  Page entry templates for `homepage`, `about`, `services`, `products`, `portfolio`, `support`, and `contact`.
+- `src/main/resources/templates/<page>/fragments/sections.html`
+  Page-specific content fragments and page-specific script imports where needed.
+- `src/main/resources/static/js/site.js`
+  Shared navigation behaviour.
+- `src/main/resources/static/js/products.js`
+  Product dialog behaviour for the products page only.
+- `src/main/frontend/styles/tailwind.css`
+  Tailwind source stylesheet.
+- `src/main/resources/static/css/style.css`
+  Generated production stylesheet built from Tailwind.
 
-## Running the Application
+## Routing
 
-The project uses Maven to manage dependencies.  To run the application locally you need Java 17 or later and Maven installed.  Once those prerequisites are available:
+The live routes are:
 
-```bash
-mvn spring-boot:run
+- `/`
+- `/about`
+- `/services`
+- `/products`
+- `/portfolio`
+- `/support`
+- `/contact`
+
+Legacy flat-file routes such as `/home.html`, `/about.html`, and `/products.html` now redirect to the new controller-backed routes.
+
+## Frontend Build
+
+Tailwind is compiled through npm.
+
+Install dependencies:
+
+```powershell
+npm install
 ```
 
-Then open a browser and navigate to `http://localhost:8080`.  You should see the Crystal Production LTD home page.
+Build the stylesheet:
 
-## Customization
+```powershell
+npm run build:css
+```
 
-* Update **src/main/resources/templates/services.html** to adjust packages and pricing.
-* Replace the images under **src/main/resources/static/images** with your own project screenshots.  The current images are generic placeholders.
-* To enable the contact form, create a POST endpoint in `ContactController` and handle form submissions accordingly.
+Watch the stylesheet during frontend work:
 
-## License
+```powershell
+npm run watch:css
+```
 
-This project is provided without any specific license.  Feel free to adapt it for your own commercial or personal use.
+## Run The Application
+
+The Gradle wrapper is configured and the CSS build is wired into the Spring resource pipeline.
+
+Run tests:
+
+```powershell
+.\gradlew.bat test
+```
+
+Run the app:
+
+```powershell
+.\gradlew.bat bootRun
+```
+
+Then open:
+
+- `http://localhost:8080/`
+
+## Contact Flow
+
+The contact page now posts through Spring MVC with validation. Successful submission redirects back to `/contact` with a confirmation message, and invalid input stays on the page with field-level errors.
+
+## Notes
+
+- HTML files contain markup only.
+- CSS is kept in dedicated stylesheet sources and generated output.
+- JavaScript is kept in dedicated files under `src/main/resources/static/js`.
+- The current visual direction is a premium dark editorial style with restrained neon accents and image-led sections.

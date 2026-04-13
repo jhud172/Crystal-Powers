@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <section class="grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+        <div>
+            <span class="eyebrow">Contact</span>
+            <h1 class="mt-8 font-display text-4xl text-white sm:text-5xl">Tell us what needs to be built, repaired, or cleaned up.</h1>
+            <p class="mt-6 text-lg leading-8 text-slate-300">
+                The form below is now wired through Spring MVC and validation. Submit the project context, the route or
+                screen involved, and what success should look like.
+            </p>
+
+            <div class="mt-10 grid gap-5 text-sm leading-7 text-slate-300">
+                <div class="rounded-[1.6rem] border border-white/10 bg-white/[0.03] p-5">
+                    <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Best for</p>
+                    <p class="mt-3">New websites, structure passes, route/controller cleanup, Tailwind integration, and delivery support.</p>
+                </div>
+                <div class="rounded-[1.6rem] border border-white/10 bg-white/[0.03] p-5">
+                    <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Helpful context</p>
+                    <p class="mt-3">Affected page, desired behaviour, current blockers, and any delivery deadline that actually matters.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div th:if="${successMessage}" class="mb-6 rounded-[1.4rem] border border-emerald-400/25 bg-emerald-400/10 px-5 py-4 text-sm text-emerald-100" th:text="${successMessage}"></div>
+
+            <form th:action="@{/contact}" th:object="${contactForm}" method="post" class="grid gap-5">
+                <div>
+                    <label for="name" class="field-label">Name</label>
+                    <input id="name" type="text" th:field="*{name}" class="field-input" placeholder="Your name" />
+                    <p th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="field-error">Name error</p>
+                </div>
+
+                <div>
+                    <label for="email" class="field-label">Email</label>
+                    <input id="email" type="email" th:field="*{email}" class="field-input" placeholder="you@example.com" />
+                    <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="field-error">Email error</p>
+                </div>
+
+                <div>
+                    <label for="message" class="field-label">Project brief</label>
+                    <textarea id="message" th:field="*{message}" rows="7" class="field-input resize-y" placeholder="What page, route, or delivery outcome do you need?"></textarea>
+                    <p th:if="${#fields.hasErrors('message')}" th:errors="*{message}" class="field-error">Message error</p>
+                </div>
+
+                <button type="submit" class="primary-button w-full sm:w-auto">Send enquiry</button>
+            </form>
+        </div>
+    </section>
+</th:block>
+
+<th:block th:fragment="scripts"></th:block>
+</body>
+</html>

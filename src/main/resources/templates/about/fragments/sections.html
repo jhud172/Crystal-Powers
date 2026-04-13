@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <section class="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+        <div>
+            <span class="eyebrow">About the studio</span>
+            <h1 class="mt-8 font-display text-4xl leading-tight text-white sm:text-5xl">Built around clarity, structure, and a premium finish.</h1>
+            <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+                Crystal Production operates like a focused implementation partner. The priority is not feature count or visual noise.
+                The priority is a cleaner customer journey, stable architecture, and a result that feels intentionally built.
+            </p>
+        </div>
+        <div class="section-card overflow-hidden p-4">
+            <img th:src="@{/images/BackgroundSpaceImage.png}"
+                 src="/images/BackgroundSpaceImage.png"
+                 alt="Abstract studio backdrop"
+                 class="h-[24rem] w-full rounded-[1.6rem] object-cover" />
+        </div>
+    </section>
+
+    <section class="grid gap-6 lg:grid-cols-3">
+        <article class="section-card">
+            <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Philosophy</p>
+            <h2 class="mt-4 font-display text-2xl text-white">Fewer moving parts, higher trust</h2>
+            <p class="mt-4 text-sm leading-7 text-slate-300">The stack stays understandable. Templates, styles, scripts, routes, and controllers each keep one job.</p>
+        </article>
+        <article class="section-card">
+            <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Delivery</p>
+            <h2 class="mt-4 font-display text-2xl text-white">Production-first implementation</h2>
+            <p class="mt-4 text-sm leading-7 text-slate-300">Changes are wired through the actual app path, not left as design mockups or half-integrated snippets.</p>
+        </article>
+        <article class="section-card">
+            <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Experience</p>
+            <h2 class="mt-4 font-display text-2xl text-white">Premium by restraint, not excess</h2>
+            <p class="mt-4 text-sm leading-7 text-slate-300">Strong typography, controlled color, deliberate spacing, and a clear visual hierarchy do the heavy lifting.</p>
+        </article>
+    </section>
+
+    <section class="grid gap-8 lg:grid-cols-[1fr_1fr]">
+        <div class="section-card">
+            <span class="eyebrow">What that means in practice</span>
+            <ul class="mt-8 space-y-5 text-sm leading-7 text-slate-300">
+                <li class="border-l border-white/10 pl-4">Shared base layout instead of duplicated page shells.</li>
+                <li class="border-l border-white/10 pl-4">Dedicated JavaScript modules imported only where they are needed.</li>
+                <li class="border-l border-white/10 pl-4">Tailwind compiled through npm into a stable static stylesheet for Spring Boot.</li>
+                <li class="border-l border-white/10 pl-4">Legacy route redirects so older direct links do not break after restructuring.</li>
+            </ul>
+        </div>
+        <div class="section-card">
+            <span class="eyebrow">Current site profile</span>
+            <p class="mt-8 text-base leading-7 text-slate-300">
+                Right now the site presents Crystal Production as a premium digital services studio offering websites,
+                community systems, custom bots, product support, and polished creative execution. The routing and template
+                structure have been aligned to that positioning.
+            </p>
+            <div class="mt-8 flex flex-wrap gap-4">
+                <a th:href="@{/services}" class="primary-button">See services</a>
+                <a th:href="@{/portfolio}" class="secondary-button">View portfolio</a>
+            </div>
+        </div>
+    </section>
+</th:block>
+
+<th:block th:fragment="scripts"></th:block>
+</body>
+</html>

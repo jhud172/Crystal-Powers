@@ -1,0 +1,43 @@
+package com.crystalproduction.website.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@Controller
+public class LegacyRouteController {
+
+    @GetMapping({"/index.html", "/home.html"})
+    public String legacyHome() {
+        return "redirect:/";
+    }
+
+    @GetMapping("/about.html")
+    public String legacyAbout() {
+        return "redirect:/about";
+    }
+
+    @GetMapping("/services.html")
+    public String legacyServices() {
+        return "redirect:/services";
+    }
+
+    @GetMapping("/products.html")
+    public String legacyProducts() {
+        return "redirect:/products";
+    }
+
+    @GetMapping("/portfolio.html")
+    public String legacyPortfolio() {
+        return "redirect:/portfolio";
+    }
+
+    @GetMapping("/support.html")
+    public String legacySupport() {
+        return "redirect:/support";
+    }
+
+    @GetMapping("/contact.html")
+    public String legacyContact() {
+        return "redirect:/contact";
+    }
+}

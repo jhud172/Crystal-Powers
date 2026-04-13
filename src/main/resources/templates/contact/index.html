@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout(
+        'Contact',
+        'Contact Crystal Production for website, automation, or support enquiries.',
+        'contact',
+        ~{contact/fragments/sections :: content},
+        ~{contact/fragments/sections :: scripts}
+      )}">
+</html>

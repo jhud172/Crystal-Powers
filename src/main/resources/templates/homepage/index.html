@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout(
+        'Home',
+        'Crystal Production builds polished websites, Discord systems, automation, and high-touch digital delivery.',
+        'home',
+        ~{homepage/fragments/sections :: content},
+        ~{homepage/fragments/sections :: scripts}
+      )}">
+</html>

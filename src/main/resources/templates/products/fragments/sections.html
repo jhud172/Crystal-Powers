@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <section class="max-w-3xl">
+        <span class="eyebrow">Productised offers</span>
+        <h1 class="mt-8 font-display text-4xl text-white sm:text-5xl">Pick the delivery model that matches the job.</h1>
+        <p class="mt-6 text-lg leading-8 text-slate-300">
+            These offers turn the current service mix into cleaner buying paths. Each one opens a full brief with scope,
+            expected output, and the type of work it is designed to solve.
+        </p>
+    </section>
+
+    <section class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <article class="section-card flex h-full flex-col">
+            <img th:src="@{/images/WebsiteImage.png}" src="/images/WebsiteImage.png" alt="Website launch package" class="h-48 w-full rounded-[1.4rem] object-cover" />
+            <p class="mt-6 text-xs uppercase tracking-[0.24em] text-cyan-300">Launch package</p>
+            <h2 class="mt-3 font-display text-2xl text-white">Website Launch Sprint</h2>
+            <p class="mt-4 flex-1 text-sm leading-7 text-slate-300">A fast premium pass for landing pages, sales pages, and compact websites that need proper structure and polish.</p>
+            <button type="button" data-dialog-open="website-launch" class="secondary-button mt-6 w-full">View scope</button>
+        </article>
+
+        <article class="section-card flex h-full flex-col">
+            <img th:src="@{/images/ServerSetup.png}" src="/images/ServerSetup.png" alt="Community operations package" class="h-48 w-full rounded-[1.4rem] object-cover" />
+            <p class="mt-6 text-xs uppercase tracking-[0.24em] text-cyan-300">Operations package</p>
+            <h2 class="mt-3 font-display text-2xl text-white">Community Systems Setup</h2>
+            <p class="mt-4 flex-1 text-sm leading-7 text-slate-300">A complete pass on structure, roles, support channels, moderation flow, and ticket organisation for Discord communities.</p>
+            <button type="button" data-dialog-open="community-systems" class="secondary-button mt-6 w-full">View scope</button>
+        </article>
+
+        <article class="section-card flex h-full flex-col">
+            <img th:src="@{/images/DiscordBot.png}" src="/images/DiscordBot.png" alt="Bot build package" class="h-48 w-full rounded-[1.4rem] object-cover" />
+            <p class="mt-6 text-xs uppercase tracking-[0.24em] text-cyan-300">Automation package</p>
+            <h2 class="mt-3 font-display text-2xl text-white">Custom Bot Build</h2>
+            <p class="mt-4 flex-1 text-sm leading-7 text-slate-300">For utility bots, support automations, gated flows, and focused operational tooling built around the real workflow.</p>
+            <button type="button" data-dialog-open="custom-bot" class="secondary-button mt-6 w-full">View scope</button>
+        </article>
+
+        <article class="section-card flex h-full flex-col">
+            <img th:src="@{/images/WebsiteGFX.png}" src="/images/WebsiteGFX.png" alt="Visual kit package" class="h-48 w-full rounded-[1.4rem] object-cover" />
+            <p class="mt-6 text-xs uppercase tracking-[0.24em] text-cyan-300">Creative package</p>
+            <h2 class="mt-3 font-display text-2xl text-white">Visual Identity Kit</h2>
+            <p class="mt-4 flex-1 text-sm leading-7 text-slate-300">Launch graphics, page visuals, announcement assets, and product imagery that align with the site and the product story.</p>
+            <button type="button" data-dialog-open="visual-kit" class="secondary-button mt-6 w-full">View scope</button>
+        </article>
+
+        <article class="section-card flex h-full flex-col">
+            <img th:src="@{/images/DiscordNitroBoost.png}" src="/images/DiscordNitroBoost.png" alt="Growth package" class="h-48 w-full rounded-[1.4rem] object-cover" />
+            <p class="mt-6 text-xs uppercase tracking-[0.24em] text-cyan-300">Growth package</p>
+            <h2 class="mt-3 font-display text-2xl text-white">Community Growth Pack</h2>
+            <p class="mt-4 flex-1 text-sm leading-7 text-slate-300">A focused delivery package around launch presentation, campaign graphics, and audience-facing community touchpoints.</p>
+            <button type="button" data-dialog-open="growth-pack" class="secondary-button mt-6 w-full">View scope</button>
+        </article>
+
+        <article class="section-card flex h-full flex-col">
+            <img th:src="@{/images/ResellerImage.png}" src="/images/ResellerImage.png" alt="Partner package" class="h-48 w-full rounded-[1.4rem] object-cover" />
+            <p class="mt-6 text-xs uppercase tracking-[0.24em] text-cyan-300">Partner package</p>
+            <h2 class="mt-3 font-display text-2xl text-white">Reseller Partner Setup</h2>
+            <p class="mt-4 flex-1 text-sm leading-7 text-slate-300">For operators who need a cleaner front end, asset pack, and sales support structure before they onboard resellers or partners.</p>
+            <button type="button" data-dialog-open="reseller-pack" class="secondary-button mt-6 w-full">View scope</button>
+        </article>
+    </section>
+
+    <dialog data-product-dialog="website-launch" class="dialog-panel">
+        <div class="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
+            <img th:src="@{/images/WebsiteImage.png}" src="/images/WebsiteImage.png" alt="Website launch package" class="h-full min-h-64 w-full object-cover" />
+            <div class="p-8">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Website Launch Sprint</p>
+                        <h2 class="mt-3 font-display text-3xl text-white">For premium single-focus websites</h2>
+                    </div>
+                    <button type="button" data-dialog-close="true" class="rounded-full border border-white/10 px-3 py-2 text-xs uppercase tracking-[0.24em] text-slate-300">Close</button>
+                </div>
+                <ul class="mt-6 space-y-3 text-sm leading-7 text-slate-300">
+                    <li class="border-l border-white/10 pl-4">Shared base template and fragment structure</li>
+                    <li class="border-l border-white/10 pl-4">Responsive landing flow and CTA strategy</li>
+                    <li class="border-l border-white/10 pl-4">Dedicated CSS/JS separation with clean imports</li>
+                </ul>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog data-product-dialog="community-systems" class="dialog-panel">
+        <div class="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
+            <img th:src="@{/images/ServerSetup.png}" src="/images/ServerSetup.png" alt="Community systems package" class="h-full min-h-64 w-full object-cover" />
+            <div class="p-8">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Community Systems Setup</p>
+                        <h2 class="mt-3 font-display text-3xl text-white">For Discord operations that need order</h2>
+                    </div>
+                    <button type="button" data-dialog-close="true" class="rounded-full border border-white/10 px-3 py-2 text-xs uppercase tracking-[0.24em] text-slate-300">Close</button>
+                </div>
+                <ul class="mt-6 space-y-3 text-sm leading-7 text-slate-300">
+                    <li class="border-l border-white/10 pl-4">Role architecture and support routing</li>
+                    <li class="border-l border-white/10 pl-4">Ticket channel design and process cleanup</li>
+                    <li class="border-l border-white/10 pl-4">Operational layout for staff and customers</li>
+                </ul>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog data-product-dialog="custom-bot" class="dialog-panel">
+        <div class="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
+            <img th:src="@{/images/DiscordBot.png}" src="/images/DiscordBot.png" alt="Custom bot build package" class="h-full min-h-64 w-full object-cover" />
+            <div class="p-8">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Custom Bot Build</p>
+                        <h2 class="mt-3 font-display text-3xl text-white">For repetitive admin work that should disappear</h2>
+                    </div>
+                    <button type="button" data-dialog-close="true" class="rounded-full border border-white/10 px-3 py-2 text-xs uppercase tracking-[0.24em] text-slate-300">Close</button>
+                </div>
+                <ul class="mt-6 space-y-3 text-sm leading-7 text-slate-300">
+                    <li class="border-l border-white/10 pl-4">Scoped feature set with actual operator use cases</li>
+                    <li class="border-l border-white/10 pl-4">Utility-first flows over bloated command menus</li>
+                    <li class="border-l border-white/10 pl-4">Fit for support, notifications, and gated actions</li>
+                </ul>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog data-product-dialog="visual-kit" class="dialog-panel">
+        <div class="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
+            <img th:src="@{/images/WebsiteGFX.png}" src="/images/WebsiteGFX.png" alt="Visual identity kit" class="h-full min-h-64 w-full object-cover" />
+            <div class="p-8">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Visual Identity Kit</p>
+                        <h2 class="mt-3 font-display text-3xl text-white">For launch visuals that match the build quality</h2>
+                    </div>
+                    <button type="button" data-dialog-close="true" class="rounded-full border border-white/10 px-3 py-2 text-xs uppercase tracking-[0.24em] text-slate-300">Close</button>
+                </div>
+                <ul class="mt-6 space-y-3 text-sm leading-7 text-slate-300">
+                    <li class="border-l border-white/10 pl-4">Hero assets, promo graphics, and branded media</li>
+                    <li class="border-l border-white/10 pl-4">Visual continuity across web and community surfaces</li>
+                    <li class="border-l border-white/10 pl-4">Built to support launches, updates, and campaigns</li>
+                </ul>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog data-product-dialog="growth-pack" class="dialog-panel">
+        <div class="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
+            <img th:src="@{/images/DiscordNitroBoost.png}" src="/images/DiscordNitroBoost.png" alt="Community growth package" class="h-full min-h-64 w-full object-cover" />
+            <div class="p-8">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Community Growth Pack</p>
+                        <h2 class="mt-3 font-display text-3xl text-white">For stronger public-facing community launches</h2>
+                    </div>
+                    <button type="button" data-dialog-close="true" class="rounded-full border border-white/10 px-3 py-2 text-xs uppercase tracking-[0.24em] text-slate-300">Close</button>
+                </div>
+                <ul class="mt-6 space-y-3 text-sm leading-7 text-slate-300">
+                    <li class="border-l border-white/10 pl-4">Launch visuals and update graphics</li>
+                    <li class="border-l border-white/10 pl-4">Channel presentation and announcement hygiene</li>
+                    <li class="border-l border-white/10 pl-4">Sharper buying or onboarding first impression</li>
+                </ul>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog data-product-dialog="reseller-pack" class="dialog-panel">
+        <div class="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
+            <img th:src="@{/images/ResellerImage.png}" src="/images/ResellerImage.png" alt="Reseller partner setup" class="h-full min-h-64 w-full object-cover" />
+            <div class="p-8">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Reseller Partner Setup</p>
+                        <h2 class="mt-3 font-display text-3xl text-white">For scaling offers through partners</h2>
+                    </div>
+                    <button type="button" data-dialog-close="true" class="rounded-full border border-white/10 px-3 py-2 text-xs uppercase tracking-[0.24em] text-slate-300">Close</button>
+                </div>
+                <ul class="mt-6 space-y-3 text-sm leading-7 text-slate-300">
+                    <li class="border-l border-white/10 pl-4">Partner-facing product presentation</li>
+                    <li class="border-l border-white/10 pl-4">Sales-support assets and cleaner offer packaging</li>
+                    <li class="border-l border-white/10 pl-4">A tighter front-end before reseller onboarding begins</li>
+                </ul>
+            </div>
+        </div>
+    </dialog>
+</th:block>
+
+<th:block th:fragment="scripts">
+    <script defer th:src="@{/js/products.js}" src="/js/products.js"></script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <section class="max-w-3xl">
+        <span class="eyebrow">Services</span>
+        <h1 class="mt-8 font-display text-4xl text-white sm:text-5xl">A compact service menu focused on delivery, support, and polish.</h1>
+        <p class="mt-6 text-lg leading-8 text-slate-300">
+            Each service line is scoped to a real operational need. No filler retainers, no vague innovation claims,
+            and no bundled extras that do not improve the customer-facing result.
+        </p>
+    </section>
+
+    <section class="grid gap-8">
+        <article class="grid gap-8 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 lg:grid-cols-[0.9fr_1.1fr] lg:p-8">
+            <img th:src="@{/images/WebsiteImage.png}" src="/images/WebsiteImage.png" alt="Website service preview" class="h-72 w-full rounded-[1.6rem] object-cover" />
+            <div>
+                <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Website delivery</p>
+                <h2 class="mt-4 font-display text-3xl text-white">Premium website builds</h2>
+                <p class="mt-4 text-sm leading-7 text-slate-300">Marketing sites, product pages, and operational front ends with clean route structure, dependable template layouts, and maintainable assets.</p>
+                <ul class="mt-6 space-y-3 text-sm leading-7 text-slate-300">
+                    <li class="border-l border-white/10 pl-4">Thymeleaf layout structure and controller wiring</li>
+                    <li class="border-l border-white/10 pl-4">Responsive UI refinement and asset organisation</li>
+                    <li class="border-l border-white/10 pl-4">Deployment-ready runtime verification</li>
+                </ul>
+            </div>
+        </article>
+
+        <article class="grid gap-8 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 lg:grid-cols-[0.9fr_1.1fr] lg:p-8">
+            <img th:src="@{/images/ServerSetup.png}" src="/images/ServerSetup.png" alt="Discord setup service preview" class="h-72 w-full rounded-[1.6rem] object-cover" />
+            <div>
+                <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Community systems</p>
+                <h2 class="mt-4 font-display text-3xl text-white">Discord structure and support ops</h2>
+                <p class="mt-4 text-sm leading-7 text-slate-300">Server architecture, ticket flow, moderation support, permissions, and role design built to reduce operational friction.</p>
+                <ul class="mt-6 space-y-3 text-sm leading-7 text-slate-300">
+                    <li class="border-l border-white/10 pl-4">Onboarding, support, and escalation flows</li>
+                    <li class="border-l border-white/10 pl-4">Role structure and channel architecture</li>
+                    <li class="border-l border-white/10 pl-4">Operational hygiene for staff teams</li>
+                </ul>
+            </div>
+        </article>
+
+        <article class="grid gap-8 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 lg:grid-cols-[0.9fr_1.1fr] lg:p-8">
+            <img th:src="@{/images/DiscordBot.png}" src="/images/DiscordBot.png" alt="Bot service preview" class="h-72 w-full rounded-[1.6rem] object-cover" />
+            <div>
+                <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Automation</p>
+                <h2 class="mt-4 font-display text-3xl text-white">Custom bot and utility workflows</h2>
+                <p class="mt-4 text-sm leading-7 text-slate-300">Small automation systems that remove repetitive admin work while staying aligned with the actual way the team operates.</p>
+                <ul class="mt-6 space-y-3 text-sm leading-7 text-slate-300">
+                    <li class="border-l border-white/10 pl-4">Ticket helpers and notifications</li>
+                    <li class="border-l border-white/10 pl-4">Internal utility flows and guardrails</li>
+                    <li class="border-l border-white/10 pl-4">Scoped functionality without feature sprawl</li>
+                </ul>
+            </div>
+        </article>
+
+        <article class="grid gap-8 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 lg:grid-cols-[0.9fr_1.1fr] lg:p-8">
+            <img th:src="@{/images/WebsiteGFX.png}" src="/images/WebsiteGFX.png" alt="Creative support preview" class="h-72 w-full rounded-[1.6rem] object-cover" />
+            <div>
+                <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Creative support</p>
+                <h2 class="mt-4 font-display text-3xl text-white">Launch visuals and supporting media</h2>
+                <p class="mt-4 text-sm leading-7 text-slate-300">Motion snippets, branded art, landing visuals, and supporting assets that keep the presentation consistent with the build itself.</p>
+                <ul class="mt-6 space-y-3 text-sm leading-7 text-slate-300">
+                    <li class="border-l border-white/10 pl-4">Hero images and promotional graphics</li>
+                    <li class="border-l border-white/10 pl-4">Visual support for products or communities</li>
+                    <li class="border-l border-white/10 pl-4">Clean handoff with reusable assets</li>
+                </ul>
+            </div>
+        </article>
+    </section>
+</th:block>
+
+<th:block th:fragment="scripts"></th:block>
+</body>
+</html>

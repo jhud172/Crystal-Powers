@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ink font-sans text-mist antialiased;
+  }
+
+  ::selection {
+    @apply bg-accent/40 text-white;
+  }
+}
+
+@layer components {
+  .nav-link {
+    @apply text-xs font-semibold uppercase tracking-[0.24em] text-slate-300 transition hover:text-white;
+  }
+
+  .nav-link-active {
+    @apply text-white;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-slate-200;
+  }
+
+  .primary-button {
+    @apply inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-cyan-200;
+  }
+
+  .secondary-button {
+    @apply inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-white/10;
+  }
+
+  .section-card {
+    @apply rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-halo backdrop-blur-xl;
+  }
+
+  .field-label {
+    @apply mb-2 block text-xs font-semibold uppercase tracking-[0.24em] text-slate-300;
+  }
+
+  .field-input {
+    @apply w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20;
+  }
+
+  .field-error {
+    @apply mt-2 text-sm text-rose-300;
+  }
+
+  .dialog-panel {
+    @apply w-full max-w-3xl rounded-[2rem] border border-white/10 bg-slate-950/95 p-0 text-left text-mist shadow-[0_30px_120px_rgba(2,6,23,0.82)] backdrop-blur-xl;
+  }
+}
+
+dialog::backdrop {
+  background: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(10px);
+}

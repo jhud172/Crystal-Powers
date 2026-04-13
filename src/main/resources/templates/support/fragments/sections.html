@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="content">
+    <section class="grid gap-12 lg:grid-cols-[0.95fr_1.05fr]">
+        <div>
+            <span class="eyebrow">Support</span>
+            <h1 class="mt-8 font-display text-4xl text-white sm:text-5xl">A clear help path, not a maze of contact methods.</h1>
+            <p class="mt-6 text-lg leading-8 text-slate-300">
+                Support is intentionally simple. Use the contact page for project enquiries or request changes,
+                and use the direct community channel when you already have an active delivery running.
+            </p>
+        </div>
+        <div class="section-card">
+            <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Response expectations</p>
+            <dl class="mt-6 grid gap-6 sm:grid-cols-2">
+                <div>
+                    <dt class="text-sm font-semibold text-white">Project enquiries</dt>
+                    <dd class="mt-2 text-sm leading-7 text-slate-300">Use the site contact form with scope, timeline, and the problem to solve.</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-semibold text-white">Active delivery support</dt>
+                    <dd class="mt-2 text-sm leading-7 text-slate-300">Use the agreed support channel so updates stay attached to the current workstream.</dd>
+                </div>
+            </dl>
+        </div>
+    </section>
+
+    <section class="grid gap-6 lg:grid-cols-3">
+        <article class="section-card">
+            <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">01</p>
+            <h2 class="mt-4 font-display text-2xl text-white">State the route</h2>
+            <p class="mt-4 text-sm leading-7 text-slate-300">Say whether the request is a new build, a structure pass, a visual revision, or support for an existing delivery.</p>
+        </article>
+        <article class="section-card">
+            <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">02</p>
+            <h2 class="mt-4 font-display text-2xl text-white">Attach real context</h2>
+            <p class="mt-4 text-sm leading-7 text-slate-300">Include the page, asset, controller, or flow that is affected. The fastest fixes come from precise context.</p>
+        </article>
+        <article class="section-card">
+            <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">03</p>
+            <h2 class="mt-4 font-display text-2xl text-white">Keep the stack aligned</h2>
+            <p class="mt-4 text-sm leading-7 text-slate-300">Support changes stay inside the established structure: base layout, fragments, dedicated CSS, and dedicated JS.</p>
+        </article>
+    </section>
+
+    <section class="section-card flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+            <span class="eyebrow">Need a direct next step?</span>
+            <h2 class="mt-5 font-display text-3xl text-white">Use the contact form for scoped requests.</h2>
+            <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300">That gives you a stable route for new work, updates, and structured support without depending on old flat HTML pages or direct file links.</p>
+        </div>
+        <a th:href="@{/contact}" class="primary-button">Open contact</a>
+    </section>
+</th:block>
+
+<th:block th:fragment="scripts"></th:block>
+</body>
+</html>
