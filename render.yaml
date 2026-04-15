@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: crystal-production
+    env: java
+    plan: free
+    buildCommand: chmod +x ./gradlew && ./gradlew clean build -x test
+    startCommand: java -Dserver.port=$PORT -jar build/libs/crystal-production-website-0.0.1-SNAPSHOT.jar
+    envVars:
+      - key: JAVA_VERSION
+        value: 17
+      - key: NODE_VERSION
+        value: 22.22.0

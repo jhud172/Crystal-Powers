@@ -24,7 +24,7 @@ class CrystalProductionApplicationTests {
 
     @Test
     void primaryRoutesReturnOk() throws Exception {
-        String[] routes = {"/", "/about", "/services", "/products", "/portfolio", "/support", "/contact"};
+        String[] routes = {"/", "/about", "/services", "/portfolio", "/support", "/contact"};
         for (String route : routes) {
             mockMvc.perform(get(route))
                     .andExpect(status().isOk());
@@ -36,10 +36,15 @@ class CrystalProductionApplicationTests {
         mockMvc.perform(get("/home.html"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"));
+    }
+
+    @Test
+    void removedProductsRoutesReturnNotFound() throws Exception {
+        mockMvc.perform(get("/products"))
+                .andExpect(status().isNotFound());
 
         mockMvc.perform(get("/products.html"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/products"));
+                .andExpect(status().isNotFound());
     }
 
     @Test

@@ -21,11 +21,6 @@ public class LegacyRouteController {
         return "redirect:/services";
     }
 
-    @GetMapping("/products.html")
-    public String legacyProducts() {
-        return "redirect:/products";
-    }
-
     @GetMapping("/portfolio.html")
     public String legacyPortfolio() {
         return "redirect:/portfolio";

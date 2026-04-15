@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-CrystalProductionApplication<crystal-production-website>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.crystalproduction.website.CrystalProductionApplication",
+            "projectName": "crystal-production-website",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
