@@ -12,66 +12,98 @@
     <link rel="icon" th:href="@{/favicon.svg}" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" th:href="@{/css/style.css}" href="/css/style.css" />
 </head>
-<body>
-<div class="relative isolate min-h-screen overflow-hidden">
+<body th:classappend="${pageKey == 'home'} ? ' page-home' : ''">
+<div class="site-shell">
     <div class="pointer-events-none absolute inset-0 -z-30 bg-ink"></div>
-    <div class="pointer-events-none absolute inset-x-0 top-0 -z-20 h-[32rem] bg-hero-grid opacity-90 blur-3xl"></div>
-    <div class="pointer-events-none absolute inset-y-0 right-[-12rem] -z-20 hidden w-[32rem] rounded-full bg-cyan-400/10 blur-3xl lg:block"></div>
-    <div class="pointer-events-none absolute inset-x-0 bottom-[-16rem] -z-20 h-[28rem] bg-[radial-gradient(circle_at_bottom,rgba(249,115,22,0.14),transparent_40%)] blur-3xl"></div>
+    <div class="site-glow site-glow-top"></div>
+    <div class="site-glow site-glow-side"></div>
+    <div class="site-glow site-glow-bottom"></div>
 
-    <header class="sticky top-0 z-50 border-b border-white/10 bg-slate-950/75 backdrop-blur-xl">
-        <div class="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-            <a th:href="@{/}" class="flex items-center gap-3 text-white">
-                <span class="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 font-display text-lg font-semibold">CP</span>
-                <span class="font-display text-sm uppercase tracking-[0.34em] text-slate-200">Crystal Production</span>
+    <header class="site-header">
+        <div class="site-header-inner">
+            <a th:href="@{/}" class="brand-link">
+                <span class="brand-badge">CP</span>
+                <span class="brand-copy">
+                    <span class="brand-title">Crystal Production</span>
+                    <span class="brand-subtitle">Web apps, app experiences, and launch systems</span>
+                </span>
             </a>
 
             <button type="button"
                     data-nav-toggle="true"
                     aria-expanded="false"
-                    class="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-200 md:hidden">
+                    class="nav-toggle md:hidden">
                 Menu
             </button>
 
-            <nav class="hidden items-center gap-6 md:flex">
+            <nav class="site-nav hidden md:flex">
                 <a th:href="@{/}" class="nav-link" th:classappend="${pageKey == 'home'} ? ' nav-link-active'">Home</a>
                 <a th:href="@{/about}" class="nav-link" th:classappend="${pageKey == 'about'} ? ' nav-link-active'">About</a>
                 <a th:href="@{/services}" class="nav-link" th:classappend="${pageKey == 'services'} ? ' nav-link-active'">Services</a>
                 <a th:href="@{/products}" class="nav-link" th:classappend="${pageKey == 'products'} ? ' nav-link-active'">Products</a>
                 <a th:href="@{/portfolio}" class="nav-link" th:classappend="${pageKey == 'portfolio'} ? ' nav-link-active'">Portfolio</a>
                 <a th:href="@{/support}" class="nav-link" th:classappend="${pageKey == 'support'} ? ' nav-link-active'">Support</a>
-                <a th:href="@{/contact}" class="secondary-button !px-5 !py-2.5">Contact</a>
             </nav>
+
+            <a th:href="@{/contact}" class="primary-button site-cta hidden md:inline-flex">Start a build</a>
         </div>
 
-        <nav data-nav-menu="true" class="hidden border-t border-white/10 bg-slate-950/95 px-6 py-5 md:hidden">
-            <div class="flex flex-col gap-4">
+        <nav data-nav-menu="true" class="mobile-nav-panel hidden md:hidden">
+            <div class="mobile-nav-panel-inner">
                 <a th:href="@{/}" class="nav-link" th:classappend="${pageKey == 'home'} ? ' nav-link-active'">Home</a>
                 <a th:href="@{/about}" class="nav-link" th:classappend="${pageKey == 'about'} ? ' nav-link-active'">About</a>
                 <a th:href="@{/services}" class="nav-link" th:classappend="${pageKey == 'services'} ? ' nav-link-active'">Services</a>
                 <a th:href="@{/products}" class="nav-link" th:classappend="${pageKey == 'products'} ? ' nav-link-active'">Products</a>
                 <a th:href="@{/portfolio}" class="nav-link" th:classappend="${pageKey == 'portfolio'} ? ' nav-link-active'">Portfolio</a>
                 <a th:href="@{/support}" class="nav-link" th:classappend="${pageKey == 'support'} ? ' nav-link-active'">Support</a>
-                <a th:href="@{/contact}" class="primary-button">Contact</a>
+                <a th:href="@{/contact}" class="primary-button w-full justify-center">Start a build</a>
             </div>
         </nav>
     </header>
 
-    <main class="mx-auto flex w-full max-w-7xl flex-col gap-24 px-6 pb-24 pt-10 lg:px-10 lg:pt-14">
+    <main class="site-main">
         <th:block th:replace="${content}"></th:block>
     </main>
 
-    <footer class="border-t border-white/10 bg-slate-950/70 backdrop-blur">
-        <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-8 text-sm text-slate-400 lg:flex-row lg:items-center lg:justify-between lg:px-10">
-            <div>
-                <p class="font-display text-base text-white">Crystal Production</p>
-                <p>Premium digital builds, operational support, and custom delivery for communities and brands.</p>
+    <footer class="site-footer">
+        <div class="site-footer-panel">
+            <div class="site-footer-grid">
+                <div class="footer-brand">
+                    <span class="eyebrow">Studio profile</span>
+                    <h2 class="footer-title">Customer-facing digital builds with a sharper first impression.</h2>
+                    <p class="footer-copy">
+                        Crystal Production focuses on premium websites, web applications, app-facing experiences,
+                        and the project surfaces around them.
+                    </p>
+                </div>
+
+                <div class="footer-column">
+                    <p class="footer-heading">Explore</p>
+                    <div class="footer-links">
+                        <a th:href="@{/services}" class="footer-link">Services</a>
+                        <a th:href="@{/products}" class="footer-link">Products</a>
+                        <a th:href="@{/portfolio}" class="footer-link">Portfolio</a>
+                        <a th:href="@{/support}" class="footer-link">Support</a>
+                    </div>
+                </div>
+
+                <div class="footer-column">
+                    <p class="footer-heading">Build focus</p>
+                    <ul class="footer-list">
+                        <li>Web applications</li>
+                        <li>Websites and launch pages</li>
+                        <li>App interfaces and product presentation</li>
+                        <li>Project feed and creation archive surfaces</li>
+                    </ul>
+                </div>
             </div>
-            <div class="flex flex-wrap gap-4 text-xs uppercase tracking-[0.24em]">
-                <a th:href="@{/services}" class="transition hover:text-white">Services</a>
-                <a th:href="@{/products}" class="transition hover:text-white">Products</a>
-                <a th:href="@{/portfolio}" class="transition hover:text-white">Portfolio</a>
-                <a th:href="@{/contact}" class="transition hover:text-white">Contact</a>
+
+            <div class="site-footer-meta">
+                <p>&copy; 2026 Crystal Production. Built for polished launches and cleaner product presentation.</p>
+                <div class="site-footer-meta-links">
+                    <a th:href="@{/about}" class="footer-link">About</a>
+                    <a th:href="@{/contact}" class="footer-link">Contact</a>
+                </div>
             </div>
         </div>
     </footer>
