@@ -7,6 +7,6 @@ services:
     startCommand: java -Dserver.port=$PORT -jar build/libs/crystal-production-website-0.0.1-SNAPSHOT.jar
     envVars:
       - key: JAVA_VERSION
-        value: 17
+        value: 25
       - key: NODE_VERSION
         value: 22.22.0
