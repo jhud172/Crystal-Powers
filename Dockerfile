@@ -11,6 +11,7 @@ RUN npm run build:css
 
 FROM eclipse-temurin:25-jdk-jammy AS app-build
 WORKDIR /app
+ENV SKIP_FRONTEND_BUILD=true
 
 COPY gradlew gradlew.bat settings.gradle build.gradle ./
 COPY gradle ./gradle

@@ -32,6 +32,10 @@ def npmCommand = org.gradle.internal.os.OperatingSystem.current().isWindows() ? 
 
 tasks.register('buildFrontendCss', Exec) {
     commandLine npmCommand, 'run', 'build:css'
+    // Docker builds precompile CSS in the dedicated Node stage.
+    onlyIf {
+        !providers.environmentVariable('SKIP_FRONTEND_BUILD').present
+    }
 }
 
 tasks.named('processResources') {
