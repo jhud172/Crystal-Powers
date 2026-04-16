@@ -1,0 +1,118 @@
+body[data-theme="clean"] {
+  --font-display: "Sora", sans-serif;
+  --font-sans: "Manrope", sans-serif;
+
+  --color-body-bg: #eef4fa;
+  --color-body-text: #1e293b;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #334155;
+  --color-text-muted: #475569;
+  --color-text-subtle: #64748b;
+
+  --color-accent: #2563eb;
+  --color-accent-soft: #38bdf8;
+  --color-accent-strong: #0ea5e9;
+
+  --body-overlay:
+    radial-gradient(circle at top, rgba(56, 189, 248, 0.12), transparent 34rem),
+    radial-gradient(circle at 82% 16%, rgba(37, 99, 235, 0.08), transparent 26rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+
+  --selection-bg: rgba(37, 99, 235, 0.16);
+  --selection-text: #0f172a;
+  --panel-border: rgba(148, 163, 184, 0.28);
+  --panel-shadow: 0 24px 80px rgba(148, 163, 184, 0.18);
+  --panel-shadow-strong: 0 30px 100px rgba(148, 163, 184, 0.2);
+  --panel-shadow-soft: 0 24px 72px rgba(148, 163, 184, 0.15);
+  --panel-shadow-inline: 0 18px 48px rgba(14, 165, 233, 0.12);
+
+  --header-surface: rgba(255, 255, 255, 0.82);
+  --nav-surface: rgba(15, 23, 42, 0.03);
+  --mobile-nav-surface: rgba(255, 255, 255, 0.95);
+  --footer-surface: rgba(255, 255, 255, 0.8);
+  --section-surface: rgba(255, 255, 255, 0.7);
+  --section-surface-soft: rgba(255, 255, 255, 0.85);
+  --section-surface-strong: rgba(255, 255, 255, 0.76);
+  --field-surface: rgba(255, 255, 255, 0.88);
+
+  --brand-badge-bg: rgba(15, 23, 42, 0.04);
+  --brand-badge-border: rgba(148, 163, 184, 0.28);
+  --brand-badge-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+  --eyebrow-bg: rgba(255, 255, 255, 0.82);
+  --eyebrow-border: rgba(148, 163, 184, 0.3);
+  --eyebrow-text: #1e293b;
+
+  --primary-button-bg: #0f172a;
+  --primary-button-text: #f8fafc;
+  --primary-button-hover-bg: #1d4ed8;
+  --secondary-button-bg: rgba(255, 255, 255, 0.84);
+  --secondary-button-border: rgba(148, 163, 184, 0.32);
+  --secondary-button-text: #0f172a;
+  --secondary-button-hover-bg: rgba(224, 242, 254, 0.95);
+  --secondary-button-hover-border: rgba(14, 165, 233, 0.4);
+
+  --theme-picker-bg: rgba(255, 255, 255, 0.9);
+  --theme-picker-border: rgba(148, 163, 184, 0.3);
+  --theme-picker-text: #0f172a;
+  --theme-picker-label: #64748b;
+
+  --glow-top: radial-gradient(circle at top, rgba(56, 189, 248, 0.18), transparent 46%);
+  --glow-side: radial-gradient(circle, rgba(37, 99, 235, 0.14), transparent 62%);
+  --glow-bottom: radial-gradient(circle at bottom, rgba(125, 211, 252, 0.16), transparent 42%);
+
+  --hero-shell-background:
+    radial-gradient(circle at 12% 18%, rgba(14, 165, 233, 0.14), transparent 24rem),
+    radial-gradient(circle at 86% 14%, rgba(37, 99, 235, 0.1), transparent 20rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(235, 243, 251, 0.88));
+  --hero-grid-color: rgba(148, 163, 184, 0.16);
+  --hero-shell-mask-opacity: 0.34;
+  --hero-band-top: rgba(15, 23, 42, 0.08);
+  --hero-band-bottom: rgba(15, 23, 42, 0.04);
+  --hero-band-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.12));
+  --hero-orb-primary: rgba(56, 189, 248, 0.18);
+  --hero-orb-secondary: rgba(37, 99, 235, 0.12);
+  --hero-orb-tertiary: rgba(186, 230, 253, 0.22);
+
+  --home-card-surface: rgba(255, 255, 255, 0.72);
+  --home-hero-surface:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.72)),
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.08), transparent 24rem);
+  --home-overview-surface:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.72)),
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.08), transparent 18rem);
+  --service-preview-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.66));
+
+  --pricing-featured-surface: rgba(224, 242, 254, 0.82);
+  --pricing-featured-border: rgba(14, 165, 233, 0.42);
+  --pricing-badge-bg: rgba(14, 165, 233, 0.12);
+  --pricing-badge-border: rgba(14, 165, 233, 0.24);
+  --pricing-badge-text: #0c4a6e;
+
+  --field-border: rgba(148, 163, 184, 0.34);
+  --field-text: #0f172a;
+  --field-placeholder: #64748b;
+  --field-focus-border: rgba(37, 99, 235, 0.35);
+  --field-focus-ring: rgba(37, 99, 235, 0.16);
+
+  --success-surface: rgba(16, 185, 129, 0.08);
+  --success-border: rgba(16, 185, 129, 0.22);
+  --success-text: #065f46;
+}
+
+body[data-theme="clean"] .site-header-inner,
+body[data-theme="clean"] .site-footer-panel,
+body[data-theme="clean"] .section-card,
+body[data-theme="clean"] .home-card,
+body[data-theme="clean"] .pricing-card,
+body[data-theme="clean"] .addon-card {
+  border-radius: 1.15rem;
+}
+
+body[data-theme="clean"] .primary-button,
+body[data-theme="clean"] .secondary-button,
+body[data-theme="clean"] .eyebrow,
+body[data-theme="clean"] .surface-chip,
+body[data-theme="clean"] .theme-picker {
+  border-radius: 0.9rem;
+}

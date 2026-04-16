@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="documentHead(pageTitle, pageDescription)">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title th:text="${pageTitle} + ' | Crystal Production'">Crystal Production</title>
+    <meta name="description"
+          th:content="${pageDescription}"
+          content="Crystal Production builds premium websites, automation, and digital product experiences." />
+    <meta name="theme-color" content="#060816" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap"
+          rel="stylesheet" />
+    <link rel="icon" th:href="@{/favicon.svg}" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="shortcut icon" th:href="@{/favicon.svg}" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" th:href="@{/site.webmanifest}" href="/site.webmanifest" />
+    <link rel="stylesheet" th:href="@{/css/global/global.css}" href="/css/global/global.css" />
+    <link rel="stylesheet" th:href="@{/css/themes/futuristic/theme.css}" href="/css/themes/futuristic/theme.css" />
+    <link rel="stylesheet" th:href="@{/css/themes/classic/theme.css}" href="/css/themes/classic/theme.css" />
+    <link rel="stylesheet" th:href="@{/css/themes/clean/theme.css}" href="/css/themes/clean/theme.css" />
+    <link rel="stylesheet" th:href="@{/css/themes/fresh/theme.css}" href="/css/themes/fresh/theme.css" />
+    <link rel="stylesheet" th:href="@{/css/themes/summer-vibes/theme.css}" href="/css/themes/summer-vibes/theme.css" />
+</head>
+</html>

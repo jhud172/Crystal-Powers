@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build:css": "tailwindcss -i ./src/main/frontend/styles/tailwind.css -o ./src/main/resources/static/css/style.css --minify",
-    "watch:css": "tailwindcss -i ./src/main/frontend/styles/tailwind.css -o ./src/main/resources/static/css/style.css --watch"
+    "build:css": "tailwindcss -i ./src/main/frontend/styles/global/global.css -o ./src/main/resources/static/css/global/global.css --minify",
+    "watch:css": "tailwindcss -i ./src/main/frontend/styles/global/global.css -o ./src/main/resources/static/css/global/global.css --watch"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.17"

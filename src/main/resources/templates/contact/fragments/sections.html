@@ -1,36 +1,66 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<body>
+<th:block xmlns:th="http://www.thymeleaf.org">
 <th:block th:fragment="content">
-    <section class="grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
-        <div>
-            <span class="eyebrow">Contact</span>
-            <h1 class="mt-8 font-display text-4xl text-white sm:text-5xl">Tell us what needs to be built, repaired, or cleaned up.</h1>
-            <p class="mt-6 text-lg leading-8 text-slate-300">
-                The form below is now wired through Spring MVC and validation. Submit the project context, the route or
-                screen involved, and what success should look like.
+    <section class="contact-builder" data-contact-builder>
+        <aside class="contact-preview-column">
+            <span class="eyebrow">Start a build</span>
+            <h1 class="services-hero-title">Shape the package, additions, and support level before the project brief is sent.</h1>
+            <p class="services-hero-body">
+                This form mirrors the service builder so the scope is already structured before the final conversation
+                starts. Select the build direction, add the extras you actually need, then complete the contact details.
             </p>
 
-            <div class="mt-10 grid gap-5 text-sm leading-7 text-slate-300">
-                <div class="rounded-[1.6rem] border border-white/10 bg-white/[0.03] p-5">
-                    <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Best for</p>
-                    <p class="mt-3">New websites, structure passes, route/controller cleanup, Tailwind integration, and delivery support.</p>
+            <div class="contact-preview-shell">
+                <div class="services-summary-block">
+                    <p class="services-summary-label">Selected package</p>
+                    <p class="services-summary-value" data-contact-preview-package>Nothing selected yet</p>
+                    <p class="services-summary-meta" data-contact-preview-package-meta>Choose a package from the form.</p>
                 </div>
-                <div class="rounded-[1.6rem] border border-white/10 bg-white/[0.03] p-5">
-                    <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Helpful context</p>
-                    <p class="mt-3">Affected page, desired behaviour, current blockers, and any delivery deadline that actually matters.</p>
+
+                <div class="services-summary-block">
+                    <p class="services-summary-label">Selected additions</p>
+                    <ul class="services-summary-chip-list" data-contact-preview-additions>
+                        <li class="services-summary-chip services-summary-chip-muted">No additions selected</li>
+                    </ul>
+                </div>
+
+                <div class="services-summary-block">
+                    <p class="services-summary-label">Maintenance</p>
+                    <p class="services-summary-value" data-contact-preview-maintenance>Nothing selected yet</p>
+                    <p class="services-summary-meta" data-contact-preview-maintenance-meta>Choose one support level.</p>
+                </div>
+
+                <div class="services-summary-block">
+                    <p class="services-summary-label">Contact preference</p>
+                    <p class="services-summary-value contact-preview-compact" data-contact-preview-contact>Not set yet</p>
+                    <p class="services-summary-meta" data-contact-preview-person>Fill in your details on the right.</p>
                 </div>
             </div>
-        </div>
+        </aside>
 
-        <div class="section-card">
+        <div class="services-form-shell contact-form-shell">
             <div th:if="${successMessage}" class="mb-6 rounded-[1.4rem] border border-emerald-400/25 bg-emerald-400/10 px-5 py-4 text-sm text-emerald-100" th:text="${successMessage}"></div>
 
-            <form th:action="@{/contact}" th:object="${contactForm}" method="post" class="grid gap-5">
+            <div class="services-form-intro">
+                <p class="section-tag">Quote request</p>
+                <h2 class="mt-3 font-display text-3xl text-white">Build the request with the same structure used on the services page.</h2>
+            </div>
+
+            <form th:action="@{/contact}" th:object="${contactForm}" method="post" class="contact-builder-form">
+                <input type="hidden" th:field="*{packageSelection}" data-contact-hidden-package />
+                <input type="hidden" th:field="*{selectedAdditions}" data-contact-hidden-additions />
+                <input type="hidden" th:field="*{maintenanceSelection}" data-contact-hidden-maintenance />
+                <input type="hidden" th:field="*{otherAdditions}" data-contact-hidden-other-additions />
+
                 <div>
-                    <label for="name" class="field-label">Name</label>
-                    <input id="name" type="text" th:field="*{name}" class="field-input" placeholder="Your name" />
-                    <p th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="field-error">Name error</p>
+                    <label for="firstName" class="field-label">Name</label>
+                    <input id="firstName" type="text" th:field="*{firstName}" class="field-input" placeholder="First name" data-contact-first-name />
+                    <p th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="field-error">First name error</p>
+                </div>
+
+                <div>
+                    <label for="lastName" class="field-label">Last name</label>
+                    <input id="lastName" type="text" th:field="*{lastName}" class="field-input" placeholder="Last name" data-contact-last-name />
+                    <p th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="field-error">Last name error</p>
                 </div>
 
                 <div>
@@ -40,17 +70,107 @@
                 </div>
 
                 <div>
-                    <label for="message" class="field-label">Project brief</label>
-                    <textarea id="message" th:field="*{message}" rows="7" class="field-input resize-y" placeholder="What page, route, or delivery outcome do you need?"></textarea>
+                    <label for="phoneNumber" class="field-label">Phone number</label>
+                    <input id="phoneNumber" type="tel" th:field="*{phoneNumber}" class="field-input" placeholder="+44 7..." />
+                    <p th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}" class="field-error">Phone number error</p>
+                </div>
+
+                <div class="services-form-span-two">
+                    <label for="preferredContactPoint" class="field-label">Preferred contact point</label>
+                    <select id="preferredContactPoint" th:field="*{preferredContactPoint}" class="field-input" data-contact-preferred-contact>
+                        <option value="">Choose one</option>
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="Email">Email</option>
+                    </select>
+                    <p th:if="${#fields.hasErrors('preferredContactPoint')}" th:errors="*{preferredContactPoint}" class="field-error">Contact preference error</p>
+                </div>
+
+                <div class="services-form-span-two contact-select-stack">
+                    <div class="contact-select-group" data-custom-select data-select-type="single" data-select-role="package">
+                        <p class="field-label">Package</p>
+                        <button type="button" class="contact-select-trigger" data-select-trigger aria-expanded="false">
+                            <span class="contact-select-trigger-label">Choose one package</span>
+                            <span class="contact-select-trigger-value" data-select-display>Select package</span>
+                        </button>
+                        <div class="contact-select-menu" data-select-menu hidden>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Basic" data-meta="&pound;349.99 · one-time build">Starter site foundation</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Starter" data-meta="&pound;499.99 · one-time build">Stronger business presence</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Standard" data-meta="&pound;749.99 · one-time build">Balanced premium build</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Experienced" data-meta="&pound;999.99 · one-time build">Advanced business structure</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Multi Grade" data-meta="&pound;1,499.99 · highest tier">Larger custom scope</button>
+                        </div>
+                        <p th:if="${#fields.hasErrors('packageSelection')}" th:errors="*{packageSelection}" class="field-error">Package error</p>
+                    </div>
+
+                    <div class="contact-select-group" data-custom-select data-select-type="multi" data-select-role="additions">
+                        <p class="field-label">Additions</p>
+                        <button type="button" class="contact-select-trigger" data-select-trigger aria-expanded="false">
+                            <span class="contact-select-trigger-label">Choose any additions</span>
+                            <span class="contact-select-trigger-value" data-select-display>Select additions</span>
+                        </button>
+                        <div class="contact-select-menu" data-select-menu hidden>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Basic logo creation" data-meta="&pound;24.99">Basic logo creation</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Refined logo design" data-meta="&pound;49.99">Refined logo design</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Full branding pack" data-meta="&pound;89.99">Full branding pack</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Business card design" data-meta="&pound;19.99">Business card design</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Content polishing / copy refinement" data-meta="&pound;39.99">Content polishing / copy refinement</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Full copywriting support" data-meta="&pound;119.99">Full copywriting support</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Tone and brand voice shaping" data-meta="&pound;59.99">Tone and brand voice shaping</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Advanced booking form" data-meta="&pound;69.99">Advanced booking form</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Blog setup and styling" data-meta="&pound;44.99">Blog setup and styling</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Testimonials / reviews section" data-meta="&pound;29.99">Testimonials / reviews section</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Social media integration" data-meta="&pound;24.99">Social media integration</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Stock image sourcing" data-meta="&pound;19.99">Stock image sourcing</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Image editing / optimisation" data-meta="&pound;24.99">Image editing / optimisation</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Additional page" data-meta="&pound;59.99">Additional page</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Other" data-meta="Custom">Other</button>
+                        </div>
+                        <p th:if="${#fields.hasErrors('selectedAdditions')}" th:errors="*{selectedAdditions}" class="field-error">Additions error</p>
+                    </div>
+
+                    <div class="contact-other-shell" data-contact-other-shell hidden>
+                        <div class="contact-other-header">
+                            <p class="field-label mb-0">Other additions</p>
+                            <button type="button" class="secondary-button contact-other-add" data-contact-other-add>Add another</button>
+                        </div>
+                        <div class="contact-other-list" data-contact-other-list></div>
+                        <p th:if="${#fields.hasErrors('otherAdditions')}" th:errors="*{otherAdditions}" class="field-error">Other additions error</p>
+                    </div>
+
+                    <div class="contact-select-group" data-custom-select data-select-type="single" data-select-role="maintenance">
+                        <p class="field-label">Maintenance</p>
+                        <button type="button" class="contact-select-trigger" data-select-trigger aria-expanded="false">
+                            <span class="contact-select-trigger-label">Choose one support level</span>
+                            <span class="contact-select-trigger-value" data-select-display>Select maintenance</span>
+                        </button>
+                        <div class="contact-select-menu" data-select-menu hidden>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Basic Maintenance" data-meta="&pound;9.99 · per month">Essential coverage</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Standard Maintenance" data-meta="&pound;19.99 · per month">Ongoing updates</button>
+                            <button type="button" class="contact-select-option" data-select-option data-value="Premium Maintenance" data-meta="&pound;29.99 · per month">Priority support</button>
+                        </div>
+                        <p th:if="${#fields.hasErrors('maintenanceSelection')}" th:errors="*{maintenanceSelection}" class="field-error">Maintenance error</p>
+                    </div>
+                </div>
+
+                <div class="services-form-span-two">
+                    <label for="message" class="field-label">Message</label>
+                    <textarea id="message" th:field="*{message}" rows="6" class="field-input resize-y" placeholder="What do you need built, changed, or supported?"></textarea>
                     <p th:if="${#fields.hasErrors('message')}" th:errors="*{message}" class="field-error">Message error</p>
                 </div>
 
-                <button type="submit" class="primary-button w-full sm:w-auto">Send enquiry</button>
+                <div class="services-form-span-two">
+                    <label for="extraInformation" class="field-label">Extra information</label>
+                    <textarea id="extraInformation" th:field="*{extraInformation}" rows="4" class="field-input resize-y" placeholder="Anything else that should shape the quote or the delivery plan."></textarea>
+                    <p th:if="${#fields.hasErrors('extraInformation')}" th:errors="*{extraInformation}" class="field-error">Extra information error</p>
+                </div>
+
+                <button type="submit" class="primary-button w-full sm:w-auto">Send build request</button>
             </form>
         </div>
     </section>
 </th:block>
 
-<th:block th:fragment="scripts"></th:block>
-</body>
-</html>
+<th:block th:fragment="scripts">
+    <script defer th:src="@{/js/contact.js}" src="/js/contact.js"></script>
+</th:block>
+</th:block>

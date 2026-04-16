@@ -1,0 +1,85 @@
+body[data-theme="classic"] {
+  --font-display: "Cormorant Garamond", serif;
+  --font-sans: "Manrope", sans-serif;
+
+  --color-body-bg: #11100d;
+  --color-body-text: #ece4d6;
+  --color-text-primary: #fff7ec;
+  --color-text-secondary: #dbcdb8;
+  --color-text-muted: #c9baa3;
+  --color-text-subtle: #9f8f77;
+
+  --color-accent: #b7793d;
+  --color-accent-soft: #e8c07d;
+  --color-accent-strong: #f3d7a2;
+
+  --body-overlay:
+    radial-gradient(circle at top, rgba(183, 121, 61, 0.12), transparent 32rem),
+    radial-gradient(circle at 80% 18%, rgba(255, 237, 213, 0.06), transparent 24rem),
+    linear-gradient(180deg, rgba(255, 248, 235, 0.02), rgba(0, 0, 0, 0));
+
+  --selection-bg: rgba(183, 121, 61, 0.3);
+  --panel-border: rgba(243, 215, 162, 0.16);
+  --panel-shadow: 0 24px 80px rgba(12, 10, 7, 0.5);
+  --panel-shadow-strong: 0 30px 100px rgba(12, 10, 7, 0.58);
+  --panel-shadow-soft: 0 24px 72px rgba(12, 10, 7, 0.44);
+  --panel-shadow-inline: 0 18px 48px rgba(183, 121, 61, 0.18);
+
+  --header-surface: rgba(24, 20, 15, 0.78);
+  --nav-surface: rgba(255, 247, 236, 0.03);
+  --mobile-nav-surface: rgba(21, 18, 13, 0.92);
+  --footer-surface: rgba(24, 20, 15, 0.78);
+  --section-surface: rgba(255, 246, 233, 0.05);
+  --section-surface-soft: rgba(255, 246, 233, 0.04);
+  --section-surface-strong: rgba(27, 22, 17, 0.74);
+  --field-surface: rgba(18, 15, 12, 0.82);
+
+  --theme-picker-bg: rgba(255, 247, 236, 0.05);
+  --theme-picker-border: rgba(243, 215, 162, 0.16);
+  --theme-picker-label: #bba88d;
+
+  --primary-button-bg: #f3d7a2;
+  --primary-button-text: #2b1d10;
+  --primary-button-hover-bg: #f8e5bf;
+  --secondary-button-bg: rgba(255, 247, 236, 0.04);
+  --secondary-button-border: rgba(243, 215, 162, 0.2);
+  --secondary-button-hover-bg: rgba(243, 215, 162, 0.08);
+  --secondary-button-hover-border: rgba(243, 215, 162, 0.45);
+
+  --glow-top: radial-gradient(circle at top, rgba(183, 121, 61, 0.16), transparent 44%);
+  --glow-side: radial-gradient(circle, rgba(232, 192, 125, 0.1), transparent 62%);
+  --glow-bottom: radial-gradient(circle at bottom, rgba(109, 76, 44, 0.16), transparent 42%);
+
+  --hero-shell-background:
+    radial-gradient(circle at 15% 18%, rgba(243, 215, 162, 0.1), transparent 24rem),
+    radial-gradient(circle at 84% 14%, rgba(183, 121, 61, 0.14), transparent 18rem),
+    linear-gradient(180deg, rgba(23, 18, 13, 0.92), rgba(16, 12, 10, 0.78));
+  --hero-grid-color: rgba(243, 215, 162, 0.08);
+  --hero-orb-primary: rgba(243, 215, 162, 0.14);
+  --hero-orb-secondary: rgba(183, 121, 61, 0.14);
+  --hero-orb-tertiary: rgba(120, 82, 48, 0.16);
+
+  --home-hero-surface:
+    linear-gradient(145deg, rgba(255, 248, 235, 0.07), rgba(255, 248, 235, 0.015)),
+    radial-gradient(circle at top left, rgba(183, 121, 61, 0.12), transparent 24rem);
+  --home-overview-surface:
+    linear-gradient(180deg, rgba(255, 248, 235, 0.06), rgba(255, 248, 235, 0.018)),
+    radial-gradient(circle at top right, rgba(243, 215, 162, 0.08), transparent 18rem);
+}
+
+body[data-theme="classic"] .site-header-inner,
+body[data-theme="classic"] .site-footer-panel,
+body[data-theme="classic"] .section-card,
+body[data-theme="classic"] .home-card,
+body[data-theme="classic"] .pricing-card,
+body[data-theme="classic"] .addon-card {
+  border-radius: 1.35rem;
+}
+
+body[data-theme="classic"] .primary-button,
+body[data-theme="classic"] .secondary-button,
+body[data-theme="classic"] .eyebrow,
+body[data-theme="classic"] .surface-chip,
+body[data-theme="classic"] .theme-picker {
+  border-radius: 0.95rem;
+}

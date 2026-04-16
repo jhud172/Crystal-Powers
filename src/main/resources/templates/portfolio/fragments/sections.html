@@ -1,46 +1,301 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<body>
+<th:block xmlns:th="http://www.thymeleaf.org">
 <th:block th:fragment="content">
-    <section class="max-w-3xl">
-        <span class="eyebrow">Selected work</span>
-        <h1 class="mt-8 font-display text-4xl text-white sm:text-5xl">Examples that show structure and presentation working together.</h1>
-        <p class="mt-6 text-lg leading-8 text-slate-300">
-            The portfolio direction is intentionally varied: polished website delivery, branded community presentation,
-            and product-facing visual systems that can support conversion.
-        </p>
+    <section class="portfolio-shell" data-portfolio-page>
+        <div class="portfolio-hero">
+            <div class="portfolio-hero-copy">
+                <span class="eyebrow">Portfolio archive</span>
+                <h1 class="services-hero-title">Search, filter, and open each build like a proper project surface instead of a static gallery.</h1>
+                <p class="services-hero-body">
+                    Each item opens into a richer breakdown covering the build, the creation process, what makes the
+                    result work, and where the final project lives.
+                </p>
+            </div>
+
+            <div class="portfolio-search-shell">
+                <label for="portfolio-search" class="field-label">Search the archive</label>
+                <input id="portfolio-search" type="search" class="field-input portfolio-search-input" placeholder="Search by project, category, company, or feature" data-portfolio-search />
+                <div class="portfolio-filter-row" data-portfolio-filters>
+                    <button type="button" class="portfolio-filter-chip is-active" data-portfolio-filter="all">All</button>
+                    <button type="button" class="portfolio-filter-chip" data-portfolio-filter="website">Website</button>
+                    <button type="button" class="portfolio-filter-chip" data-portfolio-filter="ecommerce">E-commerce</button>
+                    <button type="button" class="portfolio-filter-chip" data-portfolio-filter="creator">Creator</button>
+                    <button type="button" class="portfolio-filter-chip" data-portfolio-filter="launch">Launch</button>
+                    <button type="button" class="portfolio-filter-chip" data-portfolio-filter="system">System</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="portfolio-grid" data-portfolio-grid>
+            <article class="portfolio-card" data-portfolio-item data-category="website launch" data-search="editorial service landing flow website launch system private client premium typography conversion">
+                <button type="button" class="portfolio-card-trigger" data-portfolio-open>
+                    <img th:src="@{/images/project1.png}" src="/images/project1.png" alt="Editorial service landing flow" class="portfolio-card-image" />
+                    <div class="portfolio-card-copy">
+                        <div class="portfolio-card-head">
+                            <p class="section-tag">Website / Launch</p>
+                            <span class="portfolio-card-pill">Private client</span>
+                        </div>
+                        <h2 class="portfolio-card-title">Editorial service landing flow</h2>
+                        <p class="portfolio-card-body">A premium website direction focused on tone, hierarchy, and a cleaner path from first impression to enquiry.</p>
+                    </div>
+                </button>
+                <div class="sr-only">
+                    <p data-portfolio-title>Editorial service landing flow</p>
+                    <p data-portfolio-company>Private client · editorial service brand</p>
+                    <p data-portfolio-link>/portfolio/editorial-service-landing-flow</p>
+                    <p data-portfolio-meta>Website build · Launch system</p>
+                    <div data-portfolio-about>
+                        <p>The build was structured to feel premium immediately: editorial pacing, generous spacing, and a cleaner hierarchy around the service offer.</p>
+                        <ul>
+                            <li>Strong opening hero with clearer trust signals</li>
+                            <li>Service sections ordered around decision-making</li>
+                            <li>Sharper enquiry path without overloading the page</li>
+                        </ul>
+                    </div>
+                    <div data-portfolio-creation>
+                        <p>I built this around a cleaner page rhythm, bolder typography, and sections that guide the eye instead of competing for attention.</p>
+                        <ul>
+                            <li>Refined route structure and section ordering</li>
+                            <li>Adjusted spacing and card balance to feel more expensive</li>
+                            <li>Focused the visual system on conversion rather than decoration</li>
+                        </ul>
+                    </div>
+                    <div data-portfolio-result>
+                        <p>What makes it work is the way the page feels intentional from top to bottom. The layout does not just look polished; it supports the offer and makes the client feel more established.</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="portfolio-card" data-portfolio-item data-category="ecommerce website" data-search="product detail conversion storefront ecommerce brand website offer hierarchy product pages">
+                <button type="button" class="portfolio-card-trigger" data-portfolio-open>
+                    <img th:src="@{/images/project2.png}" src="/images/project2.png" alt="Product detail and conversion pass" class="portfolio-card-image" />
+                    <div class="portfolio-card-copy">
+                        <div class="portfolio-card-head">
+                            <p class="section-tag">E-commerce</p>
+                            <span class="portfolio-card-pill">Product brand</span>
+                        </div>
+                        <h2 class="portfolio-card-title">Product detail and conversion pass</h2>
+                        <p class="portfolio-card-body">A storefront layout shaped to make the product clearer, the offer sharper, and the conversion path easier to trust.</p>
+                    </div>
+                </button>
+                <div class="sr-only">
+                    <p data-portfolio-title>Product detail and conversion pass</p>
+                    <p data-portfolio-company>Product brand · storefront system</p>
+                    <p data-portfolio-link>/portfolio/product-detail-conversion-pass</p>
+                    <p data-portfolio-meta>E-commerce build · Conversion restructure</p>
+                    <div data-portfolio-about>
+                        <p>This project focused on product hierarchy and a stronger buying journey, keeping the design cleaner while making the product value more legible.</p>
+                        <ul>
+                            <li>Clearer product detail structure</li>
+                            <li>Reduced friction around the call to action</li>
+                            <li>More deliberate visual hierarchy across offer blocks</li>
+                        </ul>
+                    </div>
+                    <div data-portfolio-creation>
+                        <p>The work was built around simplifying the storefront: tightening component spacing, clarifying section order, and pushing important actions higher in the visual flow.</p>
+                        <ul>
+                            <li>Refined offer-led page sections</li>
+                            <li>Improved card and product spacing</li>
+                            <li>Stronger CTA rhythm across the layout</li>
+                        </ul>
+                    </div>
+                    <div data-portfolio-result>
+                        <p>The result works because it feels easier to scan and easier to trust. The page stops feeling crowded and starts behaving like a proper conversion surface.</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="portfolio-card" data-portfolio-item data-category="creator website" data-search="portfolio booking creator personal brand booking surface showcase live links professional">
+                <button type="button" class="portfolio-card-trigger" data-portfolio-open>
+                    <img th:src="@{/images/project3.png}" src="/images/project3.png" alt="Portfolio and booking surface" class="portfolio-card-image" />
+                    <div class="portfolio-card-copy">
+                        <div class="portfolio-card-head">
+                            <p class="section-tag">Creator / Website</p>
+                            <span class="portfolio-card-pill">Personal brand</span>
+                        </div>
+                        <h2 class="portfolio-card-title">Portfolio and booking surface</h2>
+                        <p class="portfolio-card-body">A booking-ready portfolio designed to let the work lead while keeping the presentation clean, sharp, and premium.</p>
+                    </div>
+                </button>
+                <div class="sr-only">
+                    <p data-portfolio-title>Portfolio and booking surface</p>
+                    <p data-portfolio-company>Creator brand · independent client</p>
+                    <p data-portfolio-link>/portfolio/portfolio-booking-surface</p>
+                    <p data-portfolio-meta>Creator website · Booking flow</p>
+                    <div data-portfolio-about>
+                        <p>This build balanced personality with restraint, letting the portfolio feel premium without drowning the work in unnecessary decoration.</p>
+                        <ul>
+                            <li>Focused showcase sections for featured work</li>
+                            <li>Booking route surfaced without overwhelming the page</li>
+                            <li>Cleaner visual system with stronger image handling</li>
+                        </ul>
+                    </div>
+                    <div data-portfolio-creation>
+                        <p>I built it around a lighter structure with stronger spacing, clearer image framing, and a simpler route into contact or booking.</p>
+                        <ul>
+                            <li>Reduced layout noise around the portfolio items</li>
+                            <li>Used a tighter card system for trust and clarity</li>
+                            <li>Made the contact path feel part of the design, not bolted on</li>
+                        </ul>
+                    </div>
+                    <div data-portfolio-result>
+                        <p>It works because the work stays central. The interface supports the creator instead of stealing attention from what they have actually made.</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="portfolio-card" data-portfolio-item data-category="launch system" data-search="launch rollout premium teaser product launch system marketing support visuals">
+                <button type="button" class="portfolio-card-trigger" data-portfolio-open>
+                    <img th:src="@{/images/WebsiteGFX.png}" src="/images/WebsiteGFX.png" alt="Launch support surface" class="portfolio-card-image" />
+                    <div class="portfolio-card-copy">
+                        <div class="portfolio-card-head">
+                            <p class="section-tag">Launch / Support</p>
+                            <span class="portfolio-card-pill">Campaign client</span>
+                        </div>
+                        <h2 class="portfolio-card-title">Launch support surface</h2>
+                        <p class="portfolio-card-body">A sharper launch-facing page built to frame an offer, hold attention, and keep the rollout visually consistent.</p>
+                    </div>
+                </button>
+                <div class="sr-only">
+                    <p data-portfolio-title>Launch support surface</p>
+                    <p data-portfolio-company>Campaign client · rollout page</p>
+                    <p data-portfolio-link>/portfolio/launch-support-surface</p>
+                    <p data-portfolio-meta>Launch page · Supporting media direction</p>
+                    <div data-portfolio-about>
+                        <p>This build focused on launch presentation, pairing bolder visual treatment with a tighter page structure so the offer felt more elevated.</p>
+                        <ul>
+                            <li>Clear launch framing and campaign sections</li>
+                            <li>Visual support aligned to the core offer</li>
+                            <li>More focused CTA positioning across the page</li>
+                        </ul>
+                    </div>
+                    <div data-portfolio-creation>
+                        <p>The page was shaped around the campaign story first, then tightened into a stronger rhythm with fewer competing elements.</p>
+                        <ul>
+                            <li>Improved content pacing from hero to CTA</li>
+                            <li>Aligned visuals to the product story</li>
+                            <li>Kept the page lightweight while still feeling premium</li>
+                        </ul>
+                    </div>
+                    <div data-portfolio-result>
+                        <p>It works because the visuals support the message instead of overshadowing it. The page feels like part of the launch, not an afterthought around it.</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="portfolio-card" data-portfolio-item data-category="system website" data-search="server architecture ops system community structure ticket flow support operations">
+                <button type="button" class="portfolio-card-trigger" data-portfolio-open>
+                    <img th:src="@{/images/ServerSetup.png}" src="/images/ServerSetup.png" alt="Operational structure preview" class="portfolio-card-image" />
+                    <div class="portfolio-card-copy">
+                        <div class="portfolio-card-head">
+                            <p class="section-tag">System / Structure</p>
+                            <span class="portfolio-card-pill">Ops client</span>
+                        </div>
+                        <h2 class="portfolio-card-title">Operational structure showcase</h2>
+                        <p class="portfolio-card-body">A project view focused on making systems, structure, and operational clarity feel more visible and professional.</p>
+                    </div>
+                </button>
+                <div class="sr-only">
+                    <p data-portfolio-title>Operational structure showcase</p>
+                    <p data-portfolio-company>Ops client · systems project</p>
+                    <p data-portfolio-link>/portfolio/operational-structure-showcase</p>
+                    <p data-portfolio-meta>System surface · Operational architecture</p>
+                    <div data-portfolio-about>
+                        <p>This project translated a structural service into something easier to understand visually, using cleaner blocks and stronger hierarchy.</p>
+                        <ul>
+                            <li>Clear breakdown of operational flows</li>
+                            <li>Cleaner visual grouping around services</li>
+                            <li>Sharper trust-building presentation for complex work</li>
+                        </ul>
+                    </div>
+                    <div data-portfolio-creation>
+                        <p>The focus was on simplifying how the structure was presented, so the page felt more confident without losing technical clarity.</p>
+                        <ul>
+                            <li>Condensed complex information into clearer sections</li>
+                            <li>Used stronger spacing to separate service layers</li>
+                            <li>Improved readability without making it feel flat</li>
+                        </ul>
+                    </div>
+                    <div data-portfolio-result>
+                        <p>It works because the project feels easier to trust. The page communicates system depth without forcing the user to work to understand it.</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="portfolio-card" data-portfolio-item data-category="system launch" data-search="automation workflows bot utility launch support notifications scoped features system">
+                <button type="button" class="portfolio-card-trigger" data-portfolio-open>
+                    <img th:src="@{/images/DiscordBot.png}" src="/images/DiscordBot.png" alt="Automation workflow preview" class="portfolio-card-image" />
+                    <div class="portfolio-card-copy">
+                        <div class="portfolio-card-head">
+                            <p class="section-tag">System / Launch</p>
+                            <span class="portfolio-card-pill">Utility client</span>
+                        </div>
+                        <h2 class="portfolio-card-title">Automation workflow preview</h2>
+                        <p class="portfolio-card-body">A scoped automation concept framed as part of a wider digital system rather than a disconnected utility page.</p>
+                    </div>
+                </button>
+                <div class="sr-only">
+                    <p data-portfolio-title>Automation workflow preview</p>
+                    <p data-portfolio-company>Utility client · automation concept</p>
+                    <p data-portfolio-link>/portfolio/automation-workflow-preview</p>
+                    <p data-portfolio-meta>Workflow surface · Utility direction</p>
+                    <div data-portfolio-about>
+                        <p>This project focused on presenting a smaller automation system in a way that still felt polished, premium, and integrated into the client offer.</p>
+                        <ul>
+                            <li>Scoped feature presentation without feature bloat</li>
+                            <li>Cleaner breakdown of utility workflows</li>
+                            <li>Stronger visual framing for a technical service</li>
+                        </ul>
+                    </div>
+                    <div data-portfolio-creation>
+                        <p>I approached it by tightening the structure around the workflow story: what it does, how it helps, and why the scope stays intentionally controlled.</p>
+                        <ul>
+                            <li>Reduced noise around technical detail</li>
+                            <li>Improved the balance between visuals and explanation</li>
+                            <li>Kept the page aligned with the wider site system</li>
+                        </ul>
+                    </div>
+                    <div data-portfolio-result>
+                        <p>It works because the automation feels purposeful instead of gimmicky. The page explains the value while still fitting a more premium studio style.</p>
+                    </div>
+                </div>
+            </article>
+        </div>
     </section>
 
-    <section class="grid gap-8 lg:grid-cols-3">
-        <article class="section-card overflow-hidden p-4">
-            <img th:src="@{/images/project1.png}" src="/images/project1.png" alt="Portfolio example one" class="h-64 w-full rounded-[1.5rem] object-cover" />
-            <div class="px-2 pb-2 pt-6">
-                <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Brand website</p>
-                <h2 class="mt-3 font-display text-2xl text-white">Editorial service landing flow</h2>
-                <p class="mt-4 text-sm leading-7 text-slate-300">A polished web presence designed to make the offer feel premium before the first conversation even starts.</p>
+    <dialog class="dialog-panel portfolio-dialog" data-portfolio-dialog>
+        <div class="portfolio-dialog-inner">
+            <div class="portfolio-dialog-head">
+                <div>
+                    <p class="section-tag" data-portfolio-dialog-meta>Project surface</p>
+                    <h2 class="portfolio-dialog-title" data-portfolio-dialog-title>Project title</h2>
+                    <p class="portfolio-dialog-company" data-portfolio-dialog-company>Company</p>
+                </div>
+                <button type="button" class="secondary-button" data-portfolio-close>Close</button>
             </div>
-        </article>
 
-        <article class="section-card overflow-hidden p-4">
-            <img th:src="@{/images/project2.png}" src="/images/project2.png" alt="Portfolio example two" class="h-64 w-full rounded-[1.5rem] object-cover" />
-            <div class="px-2 pb-2 pt-6">
-                <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Storefront system</p>
-                <h2 class="mt-3 font-display text-2xl text-white">Product detail and conversion pass</h2>
-                <p class="mt-4 text-sm leading-7 text-slate-300">Clear structure, stronger product hierarchy, and cleaner calls to action across an offer-driven page set.</p>
+            <div class="portfolio-tab-shell" data-portfolio-tabs>
+                <div class="portfolio-tab-track" aria-hidden="true">
+                    <span class="portfolio-tab-indicator" data-portfolio-tab-indicator></span>
+                </div>
+                <button type="button" class="portfolio-tab is-active" data-portfolio-tab="about">About</button>
+                <button type="button" class="portfolio-tab" data-portfolio-tab="creation">Creation</button>
+                <button type="button" class="portfolio-tab" data-portfolio-tab="result">Why it works</button>
             </div>
-        </article>
 
-        <article class="section-card overflow-hidden p-4">
-            <img th:src="@{/images/project3.png}" src="/images/project3.png" alt="Portfolio example three" class="h-64 w-full rounded-[1.5rem] object-cover" />
-            <div class="px-2 pb-2 pt-6">
-                <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Personal brand</p>
-                <h2 class="mt-3 font-display text-2xl text-white">Portfolio and booking surface</h2>
-                <p class="mt-4 text-sm leading-7 text-slate-300">A lean visual system that lets the work stay central while preserving a premium, high-trust first impression.</p>
+            <div class="portfolio-dialog-body">
+                <div class="portfolio-dialog-panel is-active" data-portfolio-panel="about"></div>
+                <div class="portfolio-dialog-panel" data-portfolio-panel="creation" hidden></div>
+                <div class="portfolio-dialog-panel" data-portfolio-panel="result" hidden></div>
             </div>
-        </article>
-    </section>
+
+            <div class="portfolio-dialog-footer">
+                <a href="#" class="primary-button" target="_blank" rel="noreferrer" data-portfolio-dialog-link>Open project link</a>
+            </div>
+        </div>
+    </dialog>
 </th:block>
 
-<th:block th:fragment="scripts"></th:block>
-</body>
-</html>
+<th:block th:fragment="scripts">
+    <script defer th:src="@{/js/portfolio.js}" src="/js/portfolio.js"></script>
+</th:block>
+</th:block>

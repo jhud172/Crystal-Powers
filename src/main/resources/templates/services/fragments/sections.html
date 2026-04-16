@@ -1,313 +1,704 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<body>
+<th:block xmlns:th="http://www.thymeleaf.org">
 <th:block th:fragment="content">
-    <section class="max-w-3xl">
-        <span class="eyebrow">Services</span>
-        <h1 class="mt-8 font-display text-4xl text-white sm:text-5xl">A compact service menu focused on delivery, support, and polish.</h1>
-        <p class="mt-6 text-lg leading-8 text-slate-300">
-            Each service line is scoped to a real operational need. No filler retainers, no vague innovation claims,
-            and no bundled extras that do not improve the customer-facing result.
-        </p>
-    </section>
-
-    <section class="grid gap-8">
-        <article class="grid gap-8 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 lg:grid-cols-[0.9fr_1.1fr] lg:p-8">
-            <img th:src="@{/images/WebsiteImage.png}" src="/images/WebsiteImage.png" alt="Website service preview" class="h-72 w-full rounded-[1.6rem] object-cover" />
-            <div>
-                <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Website delivery</p>
-                <h2 class="mt-4 font-display text-3xl text-white">Premium website builds</h2>
-                <p class="mt-4 text-sm leading-7 text-slate-300">Marketing sites, product pages, and operational front ends with clean route structure, dependable template layouts, and maintainable assets.</p>
-                <ul class="mt-6 space-y-3 text-sm leading-7 text-slate-300">
-                    <li class="border-l border-white/10 pl-4">Thymeleaf layout structure and controller wiring</li>
-                    <li class="border-l border-white/10 pl-4">Responsive UI refinement and asset organisation</li>
-                    <li class="border-l border-white/10 pl-4">Deployment-ready runtime verification</li>
-                </ul>
-            </div>
-        </article>
-
-        <article class="grid gap-8 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 lg:grid-cols-[0.9fr_1.1fr] lg:p-8">
-            <img th:src="@{/images/ServerSetup.png}" src="/images/ServerSetup.png" alt="Discord setup service preview" class="h-72 w-full rounded-[1.6rem] object-cover" />
-            <div>
-                <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Community systems</p>
-                <h2 class="mt-4 font-display text-3xl text-white">Discord structure and support ops</h2>
-                <p class="mt-4 text-sm leading-7 text-slate-300">Server architecture, ticket flow, moderation support, permissions, and role design built to reduce operational friction.</p>
-                <ul class="mt-6 space-y-3 text-sm leading-7 text-slate-300">
-                    <li class="border-l border-white/10 pl-4">Onboarding, support, and escalation flows</li>
-                    <li class="border-l border-white/10 pl-4">Role structure and channel architecture</li>
-                    <li class="border-l border-white/10 pl-4">Operational hygiene for staff teams</li>
-                </ul>
-            </div>
-        </article>
-
-        <article class="grid gap-8 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 lg:grid-cols-[0.9fr_1.1fr] lg:p-8">
-            <img th:src="@{/images/DiscordBot.png}" src="/images/DiscordBot.png" alt="Bot service preview" class="h-72 w-full rounded-[1.6rem] object-cover" />
-            <div>
-                <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Automation</p>
-                <h2 class="mt-4 font-display text-3xl text-white">Custom bot and utility workflows</h2>
-                <p class="mt-4 text-sm leading-7 text-slate-300">Small automation systems that remove repetitive admin work while staying aligned with the actual way the team operates.</p>
-                <ul class="mt-6 space-y-3 text-sm leading-7 text-slate-300">
-                    <li class="border-l border-white/10 pl-4">Ticket helpers and notifications</li>
-                    <li class="border-l border-white/10 pl-4">Internal utility flows and guardrails</li>
-                    <li class="border-l border-white/10 pl-4">Scoped functionality without feature sprawl</li>
-                </ul>
-            </div>
-        </article>
-
-        <article class="grid gap-8 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 lg:grid-cols-[0.9fr_1.1fr] lg:p-8">
-            <img th:src="@{/images/WebsiteGFX.png}" src="/images/WebsiteGFX.png" alt="Creative support preview" class="h-72 w-full rounded-[1.6rem] object-cover" />
-            <div>
-                <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Creative support</p>
-                <h2 class="mt-4 font-display text-3xl text-white">Launch visuals and supporting media</h2>
-                <p class="mt-4 text-sm leading-7 text-slate-300">Motion snippets, branded art, landing visuals, and supporting assets that keep the presentation consistent with the build itself.</p>
-                <ul class="mt-6 space-y-3 text-sm leading-7 text-slate-300">
-                    <li class="border-l border-white/10 pl-4">Hero images and promotional graphics</li>
-                    <li class="border-l border-white/10 pl-4">Visual support for websites, businesses, or communities</li>
-                    <li class="border-l border-white/10 pl-4">Clean handoff with reusable assets</li>
-                </ul>
-            </div>
-        </article>
-    </section>
-
-    <section class="section-card pricing-shell" aria-labelledby="pricing-overview-heading">
-        <div class="pricing-header">
-            <div>
-                <p class="section-tag">Pricing overview</p>
-                <h2 id="pricing-overview-heading" class="mt-3 font-display text-3xl text-white sm:text-4xl">Clear website pricing built for real client decisions.</h2>
-            </div>
-            <p class="max-w-2xl text-sm leading-7 text-slate-300">
-                Choose a build tier that fits the size of the project, then add extras or ongoing support only where needed.
-                The structure stays clean, flexible, and easy to update as your business grows.
+    <section class="services-hero">
+        <div class="services-hero-copy">
+            <span class="eyebrow">Website packages</span>
+            <h1 class="services-hero-title">Build the site around the package, additions, and support level that actually matches the workload.</h1>
+            <p class="services-hero-body">
+                Select one website package, choose any additions that sharpen the final delivery, then lock in a
+                maintenance option before filling out the request details. The structure stays clear, premium, and easy
+                to review before anything moves into the final quote stage.
             </p>
         </div>
+
+        <aside class="services-hero-panel">
+            <p class="services-panel-kicker">Required selections</p>
+            <ul class="services-panel-list">
+                <li>Choose one package before moving to the summary.</li>
+                <li>Select one maintenance option so the ongoing support level is clear.</li>
+                <li>Additions stay optional and can be expanded only where they improve the build.</li>
+            </ul>
+            <p class="services-panel-note">The live quote preview appears once both required sections have been selected.</p>
+        </aside>
     </section>
 
-    <section class="pricing-shell" aria-labelledby="main-packages-heading">
-        <div class="pricing-header">
+    <section class="pricing-shell" data-services-builder aria-labelledby="main-packages-heading">
+        <div class="pricing-header services-section-header">
             <div>
                 <p class="section-tag">Main packages</p>
-                <h2 id="main-packages-heading" class="mt-3 font-display text-3xl text-white">Website build packages</h2>
+                <h2 id="main-packages-heading" class="mt-3 font-display text-3xl text-white sm:text-4xl">Choose the website build package</h2>
             </div>
-            <p class="max-w-2xl text-sm leading-7 text-slate-300">Each package is structured to scale from a clean starter presence to a more demanding multi-section business build.</p>
+            <p class="services-section-copy">
+                Each package opens with the three core points that matter most. Expand a card if you want the extra
+                delivery detail before selecting it.
+            </p>
         </div>
 
-        <div class="pricing-grid">
-            <article class="pricing-card">
-                <div>
-                    <p class="text-xs uppercase tracking-[0.24em] text-slate-400">Basic</p>
-                    <div class="pricing-meta">
+        <div class="pricing-grid services-choice-grid">
+            <article class="service-choice-card">
+                <input id="package-basic" type="radio" name="packageSelection" class="sr-only service-choice-input" data-package-option />
+                <label for="package-basic" class="service-choice-select">
+                    <div class="service-choice-head">
                         <div>
-                            <p class="pricing-price">£349.99</p>
-                            <p class="pricing-price-note">one-time build</p>
+                            <p class="service-choice-tier">Basic</p>
+                            <h3 class="service-choice-title">Starter site foundation</h3>
+                        </div>
+                        <div class="service-choice-price-group">
+                            <p class="service-choice-price">&pound;349.99</p>
+                            <p class="service-choice-price-note">one-time build</p>
                         </div>
                     </div>
-                    <p class="pricing-copy">A simple starter website for small businesses needing a professional online presence.</p>
-                    <ul class="pricing-feature-list">
+                    <p class="service-choice-copy">A simple starter website for businesses that need a clean first version without overbuilding the scope.</p>
+                    <ul class="service-choice-list">
                         <li>Up to 3 core pages</li>
-                        <li>Responsive design across mobile, tablet, and desktop</li>
+                        <li>Responsive layout across mobile, tablet, and desktop</li>
                         <li>Contact form setup</li>
-                        <li>Basic SEO page structure</li>
-                        <li>1 revision round</li>
                     </ul>
+                    <div class="service-choice-footer">
+                        <span class="service-choice-action">Add package</span>
+                        <span class="service-choice-indicator" aria-hidden="true"></span>
+                    </div>
+                </label>
+                <div class="service-choice-expand" data-expandable>
+                    <div class="service-choice-expand-inner">
+                        <p class="service-choice-expand-copy">Best when the site only needs a small page count and a clean, dependable structure.</p>
+                        <ul class="service-choice-list service-choice-list-secondary">
+                            <li>Basic SEO page structure</li>
+                            <li>1 revision round</li>
+                        </ul>
+                    </div>
                 </div>
-                <a th:href="@{/contact}" class="primary-button pricing-cta">Enquire Now</a>
+                <button type="button" class="service-read-toggle" data-expand-toggle aria-expanded="false">Read more</button>
             </article>
 
-            <article class="pricing-card">
-                <div>
-                    <p class="text-xs uppercase tracking-[0.24em] text-slate-400">Starter</p>
-                    <div class="pricing-meta">
+            <article class="service-choice-card">
+                <input id="package-starter" type="radio" name="packageSelection" class="sr-only service-choice-input" data-package-option />
+                <label for="package-starter" class="service-choice-select">
+                    <div class="service-choice-head">
                         <div>
-                            <p class="pricing-price">£499.99</p>
-                            <p class="pricing-price-note">one-time build</p>
+                            <p class="service-choice-tier">Starter</p>
+                            <h3 class="service-choice-title">Stronger business presence</h3>
+                        </div>
+                        <div class="service-choice-price-group">
+                            <p class="service-choice-price">&pound;499.99</p>
+                            <p class="service-choice-price-note">one-time build</p>
                         </div>
                     </div>
-                    <p class="pricing-copy">A stronger business website with more structure, improved layout, and better service presentation.</p>
-                    <ul class="pricing-feature-list">
+                    <p class="service-choice-copy">A more structured business website with improved service presentation and a cleaner content layout.</p>
+                    <ul class="service-choice-list">
                         <li>Up to 5 pages</li>
                         <li>Improved content structure and service sections</li>
-                        <li>Responsive design and enquiry form</li>
-                        <li>On-page SEO setup</li>
-                        <li>2 revision rounds</li>
+                        <li>Responsive design with enquiry form</li>
                     </ul>
+                    <div class="service-choice-footer">
+                        <span class="service-choice-action">Add package</span>
+                        <span class="service-choice-indicator" aria-hidden="true"></span>
+                    </div>
+                </label>
+                <div class="service-choice-expand" data-expandable>
+                    <div class="service-choice-expand-inner">
+                        <p class="service-choice-expand-copy">A good middle ground for businesses that need more content depth without stepping into a heavier custom build.</p>
+                        <ul class="service-choice-list service-choice-list-secondary">
+                            <li>On-page SEO setup</li>
+                            <li>2 revision rounds</li>
+                        </ul>
+                    </div>
                 </div>
-                <a th:href="@{/contact}" class="secondary-button pricing-cta">Get Started</a>
+                <button type="button" class="service-read-toggle" data-expand-toggle aria-expanded="false">Read more</button>
             </article>
 
-            <article class="pricing-card pricing-card-featured md:col-span-2 xl:col-span-1">
-                <span class="pricing-badge">Recommended</span>
-                <div>
-                    <p class="mt-4 text-xs uppercase tracking-[0.24em] text-cyan-200">Standard</p>
-                    <div class="pricing-meta">
+            <article class="service-choice-card service-choice-card-featured">
+                <input id="package-standard" type="radio" name="packageSelection" class="sr-only service-choice-input" data-package-option />
+                <label for="package-standard" class="service-choice-select">
+                    <span class="pricing-badge">Recommended</span>
+                    <div class="service-choice-head">
                         <div>
-                            <p class="pricing-price">£749.99</p>
-                            <p class="pricing-price-note">one-time build</p>
+                            <p class="service-choice-tier service-choice-tier-featured">Standard</p>
+                            <h3 class="service-choice-title">Balanced premium build</h3>
+                        </div>
+                        <div class="service-choice-price-group">
+                            <p class="service-choice-price">&pound;749.99</p>
+                            <p class="service-choice-price-note">one-time build</p>
                         </div>
                     </div>
-                    <p class="pricing-copy">A balanced package for businesses wanting a polished, professional, multi-page website.</p>
-                    <ul class="pricing-feature-list">
+                    <p class="service-choice-copy">A polished multi-page package for businesses that want stronger visual consistency and a more complete service-led site.</p>
+                    <ul class="service-choice-list">
                         <li>Up to 7 pages with stronger visual consistency</li>
                         <li>Custom section styling and service-led layout</li>
                         <li>Contact and lead capture forms</li>
-                        <li>SEO setup and content upload support</li>
-                        <li>3 revision rounds plus launch support</li>
                     </ul>
+                    <div class="service-choice-footer">
+                        <span class="service-choice-action">Add package</span>
+                        <span class="service-choice-indicator" aria-hidden="true"></span>
+                    </div>
+                </label>
+                <div class="service-choice-expand" data-expandable>
+                    <div class="service-choice-expand-inner">
+                        <p class="service-choice-expand-copy">Designed for businesses that need a professional presence with more polish, better layout control, and stronger launch support.</p>
+                        <ul class="service-choice-list service-choice-list-secondary">
+                            <li>SEO setup and content upload support</li>
+                            <li>3 revision rounds plus launch support</li>
+                        </ul>
+                    </div>
                 </div>
-                <a th:href="@{/contact}" class="primary-button pricing-cta">Choose Standard</a>
+                <button type="button" class="service-read-toggle" data-expand-toggle aria-expanded="false">Read more</button>
             </article>
 
-            <article class="pricing-card">
-                <div>
-                    <p class="text-xs uppercase tracking-[0.24em] text-slate-400">Experienced</p>
-                    <div class="pricing-meta">
+            <article class="service-choice-card">
+                <input id="package-experienced" type="radio" name="packageSelection" class="sr-only service-choice-input" data-package-option />
+                <label for="package-experienced" class="service-choice-select">
+                    <div class="service-choice-head">
                         <div>
-                            <p class="pricing-price">£999.99</p>
-                            <p class="pricing-price-note">one-time build</p>
+                            <p class="service-choice-tier">Experienced</p>
+                            <h3 class="service-choice-title">Advanced business structure</h3>
+                        </div>
+                        <div class="service-choice-price-group">
+                            <p class="service-choice-price">&pound;999.99</p>
+                            <p class="service-choice-price-note">one-time build</p>
                         </div>
                     </div>
-                    <p class="pricing-copy">A more advanced package for businesses needing more custom structure, stronger presentation, and added refinements.</p>
-                    <ul class="pricing-feature-list">
+                    <p class="service-choice-copy">A deeper package for businesses that need more custom layout planning, stronger presentation, and higher-fidelity refinement.</p>
+                    <ul class="service-choice-list">
                         <li>Up to 10 pages with deeper custom layout planning</li>
                         <li>Advanced forms or stronger conversion sections</li>
                         <li>Integration support for core business tools</li>
-                        <li>More detailed content refinement</li>
-                        <li>4 revision rounds with post-launch polish</li>
                     </ul>
+                    <div class="service-choice-footer">
+                        <span class="service-choice-action">Add package</span>
+                        <span class="service-choice-indicator" aria-hidden="true"></span>
+                    </div>
+                </label>
+                <div class="service-choice-expand" data-expandable>
+                    <div class="service-choice-expand-inner">
+                        <p class="service-choice-expand-copy">Built for businesses that need more tailored planning and a broader scope without moving into a large multi-stream delivery.</p>
+                        <ul class="service-choice-list service-choice-list-secondary">
+                            <li>More detailed content refinement</li>
+                            <li>4 revision rounds with post-launch polish</li>
+                        </ul>
+                    </div>
                 </div>
-                <a th:href="@{/contact}" class="secondary-button pricing-cta">Enquire Now</a>
+                <button type="button" class="service-read-toggle" data-expand-toggle aria-expanded="false">Read more</button>
             </article>
 
-            <article class="pricing-card">
-                <div>
-                    <p class="text-xs uppercase tracking-[0.24em] text-slate-400">Multi Grade</p>
-                    <div class="pricing-meta">
+            <article class="service-choice-card">
+                <input id="package-multi-grade" type="radio" name="packageSelection" class="sr-only service-choice-input" data-package-option />
+                <label for="package-multi-grade" class="service-choice-select">
+                    <div class="service-choice-head">
                         <div>
-                            <p class="pricing-price">£1,499.99</p>
-                            <p class="pricing-price-note">highest tier</p>
+                            <p class="service-choice-tier">Multi Grade</p>
+                            <h3 class="service-choice-title">Larger custom scope</h3>
+                        </div>
+                        <div class="service-choice-price-group">
+                            <p class="service-choice-price">&pound;1,499.99</p>
+                            <p class="service-choice-price-note">highest tier</p>
                         </div>
                     </div>
-                    <p class="pricing-copy">The hardest and most time-consuming package for larger or more complex websites needing heavier custom work.</p>
-                    <ul class="pricing-feature-list">
+                    <p class="service-choice-copy">The highest-effort website build for larger structures, heavier custom planning, and more involved delivery coordination.</p>
+                    <ul class="service-choice-list">
                         <li>12+ pages or multiple service and content sections</li>
                         <li>Advanced structure mapping and bespoke page planning</li>
                         <li>Multiple forms, flows, or business integrations</li>
-                        <li>Content population support and launch coordination</li>
-                        <li>Priority refinement window after go-live</li>
                     </ul>
+                    <div class="service-choice-footer">
+                        <span class="service-choice-action">Add package</span>
+                        <span class="service-choice-indicator" aria-hidden="true"></span>
+                    </div>
+                </label>
+                <div class="service-choice-expand" data-expandable>
+                    <div class="service-choice-expand-inner">
+                        <p class="service-choice-expand-copy">Reserved for broader projects where the layout, content load, and feature count push well beyond a standard business site.</p>
+                        <ul class="service-choice-list service-choice-list-secondary">
+                            <li>Content population support and launch coordination</li>
+                            <li>Priority refinement window after go-live</li>
+                        </ul>
+                    </div>
                 </div>
-                <a th:href="@{/contact}" class="secondary-button pricing-cta">Request Quote</a>
+                <button type="button" class="service-read-toggle" data-expand-toggle aria-expanded="false">Read more</button>
             </article>
+        </div>
+    </section>
+
+    <section class="section-card services-quote-card">
+        <div>
+            <p class="section-tag">Custom quote</p>
+            <h2 class="mt-3 font-display text-3xl text-white">Need a scope that sits between the fixed package tiers?</h2>
+            <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
+                If the project lands between packages, the final structure can be shaped around the real page count,
+                delivery complexity, and additions required.
+            </p>
+        </div>
+        <div class="services-quote-points">
+            <span class="surface-chip">Mixed page counts</span>
+            <span class="surface-chip">Bespoke feature scope</span>
+            <span class="surface-chip">Manual quote shaping</span>
         </div>
     </section>
 
     <section class="pricing-shell" aria-labelledby="additions-heading">
-        <div class="pricing-header">
+        <div class="pricing-header services-section-header">
             <div>
                 <p class="section-tag">Additions</p>
-                <h2 id="additions-heading" class="mt-3 font-display text-3xl text-white">Optional add-ons</h2>
+                <h2 id="additions-heading" class="mt-3 font-display text-3xl text-white">Optional additions</h2>
             </div>
-            <p class="max-w-2xl text-sm leading-7 text-slate-300">Useful extras that can sharpen the final presentation without forcing a larger package than necessary.</p>
+            <p class="services-section-copy">
+                Additions are designed as scope extras rather than forced upsells. Tick only the items that improve the
+                final result.
+            </p>
         </div>
 
-        <div class="addon-grid">
-            <article class="addon-card"><div><div class="addon-top"><h3 class="addon-name">Basic logo creation</h3><p class="addon-price">£24.99</p></div><p class="addon-copy">A simple logo concept for businesses needing a clean starting identity.</p></div></article>
-            <article class="addon-card"><div><div class="addon-top"><h3 class="addon-name">Refined logo design</h3><p class="addon-price">£49.99</p></div><p class="addon-copy">A more polished logo pass with stronger presentation and shape balance.</p></div></article>
-            <article class="addon-card"><div><div class="addon-top"><h3 class="addon-name">Full branding pack</h3><p class="addon-price">£89.99</p></div><p class="addon-copy">A wider identity set covering colour direction, basic brand use, and supporting assets.</p></div></article>
-            <article class="addon-card"><div><div class="addon-top"><h3 class="addon-name">Business card design</h3><p class="addon-price">£19.99</p></div><p class="addon-copy">A clean client-facing card layout prepared to match the website look.</p></div></article>
-            <article class="addon-card"><div><div class="addon-top"><h3 class="addon-name">Content polishing / copy refinement</h3><p class="addon-price">£39.99</p></div><p class="addon-copy">Tighten existing wording so the page reads more clearly and professionally.</p></div></article>
-            <article class="addon-card"><div><div class="addon-top"><h3 class="addon-name">Full copywriting support</h3><p class="addon-price">£119.99</p></div><p class="addon-copy">Stronger written content support for service pages, calls to action, and page structure.</p></div></article>
-            <article class="addon-card"><div><div class="addon-top"><h3 class="addon-name">Tone and brand voice shaping</h3><p class="addon-price">£59.99</p></div><p class="addon-copy">Refine the tone of the site so it feels more consistent and business-ready.</p></div></article>
-            <article class="addon-card"><div><div class="addon-top"><h3 class="addon-name">Advanced booking form</h3><p class="addon-price">£69.99</p></div><p class="addon-copy">A more capable enquiry or booking flow for capturing better quality leads.</p></div></article>
-            <article class="addon-card"><div><div class="addon-top"><h3 class="addon-name">Blog setup and styling</h3><p class="addon-price">£44.99</p></div><p class="addon-copy">A styled blog area ready for updates, announcements, or ongoing business content.</p></div></article>
-            <article class="addon-card"><div><div class="addon-top"><h3 class="addon-name">Testimonials / reviews section</h3><p class="addon-price">£29.99</p></div><p class="addon-copy">Add trust-focused review blocks to strengthen credibility and conversion.</p></div></article>
-            <article class="addon-card"><div><div class="addon-top"><h3 class="addon-name">Social media integration</h3><p class="addon-price">£24.99</p></div><p class="addon-copy">Connect the site cleanly with key social platforms and profile links.</p></div></article>
-            <article class="addon-card"><div><div class="addon-top"><h3 class="addon-name">Stock image sourcing</h3><p class="addon-price">£19.99</p></div><p class="addon-copy">Support with selecting visuals that fit the site without feeling generic.</p></div></article>
-            <article class="addon-card"><div><div class="addon-top"><h3 class="addon-name">Image editing / optimisation</h3><p class="addon-price">£24.99</p></div><p class="addon-copy">Resize, tidy, and optimise supplied images for better presentation and load performance.</p></div></article>
-            <article class="addon-card"><div><div class="addon-top"><h3 class="addon-name">Additional page</h3><p class="addon-price">£59.99</p></div><p class="addon-copy">Add another custom page when the scope grows beyond the chosen package tier.</p></div></article>
+        <div class="addon-grid services-addon-grid">
+            <article class="addon-select-card">
+                <input id="addon-basic-logo" type="checkbox" class="sr-only addon-select-input" data-addon-option />
+                <label for="addon-basic-logo" class="addon-select-shell">
+                    <div class="addon-select-head">
+                        <div>
+                            <h3 class="addon-name">Basic logo creation</h3>
+                            <p class="addon-copy">A simple logo concept for businesses needing a clean starting identity.</p>
+                        </div>
+                        <div class="addon-select-price-wrap">
+                            <span class="addon-price">&pound;24.99</span>
+                            <span class="addon-select-marker" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </label>
+                <p class="addon-select-status">Add to additions</p>
+            </article>
+
+            <article class="addon-select-card">
+                <input id="addon-refined-logo" type="checkbox" class="sr-only addon-select-input" data-addon-option />
+                <label for="addon-refined-logo" class="addon-select-shell">
+                    <div class="addon-select-head">
+                        <div>
+                            <h3 class="addon-name">Refined logo design</h3>
+                            <p class="addon-copy">A more polished logo pass with stronger presentation and shape balance.</p>
+                        </div>
+                        <div class="addon-select-price-wrap">
+                            <span class="addon-price">&pound;49.99</span>
+                            <span class="addon-select-marker" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </label>
+                <p class="addon-select-status">Add to additions</p>
+            </article>
+
+            <article class="addon-select-card">
+                <input id="addon-branding-pack" type="checkbox" class="sr-only addon-select-input" data-addon-option />
+                <label for="addon-branding-pack" class="addon-select-shell">
+                    <div class="addon-select-head">
+                        <div>
+                            <h3 class="addon-name">Full branding pack</h3>
+                            <p class="addon-copy">A wider identity set covering colour direction, basic brand use, and supporting assets.</p>
+                        </div>
+                        <div class="addon-select-price-wrap">
+                            <span class="addon-price">&pound;89.99</span>
+                            <span class="addon-select-marker" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </label>
+                <p class="addon-select-status">Add to additions</p>
+            </article>
+
+            <article class="addon-select-card">
+                <input id="addon-business-card" type="checkbox" class="sr-only addon-select-input" data-addon-option />
+                <label for="addon-business-card" class="addon-select-shell">
+                    <div class="addon-select-head">
+                        <div>
+                            <h3 class="addon-name">Business card design</h3>
+                            <p class="addon-copy">A clean client-facing card layout prepared to match the website look.</p>
+                        </div>
+                        <div class="addon-select-price-wrap">
+                            <span class="addon-price">&pound;19.99</span>
+                            <span class="addon-select-marker" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </label>
+                <p class="addon-select-status">Add to additions</p>
+            </article>
+
+            <article class="addon-select-card">
+                <input id="addon-content-polish" type="checkbox" class="sr-only addon-select-input" data-addon-option />
+                <label for="addon-content-polish" class="addon-select-shell">
+                    <div class="addon-select-head">
+                        <div>
+                            <h3 class="addon-name">Content polishing / copy refinement</h3>
+                            <p class="addon-copy">Tighten existing wording so the page reads more clearly and professionally.</p>
+                        </div>
+                        <div class="addon-select-price-wrap">
+                            <span class="addon-price">&pound;39.99</span>
+                            <span class="addon-select-marker" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </label>
+                <p class="addon-select-status">Add to additions</p>
+            </article>
+
+            <article class="addon-select-card">
+                <input id="addon-copywriting" type="checkbox" class="sr-only addon-select-input" data-addon-option />
+                <label for="addon-copywriting" class="addon-select-shell">
+                    <div class="addon-select-head">
+                        <div>
+                            <h3 class="addon-name">Full copywriting support</h3>
+                            <p class="addon-copy">Stronger written content support for service pages, calls to action, and page structure.</p>
+                        </div>
+                        <div class="addon-select-price-wrap">
+                            <span class="addon-price">&pound;119.99</span>
+                            <span class="addon-select-marker" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </label>
+                <p class="addon-select-status">Add to additions</p>
+            </article>
+
+            <article class="addon-select-card">
+                <input id="addon-brand-voice" type="checkbox" class="sr-only addon-select-input" data-addon-option />
+                <label for="addon-brand-voice" class="addon-select-shell">
+                    <div class="addon-select-head">
+                        <div>
+                            <h3 class="addon-name">Tone and brand voice shaping</h3>
+                            <p class="addon-copy">Refine the tone of the site so it feels more consistent and business-ready.</p>
+                        </div>
+                        <div class="addon-select-price-wrap">
+                            <span class="addon-price">&pound;59.99</span>
+                            <span class="addon-select-marker" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </label>
+                <p class="addon-select-status">Add to additions</p>
+            </article>
+
+            <article class="addon-select-card">
+                <input id="addon-booking-form" type="checkbox" class="sr-only addon-select-input" data-addon-option />
+                <label for="addon-booking-form" class="addon-select-shell">
+                    <div class="addon-select-head">
+                        <div>
+                            <h3 class="addon-name">Advanced booking form</h3>
+                            <p class="addon-copy">A more capable enquiry or booking flow for capturing better quality leads.</p>
+                        </div>
+                        <div class="addon-select-price-wrap">
+                            <span class="addon-price">&pound;69.99</span>
+                            <span class="addon-select-marker" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </label>
+                <p class="addon-select-status">Add to additions</p>
+            </article>
+
+            <article class="addon-select-card">
+                <input id="addon-blog" type="checkbox" class="sr-only addon-select-input" data-addon-option />
+                <label for="addon-blog" class="addon-select-shell">
+                    <div class="addon-select-head">
+                        <div>
+                            <h3 class="addon-name">Blog setup and styling</h3>
+                            <p class="addon-copy">A styled blog area ready for updates, announcements, or ongoing business content.</p>
+                        </div>
+                        <div class="addon-select-price-wrap">
+                            <span class="addon-price">&pound;44.99</span>
+                            <span class="addon-select-marker" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </label>
+                <p class="addon-select-status">Add to additions</p>
+            </article>
+
+            <article class="addon-select-card">
+                <input id="addon-testimonials" type="checkbox" class="sr-only addon-select-input" data-addon-option />
+                <label for="addon-testimonials" class="addon-select-shell">
+                    <div class="addon-select-head">
+                        <div>
+                            <h3 class="addon-name">Testimonials / reviews section</h3>
+                            <p class="addon-copy">Add trust-focused review blocks to strengthen credibility and conversion.</p>
+                        </div>
+                        <div class="addon-select-price-wrap">
+                            <span class="addon-price">&pound;29.99</span>
+                            <span class="addon-select-marker" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </label>
+                <p class="addon-select-status">Add to additions</p>
+            </article>
+
+            <article class="addon-select-card">
+                <input id="addon-social" type="checkbox" class="sr-only addon-select-input" data-addon-option />
+                <label for="addon-social" class="addon-select-shell">
+                    <div class="addon-select-head">
+                        <div>
+                            <h3 class="addon-name">Social media integration</h3>
+                            <p class="addon-copy">Connect the site cleanly with key social platforms and profile links.</p>
+                        </div>
+                        <div class="addon-select-price-wrap">
+                            <span class="addon-price">&pound;24.99</span>
+                            <span class="addon-select-marker" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </label>
+                <p class="addon-select-status">Add to additions</p>
+            </article>
+
+            <article class="addon-select-card">
+                <input id="addon-stock-images" type="checkbox" class="sr-only addon-select-input" data-addon-option />
+                <label for="addon-stock-images" class="addon-select-shell">
+                    <div class="addon-select-head">
+                        <div>
+                            <h3 class="addon-name">Stock image sourcing</h3>
+                            <p class="addon-copy">Support with selecting visuals that fit the site without feeling generic.</p>
+                        </div>
+                        <div class="addon-select-price-wrap">
+                            <span class="addon-price">&pound;19.99</span>
+                            <span class="addon-select-marker" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </label>
+                <p class="addon-select-status">Add to additions</p>
+            </article>
+
+            <article class="addon-select-card">
+                <input id="addon-image-editing" type="checkbox" class="sr-only addon-select-input" data-addon-option />
+                <label for="addon-image-editing" class="addon-select-shell">
+                    <div class="addon-select-head">
+                        <div>
+                            <h3 class="addon-name">Image editing / optimisation</h3>
+                            <p class="addon-copy">Resize, tidy, and optimise supplied images for better presentation and load performance.</p>
+                        </div>
+                        <div class="addon-select-price-wrap">
+                            <span class="addon-price">&pound;24.99</span>
+                            <span class="addon-select-marker" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </label>
+                <p class="addon-select-status">Add to additions</p>
+            </article>
+
+            <article class="addon-select-card">
+                <input id="addon-extra-page" type="checkbox" class="sr-only addon-select-input" data-addon-option />
+                <label for="addon-extra-page" class="addon-select-shell">
+                    <div class="addon-select-head">
+                        <div>
+                            <h3 class="addon-name">Additional page</h3>
+                            <p class="addon-copy">Add another custom page when the scope grows beyond the chosen package tier.</p>
+                        </div>
+                        <div class="addon-select-price-wrap">
+                            <span class="addon-price">&pound;59.99</span>
+                            <span class="addon-select-marker" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </label>
+                <p class="addon-select-status">Add to additions</p>
+            </article>
         </div>
+
+        <p class="services-inline-note">Any specific additions outside this list can be manually requested and quoted around the final brief.</p>
     </section>
 
     <section class="pricing-shell" aria-labelledby="maintenance-heading">
-        <div class="pricing-header">
+        <div class="pricing-header services-section-header">
             <div>
                 <p class="section-tag">Maintenance</p>
-                <h2 id="maintenance-heading" class="mt-3 font-display text-3xl text-white">Ongoing support plans</h2>
+                <h2 id="maintenance-heading" class="mt-3 font-display text-3xl text-white">Select one maintenance option</h2>
             </div>
-            <p class="max-w-2xl text-sm leading-7 text-slate-300">Keep the site running smoothly with a support level that matches how often you need changes and hands-on help.</p>
+            <p class="services-section-copy">
+                This field is required so the ongoing support expectation is clear from the start.
+            </p>
         </div>
 
-        <div class="maintenance-grid">
-            <article class="pricing-card">
-                <div>
-                    <p class="text-xs uppercase tracking-[0.24em] text-slate-400">Basic Maintenance</p>
-                    <div class="pricing-meta">
+        <div class="maintenance-grid services-choice-grid services-maintenance-grid">
+            <article class="service-choice-card service-choice-card-compact">
+                <input id="maintenance-basic" type="radio" name="maintenanceSelection" class="sr-only service-choice-input" data-maintenance-option />
+                <label for="maintenance-basic" class="service-choice-select">
+                    <div class="service-choice-head">
                         <div>
-                            <p class="pricing-price">£9.99</p>
-                            <p class="pricing-price-note">per month</p>
+                            <p class="service-choice-tier">Basic Maintenance</p>
+                            <h3 class="service-choice-title">Essential coverage</h3>
+                        </div>
+                        <div class="service-choice-price-group">
+                            <p class="service-choice-price">&pound;9.99</p>
+                            <p class="service-choice-price-note">per month</p>
                         </div>
                     </div>
-                    <p class="pricing-copy">Essential support for keeping the site connected and running.</p>
-                    <ul class="pricing-feature-list">
+                    <p class="service-choice-copy">Essential support for keeping the site connected and running.</p>
+                    <ul class="service-choice-list">
                         <li>Hosting support</li>
                         <li>Domain connection support</li>
                         <li>Uptime check guidance</li>
                     </ul>
-                </div>
-                <a th:href="@{/contact}" class="secondary-button pricing-cta">Ask About Plan</a>
+                    <div class="service-choice-footer">
+                        <span class="service-choice-action">Select maintenance</span>
+                        <span class="service-choice-indicator" aria-hidden="true"></span>
+                    </div>
+                </label>
             </article>
 
-            <article class="pricing-card pricing-card-featured">
-                <div>
-                    <p class="text-xs uppercase tracking-[0.24em] text-cyan-200">Standard Maintenance</p>
-                    <div class="pricing-meta">
+            <article class="service-choice-card service-choice-card-featured service-choice-card-compact">
+                <input id="maintenance-standard" type="radio" name="maintenanceSelection" class="sr-only service-choice-input" data-maintenance-option />
+                <label for="maintenance-standard" class="service-choice-select">
+                    <span class="pricing-badge">Popular</span>
+                    <div class="service-choice-head">
                         <div>
-                            <p class="pricing-price">£19.99</p>
-                            <p class="pricing-price-note">per month</p>
+                            <p class="service-choice-tier service-choice-tier-featured">Standard Maintenance</p>
+                            <h3 class="service-choice-title">Ongoing updates</h3>
+                        </div>
+                        <div class="service-choice-price-group">
+                            <p class="service-choice-price">&pound;19.99</p>
+                            <p class="service-choice-price-note">per month</p>
                         </div>
                     </div>
-                    <p class="pricing-copy">Ongoing updates, small edits, and general support.</p>
-                    <ul class="pricing-feature-list">
+                    <p class="service-choice-copy">Ongoing updates, small edits, and general support for an actively used business site.</p>
+                    <ul class="service-choice-list">
                         <li>Everything in Basic</li>
                         <li>Small text and image edits</li>
-                        <li>Routine updates</li>
-                        <li>General support</li>
+                        <li>Routine updates and general support</li>
                     </ul>
-                </div>
-                <a th:href="@{/contact}" class="primary-button pricing-cta">Choose Support</a>
+                    <div class="service-choice-footer">
+                        <span class="service-choice-action">Select maintenance</span>
+                        <span class="service-choice-indicator" aria-hidden="true"></span>
+                    </div>
+                </label>
             </article>
 
-            <article class="pricing-card">
-                <div>
-                    <p class="text-xs uppercase tracking-[0.24em] text-slate-400">Premium Maintenance</p>
-                    <div class="pricing-meta">
+            <article class="service-choice-card service-choice-card-compact">
+                <input id="maintenance-premium" type="radio" name="maintenanceSelection" class="sr-only service-choice-input" data-maintenance-option />
+                <label for="maintenance-premium" class="service-choice-select">
+                    <div class="service-choice-head">
                         <div>
-                            <p class="pricing-price">£29.99</p>
-                            <p class="pricing-price-note">per month</p>
+                            <p class="service-choice-tier">Premium Maintenance</p>
+                            <h3 class="service-choice-title">Priority support</h3>
+                        </div>
+                        <div class="service-choice-price-group">
+                            <p class="service-choice-price">&pound;29.99</p>
+                            <p class="service-choice-price-note">per month</p>
                         </div>
                     </div>
-                    <p class="pricing-copy">Priority support, ongoing improvements, and faster turnaround for changes.</p>
-                    <ul class="pricing-feature-list">
+                    <p class="service-choice-copy">Priority support for businesses that expect faster turnaround and ongoing improvements.</p>
+                    <ul class="service-choice-list">
                         <li>Everything in Standard</li>
                         <li>Priority changes</li>
-                        <li>Ongoing improvements</li>
-                        <li>Quicker turnaround</li>
+                        <li>Quicker turnaround with ongoing improvements</li>
                     </ul>
-                </div>
-                <a th:href="@{/contact}" class="secondary-button pricing-cta">Request Priority Support</a>
+                    <div class="service-choice-footer">
+                        <span class="service-choice-action">Select maintenance</span>
+                        <span class="service-choice-indicator" aria-hidden="true"></span>
+                    </div>
+                </label>
             </article>
         </div>
     </section>
 
-    <section class="section-card flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-            <p class="section-tag">Need a custom quote?</p>
-            <h2 class="mt-3 font-display text-3xl text-white">If the project sits between tiers, the scope can be tailored.</h2>
-            <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300">Send over the type of business, the rough page count, and any features you already know you need. A cleaner quote can then be shaped around the real workload.</p>
+    <section class="services-summary-dock" data-services-summary aria-hidden="true">
+        <div class="services-summary-shell">
+            <div class="pricing-header services-section-header services-summary-header">
+                <div>
+                    <p class="section-tag">Selection preview</p>
+                    <h2 class="mt-3 font-display text-3xl text-white">Review the package, additions, and support level before the final request.</h2>
+                </div>
+                <p class="services-section-copy">
+                    The left side keeps the quick selection view compact. The right side expands the chosen scope so the
+                    full quote direction is visible at a glance.
+                </p>
+            </div>
+
+            <div class="services-summary-grid">
+                <aside class="services-summary-compact">
+                    <div class="services-summary-block">
+                        <p class="services-summary-label">Package</p>
+                        <p class="services-summary-value" data-summary-package-short>Not selected</p>
+                        <p class="services-summary-meta" data-summary-package-meta>Select one package above.</p>
+                    </div>
+                    <div class="services-summary-block">
+                        <p class="services-summary-label">Maintenance</p>
+                        <p class="services-summary-value" data-summary-maintenance-short>Not selected</p>
+                        <p class="services-summary-meta" data-summary-maintenance-meta>Select one maintenance option above.</p>
+                    </div>
+                    <div class="services-summary-block">
+                        <p class="services-summary-label">Additions</p>
+                        <ul class="services-summary-chip-list" data-summary-additions-short>
+                            <li class="services-summary-chip services-summary-chip-muted">No additions selected</li>
+                        </ul>
+                    </div>
+                </aside>
+
+                <div class="services-summary-preview">
+                    <div class="services-preview-card">
+                        <p class="services-preview-kicker">Package preview</p>
+                        <h3 class="services-preview-title" data-summary-package-title>Choose a package</h3>
+                        <p class="services-preview-price" data-summary-package-price></p>
+                        <p class="services-preview-copy" data-summary-package-copy></p>
+                        <ul class="services-preview-list" data-summary-package-list></ul>
+                    </div>
+
+                    <div class="services-preview-card">
+                        <p class="services-preview-kicker">Maintenance preview</p>
+                        <h3 class="services-preview-title" data-summary-maintenance-title>Choose a maintenance option</h3>
+                        <p class="services-preview-price" data-summary-maintenance-price></p>
+                        <p class="services-preview-copy" data-summary-maintenance-copy></p>
+                        <ul class="services-preview-list" data-summary-maintenance-list></ul>
+                    </div>
+
+                    <div class="services-preview-card">
+                        <p class="services-preview-kicker">Selected additions</p>
+                        <ul class="services-preview-addon-list" data-summary-additions-full>
+                            <li class="services-preview-empty">No additions selected yet.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="services-form-shell">
+                <div class="services-form-intro">
+                    <p class="section-tag">Request details</p>
+                    <h3 class="mt-3 font-display text-3xl text-white">Add the contact and project details for the final quote handoff.</h3>
+                </div>
+
+                <form class="services-quote-form" data-quote-form enctype="multipart/form-data">
+                    <div>
+                        <label for="quote-first-name" class="field-label">Name</label>
+                        <input id="quote-first-name" name="firstName" type="text" class="field-input" placeholder="First name" />
+                    </div>
+
+                    <div>
+                        <label for="quote-last-name" class="field-label">Last name</label>
+                        <input id="quote-last-name" name="lastName" type="text" class="field-input" placeholder="Last name" />
+                    </div>
+
+                    <div>
+                        <label for="quote-email" class="field-label">Email</label>
+                        <input id="quote-email" name="email" type="email" class="field-input" placeholder="you@example.com" />
+                    </div>
+
+                    <div>
+                        <label for="quote-phone" class="field-label">Phone number</label>
+                        <input id="quote-phone" name="phoneNumber" type="tel" class="field-input" placeholder="+44 7..." />
+                    </div>
+
+                    <div>
+                        <label for="quote-contact-preference" class="field-label">Preferred contact point</label>
+                        <select id="quote-contact-preference" name="preferredContactPoint" class="field-input">
+                            <option value="">Choose one</option>
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="email">Email</option>
+                        </select>
+                    </div>
+
+                    <div class="services-form-span-two">
+                        <label for="quote-message" class="field-label">Message</label>
+                        <textarea id="quote-message" name="message" rows="6" class="field-input resize-y" placeholder="Project type, timings, priorities, and anything important about the build."></textarea>
+                    </div>
+
+                    <div class="services-form-span-two">
+                        <label for="quote-extra-information" class="field-label">Extra information</label>
+                        <textarea id="quote-extra-information" name="extraInformation" rows="4" class="field-input resize-y" placeholder="Anything else that should shape the quote or delivery plan."></textarea>
+                    </div>
+
+                    <div class="services-form-span-two">
+                        <label for="quote-reference-upload" class="field-label">Photos / video upload</label>
+                        <input id="quote-reference-upload" name="referenceFiles" type="file" class="field-input services-file-input" accept="image/*,video/*" multiple />
+                        <p class="services-upload-note">Reference uploads can include photos or short video clips. Recommended: 1 to 6 files, up to 20MB each.</p>
+                    </div>
+                </form>
+            </div>
         </div>
-        <a th:href="@{/contact}" class="primary-button">Open enquiry</a>
     </section>
 </th:block>
 
-<th:block th:fragment="scripts"></th:block>
-</body>
-</html>
+<th:block th:fragment="scripts">
+    <script defer th:src="@{/js/services.js}" src="/js/services.js"></script>
+</th:block>
+</th:block>

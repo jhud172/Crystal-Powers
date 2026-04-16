@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout(
+        ${pageTitle},
+        ${pageDescription},
+        'portfolio',
+        ~{portfolio/fragments/project-sections :: content},
+        ~{portfolio/fragments/project-sections :: scripts}
+      )}">
+</html>

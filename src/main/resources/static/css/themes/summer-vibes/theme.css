@@ -1,0 +1,94 @@
+body[data-theme="summer-vibes"] {
+  --font-display: "Fraunces", serif;
+  --font-sans: "Manrope", sans-serif;
+
+  --color-body-bg: #fff7ef;
+  --color-body-text: #4a3422;
+  --color-text-primary: #402816;
+  --color-text-secondary: #65452b;
+  --color-text-muted: #7a5637;
+  --color-text-subtle: #9a744f;
+
+  --color-accent: #f97316;
+  --color-accent-soft: #fb7185;
+  --color-accent-strong: #22d3ee;
+
+  --body-overlay:
+    radial-gradient(circle at top, rgba(251, 146, 60, 0.18), transparent 36rem),
+    radial-gradient(circle at 82% 16%, rgba(34, 211, 238, 0.12), transparent 24rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0));
+
+  --selection-bg: rgba(251, 146, 60, 0.18);
+  --selection-text: #402816;
+  --panel-border: rgba(251, 146, 60, 0.22);
+  --panel-shadow: 0 24px 80px rgba(251, 146, 60, 0.16);
+  --panel-shadow-strong: 0 30px 100px rgba(251, 146, 60, 0.2);
+  --panel-shadow-soft: 0 24px 72px rgba(249, 115, 22, 0.14);
+  --panel-shadow-inline: 0 18px 48px rgba(249, 115, 22, 0.2);
+
+  --header-surface: rgba(255, 255, 255, 0.82);
+  --nav-surface: rgba(64, 40, 22, 0.03);
+  --mobile-nav-surface: rgba(255, 252, 247, 0.96);
+  --footer-surface: rgba(255, 255, 255, 0.78);
+  --section-surface: rgba(255, 255, 255, 0.74);
+  --section-surface-soft: rgba(255, 255, 255, 0.86);
+  --section-surface-strong: rgba(255, 255, 255, 0.78);
+  --field-surface: rgba(255, 255, 255, 0.9);
+
+  --brand-badge-bg: rgba(251, 146, 60, 0.12);
+  --brand-badge-border: rgba(251, 146, 60, 0.2);
+  --brand-badge-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+
+  --eyebrow-bg: rgba(255, 255, 255, 0.84);
+  --eyebrow-border: rgba(251, 146, 60, 0.2);
+  --eyebrow-text: #9a3412;
+
+  --primary-button-bg: #f97316;
+  --primary-button-text: #fff7ed;
+  --primary-button-hover-bg: #fb7185;
+  --secondary-button-bg: rgba(255, 255, 255, 0.86);
+  --secondary-button-border: rgba(251, 146, 60, 0.22);
+  --secondary-button-text: #4a3422;
+  --secondary-button-hover-bg: rgba(255, 237, 213, 0.92);
+  --secondary-button-hover-border: rgba(34, 211, 238, 0.42);
+
+  --theme-picker-bg: rgba(255, 255, 255, 0.9);
+  --theme-picker-border: rgba(251, 146, 60, 0.22);
+  --theme-picker-text: #4a3422;
+  --theme-picker-label: #b45309;
+
+  --glow-top: radial-gradient(circle at top, rgba(251, 146, 60, 0.2), transparent 46%);
+  --glow-side: radial-gradient(circle, rgba(34, 211, 238, 0.16), transparent 62%);
+  --glow-bottom: radial-gradient(circle at bottom, rgba(251, 191, 36, 0.22), transparent 42%);
+
+  --hero-shell-background:
+    radial-gradient(circle at 12% 18%, rgba(251, 146, 60, 0.16), transparent 24rem),
+    radial-gradient(circle at 86% 14%, rgba(34, 211, 238, 0.12), transparent 20rem),
+    linear-gradient(180deg, rgba(255, 246, 234, 0.84), rgba(255, 239, 225, 0.96));
+  --hero-grid-color: rgba(251, 146, 60, 0.12);
+  --hero-shell-mask-opacity: 0.3;
+  --hero-band-top: rgba(251, 146, 60, 0.08);
+  --hero-band-bottom: rgba(34, 211, 238, 0.05);
+  --hero-band-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08));
+  --hero-orb-primary: rgba(251, 146, 60, 0.22);
+  --hero-orb-secondary: rgba(34, 211, 238, 0.16);
+  --hero-orb-tertiary: rgba(251, 191, 36, 0.2);
+
+  --home-card-surface: rgba(255, 255, 255, 0.8);
+  --home-hero-surface:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.72)),
+    radial-gradient(circle at top left, rgba(251, 146, 60, 0.1), transparent 24rem);
+  --home-overview-surface:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.74)),
+    radial-gradient(circle at top right, rgba(34, 211, 238, 0.08), transparent 18rem);
+  --service-preview-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.66));
+}
+
+body[data-theme="summer-vibes"] .site-header-inner,
+body[data-theme="summer-vibes"] .site-footer-panel,
+body[data-theme="summer-vibes"] .section-card,
+body[data-theme="summer-vibes"] .home-card,
+body[data-theme="summer-vibes"] .pricing-card,
+body[data-theme="summer-vibes"] .addon-card {
+  border-radius: 2rem;
+}

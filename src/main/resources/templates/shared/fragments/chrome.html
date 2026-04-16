@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="background">
+    <div class="pointer-events-none absolute inset-0 -z-30 bg-ink"></div>
+    <div class="site-glow site-glow-top"></div>
+    <div class="site-glow site-glow-side"></div>
+    <div class="site-glow site-glow-bottom"></div>
+</th:block>
+
+<header th:fragment="header(pageKey)" class="site-header">
+    <div class="site-header-inner">
+        <div class="theme-picker">
+            <label for="theme-select" class="theme-picker-label">Theme</label>
+            <select id="theme-select" data-theme-select="true" class="theme-picker-select" aria-label="Choose a site theme">
+                <option value="futuristic" th:selected="${activeTheme == 'futuristic'}">Futuristic</option>
+                <option value="classic" th:selected="${activeTheme == 'classic'}">Classic</option>
+                <option value="clean" th:selected="${activeTheme == 'clean'}">Clean</option>
+                <option value="fresh" th:selected="${activeTheme == 'fresh'}">Fresh</option>
+                <option value="summer-vibes" th:selected="${activeTheme == 'summer-vibes'}">Summer vibes</option>
+            </select>
+        </div>
+
+        <a th:href="@{/}" class="brand-link">
+            <span class="brand-badge">CP</span>
+            <span class="brand-copy">
+                <span class="brand-title">Crystal Production</span>
+                <span class="brand-subtitle">Web apps, app experiences, and launch systems</span>
+            </span>
+        </a>
+
+        <button type="button"
+                data-nav-toggle="true"
+                aria-expanded="false"
+                class="nav-toggle md:hidden">
+            Menu
+        </button>
+
+        <nav class="site-nav hidden md:flex">
+            <a th:href="@{/}" class="nav-link" th:classappend="${pageKey == 'home'} ? ' nav-link-active'">Home</a>
+            <a th:href="@{/about}" class="nav-link" th:classappend="${pageKey == 'about'} ? ' nav-link-active'">About</a>
+            <a th:href="@{/services}" class="nav-link" th:classappend="${pageKey == 'services'} ? ' nav-link-active'">Services</a>
+            <a th:href="@{/portfolio}" class="nav-link" th:classappend="${pageKey == 'portfolio'} ? ' nav-link-active'">Portfolio</a>
+            <a th:href="@{/support}" class="nav-link" th:classappend="${pageKey == 'support'} ? ' nav-link-active'">Support</a>
+        </nav>
+
+        <a th:href="@{/contact}" class="primary-button site-cta hidden md:inline-flex">Start a build</a>
+    </div>
+
+    <nav data-nav-menu="true" class="mobile-nav-panel hidden md:hidden">
+        <div class="mobile-nav-panel-inner">
+            <a th:href="@{/}" class="nav-link" th:classappend="${pageKey == 'home'} ? ' nav-link-active'">Home</a>
+            <a th:href="@{/about}" class="nav-link" th:classappend="${pageKey == 'about'} ? ' nav-link-active'">About</a>
+            <a th:href="@{/services}" class="nav-link" th:classappend="${pageKey == 'services'} ? ' nav-link-active'">Services</a>
+            <a th:href="@{/portfolio}" class="nav-link" th:classappend="${pageKey == 'portfolio'} ? ' nav-link-active'">Portfolio</a>
+            <a th:href="@{/support}" class="nav-link" th:classappend="${pageKey == 'support'} ? ' nav-link-active'">Support</a>
+            <a th:href="@{/contact}" class="primary-button w-full justify-center">Start a build</a>
+        </div>
+    </nav>
+</header>
+
+<footer th:fragment="footer" class="site-footer">
+    <div class="site-footer-panel">
+        <div class="site-footer-grid">
+            <div class="footer-brand">
+                <span class="eyebrow">Studio profile</span>
+                <h2 class="footer-title">Customer-facing digital builds with a sharper first impression.</h2>
+                <p class="footer-copy">
+                    Crystal Production focuses on premium websites, web applications, app-facing experiences,
+                    and the project surfaces around them.
+                </p>
+            </div>
+
+            <div class="footer-column">
+                <p class="footer-heading">Explore</p>
+                <div class="footer-links">
+                    <a th:href="@{/services}" class="footer-link">Services</a>
+                    <a th:href="@{/portfolio}" class="footer-link">Portfolio</a>
+                    <a th:href="@{/support}" class="footer-link">Support</a>
+                </div>
+            </div>
+
+            <div class="footer-column">
+                <p class="footer-heading">Build focus</p>
+                <ul class="footer-list">
+                    <li>Web applications</li>
+                    <li>Websites and launch pages</li>
+                    <li>App interfaces and product presentation</li>
+                    <li>Project feed and creation archive surfaces</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="site-footer-meta">
+            <p>&copy; 2026 Crystal Production. Built for polished launches and cleaner product presentation.</p>
+            <div class="site-footer-meta-links">
+                <a th:href="@{/about}" class="footer-link">About</a>
+                <a th:href="@{/contact}" class="footer-link">Contact</a>
+            </div>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,14 @@
+body[data-theme="futuristic"] {
+  --font-display: "Sora", sans-serif;
+  --font-sans: "Space Grotesk", sans-serif;
+}
+
+body[data-theme="futuristic"] .theme-picker,
+body[data-theme="futuristic"] .site-header-inner,
+body[data-theme="futuristic"] .site-footer-panel,
+body[data-theme="futuristic"] .section-card,
+body[data-theme="futuristic"] .home-card,
+body[data-theme="futuristic"] .pricing-card,
+body[data-theme="futuristic"] .addon-card {
+  backdrop-filter: blur(24px);
+}

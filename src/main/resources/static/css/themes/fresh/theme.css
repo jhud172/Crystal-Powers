@@ -1,0 +1,94 @@
+body[data-theme="fresh"] {
+  --font-display: "Sora", sans-serif;
+  --font-sans: "Manrope", sans-serif;
+
+  --color-body-bg: #f3fff9;
+  --color-body-text: #12312b;
+  --color-text-primary: #0d2c26;
+  --color-text-secondary: #215046;
+  --color-text-muted: #31665a;
+  --color-text-subtle: #4d7d73;
+
+  --color-accent: #0f766e;
+  --color-accent-soft: #34d399;
+  --color-accent-strong: #2dd4bf;
+
+  --body-overlay:
+    radial-gradient(circle at top, rgba(45, 212, 191, 0.14), transparent 34rem),
+    radial-gradient(circle at 82% 16%, rgba(52, 211, 153, 0.12), transparent 26rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
+
+  --selection-bg: rgba(15, 118, 110, 0.14);
+  --selection-text: #0d2c26;
+  --panel-border: rgba(45, 212, 191, 0.24);
+  --panel-shadow: 0 24px 80px rgba(45, 212, 191, 0.14);
+  --panel-shadow-strong: 0 30px 100px rgba(45, 212, 191, 0.16);
+  --panel-shadow-soft: 0 24px 72px rgba(15, 118, 110, 0.12);
+  --panel-shadow-inline: 0 18px 48px rgba(52, 211, 153, 0.18);
+
+  --header-surface: rgba(255, 255, 255, 0.82);
+  --nav-surface: rgba(13, 44, 38, 0.03);
+  --mobile-nav-surface: rgba(255, 255, 255, 0.95);
+  --footer-surface: rgba(255, 255, 255, 0.8);
+  --section-surface: rgba(255, 255, 255, 0.72);
+  --section-surface-soft: rgba(255, 255, 255, 0.84);
+  --section-surface-strong: rgba(255, 255, 255, 0.78);
+  --field-surface: rgba(255, 255, 255, 0.88);
+
+  --brand-badge-bg: rgba(45, 212, 191, 0.1);
+  --brand-badge-border: rgba(45, 212, 191, 0.18);
+  --brand-badge-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+
+  --eyebrow-bg: rgba(255, 255, 255, 0.84);
+  --eyebrow-border: rgba(45, 212, 191, 0.2);
+  --eyebrow-text: #0f4c45;
+
+  --primary-button-bg: #0f766e;
+  --primary-button-text: #f0fdfa;
+  --primary-button-hover-bg: #14b8a6;
+  --secondary-button-bg: rgba(255, 255, 255, 0.86);
+  --secondary-button-border: rgba(45, 212, 191, 0.22);
+  --secondary-button-text: #0d2c26;
+  --secondary-button-hover-bg: rgba(220, 252, 231, 0.9);
+  --secondary-button-hover-border: rgba(52, 211, 153, 0.4);
+
+  --theme-picker-bg: rgba(255, 255, 255, 0.9);
+  --theme-picker-border: rgba(45, 212, 191, 0.22);
+  --theme-picker-text: #0d2c26;
+  --theme-picker-label: #4d7d73;
+
+  --glow-top: radial-gradient(circle at top, rgba(45, 212, 191, 0.18), transparent 46%);
+  --glow-side: radial-gradient(circle, rgba(52, 211, 153, 0.14), transparent 62%);
+  --glow-bottom: radial-gradient(circle at bottom, rgba(187, 247, 208, 0.22), transparent 42%);
+
+  --hero-shell-background:
+    radial-gradient(circle at 12% 18%, rgba(45, 212, 191, 0.14), transparent 24rem),
+    radial-gradient(circle at 86% 14%, rgba(52, 211, 153, 0.12), transparent 20rem),
+    linear-gradient(180deg, rgba(240, 253, 250, 0.84), rgba(232, 250, 244, 0.94));
+  --hero-grid-color: rgba(15, 118, 110, 0.12);
+  --hero-shell-mask-opacity: 0.32;
+  --hero-band-top: rgba(15, 118, 110, 0.08);
+  --hero-band-bottom: rgba(15, 118, 110, 0.04);
+  --hero-band-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08));
+  --hero-orb-primary: rgba(45, 212, 191, 0.2);
+  --hero-orb-secondary: rgba(52, 211, 153, 0.16);
+  --hero-orb-tertiary: rgba(187, 247, 208, 0.26);
+
+  --home-card-surface: rgba(255, 255, 255, 0.78);
+  --home-hero-surface:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.7)),
+    radial-gradient(circle at top left, rgba(45, 212, 191, 0.1), transparent 24rem);
+  --home-overview-surface:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.74)),
+    radial-gradient(circle at top right, rgba(52, 211, 153, 0.08), transparent 18rem);
+  --service-preview-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.64));
+}
+
+body[data-theme="fresh"] .site-header-inner,
+body[data-theme="fresh"] .site-footer-panel,
+body[data-theme="fresh"] .section-card,
+body[data-theme="fresh"] .home-card,
+body[data-theme="fresh"] .pricing-card,
+body[data-theme="fresh"] .addon-card {
+  border-radius: 1.8rem;
+}

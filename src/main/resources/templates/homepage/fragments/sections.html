@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<body>
+<th:block xmlns:th="http://www.thymeleaf.org">
 <th:block th:fragment="content">
     <div class="home-stage hero-network-shell" data-home-network-shell="true">
         <div class="hero-network-backdrop" aria-hidden="true">
@@ -11,177 +9,171 @@
         </div>
 
         <div class="home-stage-inner">
-            <section class="home-hero-grid">
-                <article class="home-card home-hero-card">
-                    <span class="eyebrow">Digital studio for premium launches</span>
-                    <p class="home-kicker">Web applications, premium websites, and sharper app experiences.</p>
-                    <h1 class="home-display">
-                        Premium websites, web apps, and app-facing experiences built to look sharp on first contact.
-                    </h1>
-                    <p class="home-lead">
-                        Crystal Production helps companies and products present themselves with more confidence online:
-                        cleaner structure, smoother interaction, stronger visual polish, and customer-facing surfaces that feel properly engineered.
+            <section class="home-command-grid">
+                <article class="home-card home-command-card">
+                    <span class="eyebrow">Futuristic digital direction</span>
+                    <p class="home-kicker">Premium websites, launch surfaces, and digital systems built to look confident before the first click.</p>
+                    <h1 class="home-command-display">Design the first impression like it already belongs in the market.</h1>
+                    <p class="home-command-lead">
+                        Crystal Production builds polished website systems for brands, founders, and businesses that
+                        need more than a functional presence. The work is structured to feel premium, read clearly,
+                        and carry more authority from the first screen onward.
                     </p>
-                    <div class="home-chip-row">
-                        <span class="surface-chip">Company websites</span>
-                        <span class="surface-chip">Web applications</span>
-                        <span class="surface-chip">App launch surfaces</span>
-                        <span class="surface-chip">Creation archives</span>
+
+                    <div class="home-command-chip-row">
+                        <span class="surface-chip">Premium websites</span>
+                        <span class="surface-chip">Launch systems</span>
+                        <span class="surface-chip">Quote-led build flows</span>
+                        <span class="surface-chip">Futuristic presentation</span>
                     </div>
-                    <div class="home-action-row">
-                        <a th:href="@{/contact}" class="primary-button">Start a project</a>
-                        <a th:href="@{/portfolio}" class="secondary-button">View creations</a>
+
+                    <div class="home-command-actions">
+                        <a th:href="@{/contact}" class="primary-button">Start a build</a>
+                        <a th:href="@{/portfolio}" class="secondary-button">View portfolio</a>
+                    </div>
+
+                    <div class="home-proof-strip">
+                        <article class="home-proof-item">
+                            <p class="home-proof-value">Sharper trust</p>
+                            <p class="home-proof-copy">Layouts designed to make the offer feel more established on first contact.</p>
+                        </article>
+                        <article class="home-proof-item">
+                            <p class="home-proof-value">Cleaner scope</p>
+                            <p class="home-proof-copy">Packages, additions, and support aligned before the build starts drifting.</p>
+                        </article>
+                        <article class="home-proof-item">
+                            <p class="home-proof-value">Delivery ready</p>
+                            <p class="home-proof-copy">Built to move from design presence into real deployment and maintenance.</p>
+                        </article>
                     </div>
                 </article>
 
-                <aside class="home-card home-overview-card">
-                    <div class="home-overview-header">
-                        <div>
-                            <p class="section-tag">Studio positioning</p>
-                            <h2 class="home-card-title">The site now points at the real offer.</h2>
-                        </div>
-                        <span class="surface-chip">Available for builds</span>
-                    </div>
+                <aside class="home-floating-rail">
+                    <article class="home-card home-floating-card home-floating-card-wide">
+                        <p class="section-tag">Studio signal</p>
+                        <h2 class="home-card-title">A website should feel like a product surface, not just a stack of sections.</h2>
+                        <p class="home-card-copy">
+                            The focus is deliberate structure, stronger typography, cleaner decision paths, and a finish
+                            that feels considered instead of assembled.
+                        </p>
+                    </article>
 
-                    <div class="home-metric-grid">
-                        <article class="home-metric-card">
-                            <p class="home-metric-value">01</p>
-                            <p class="home-metric-copy">Premium company websites with stronger trust on first contact.</p>
-                        </article>
-                        <article class="home-metric-card">
-                            <p class="home-metric-value">02</p>
-                            <p class="home-metric-copy">Web applications and customer-facing product interfaces.</p>
-                        </article>
-                        <article class="home-metric-card">
-                            <p class="home-metric-value">03</p>
-                            <p class="home-metric-copy">A project feed for launches, updates, and public progress.</p>
-                        </article>
-                        <article class="home-metric-card">
-                            <p class="home-metric-value">04</p>
-                            <p class="home-metric-copy">A creation archive with portfolio links and live showcases.</p>
-                        </article>
-                    </div>
-
-                    <div class="home-showcase-stack">
+                    <article class="home-card home-floating-card">
                         <img th:src="@{/images/WebsiteImage.png}"
                              src="/images/WebsiteImage.png"
-                             alt="Website and interface showcase"
-                             class="home-showcase-image" />
-                        <div class="home-showcase-row">
-                            <img th:src="@{/images/project1.png}"
-                                 src="/images/project1.png"
-                                 alt="Project preview one"
-                                 class="home-showcase-thumb" />
-                            <img th:src="@{/images/project2.png}"
-                                 src="/images/project2.png"
-                                 alt="Project preview two"
-                                 class="home-showcase-thumb" />
+                             alt="Premium website direction"
+                             class="home-floating-image" />
+                        <div class="home-floating-copy">
+                            <p class="section-tag">Main build focus</p>
+                            <h3 class="home-floating-title">Website systems with stronger positioning and cleaner conversion flow.</h3>
                         </div>
+                    </article>
+
+                    <div class="home-floating-duo">
+                        <article class="home-card home-floating-mini">
+                            <p class="section-tag">Recent style</p>
+                            <h3 class="home-floating-mini-title">Centralised composition</h3>
+                            <p class="home-card-copy">Larger visual anchors, less scattered content, and more intentional spacing.</p>
+                        </article>
+                        <article class="home-card home-floating-mini">
+                            <p class="section-tag">Shared system</p>
+                            <h3 class="home-floating-mini-title">Whole-site consistency</h3>
+                            <p class="home-card-copy">Services, portfolio, and contact now point back to the same design language.</p>
+                        </article>
                     </div>
                 </aside>
             </section>
 
-            <section class="home-card-grid">
-                <article class="home-card service-preview-card">
-                    <p class="section-tag">01 / Websites</p>
-                    <h2 class="home-card-title">Company sites that stop looking templated.</h2>
+            <section class="home-focus-grid">
+                <article class="home-card service-preview-card home-focus-card">
+                    <p class="section-tag">01 / Positioning</p>
+                    <h2 class="home-card-title">Make the business feel more premium before the conversation starts.</h2>
                     <p class="home-card-copy">
-                        Premium landing pages, brand sites, and offer pages with a cleaner visual rhythm, stronger messaging hierarchy,
-                        and a finish that feels deliberate.
+                        Clear hierarchy, stronger copy framing, cleaner section rhythm, and presentation that carries more authority from the first screen.
                     </p>
                 </article>
 
-                <article class="home-card service-preview-card">
-                    <p class="section-tag">02 / Web apps</p>
-                    <h2 class="home-card-title">Web application interfaces that feel product-ready.</h2>
+                <article class="home-card service-preview-card home-focus-card">
+                    <p class="section-tag">02 / Structure</p>
+                    <h2 class="home-card-title">Build with a defined package, additions, and support path from the start.</h2>
                     <p class="home-card-copy">
-                        Internal tools, customer dashboards, and product-facing flows where structure, responsiveness, and interface polish
-                        matter as much as the feature set.
+                        The site now pushes toward scoped delivery instead of vague enquiry. That reduces friction and keeps the offer easier to understand.
                     </p>
                 </article>
 
-                <article class="home-card service-preview-card">
-                    <p class="section-tag">03 / App surfaces</p>
-                    <h2 class="home-card-title">App launch pages and companion experiences.</h2>
+                <article class="home-card service-preview-card home-focus-card">
+                    <p class="section-tag">03 / Delivery</p>
+                    <h2 class="home-card-title">Design choices stay connected to launch, maintenance, and ongoing updates.</h2>
                     <p class="home-card-copy">
-                        Public-facing app presentation, microsites, product rollouts, and interface support surfaces that help the app look ready before a user even signs in.
-                    </p>
-                </article>
-
-                <article class="home-card service-preview-card">
-                    <p class="section-tag">04 / Rollout</p>
-                    <h2 class="home-card-title">Feed, portfolio, and showcase systems for ongoing work.</h2>
-                    <p class="home-card-copy">
-                        The second half of the site can function as a live studio archive: updates, recent builds, and a dedicated page of creations with outbound links.
+                        The work is not styled in isolation. It is built to move from presentation into a real deployment flow that still feels polished.
                     </p>
                 </article>
             </section>
 
-            <section class="home-split-grid">
-                <article class="home-card home-feed-card">
+            <section class="home-story-grid">
+                <article class="home-card home-story-card">
                     <div class="home-section-header">
-                        <span class="eyebrow">Project feed</span>
-                        <a th:href="@{/portfolio}" class="inline-link">Archive direction</a>
+                        <span class="eyebrow">How builds move</span>
+                        <a th:href="@{/services}" class="inline-link">See package flow</a>
                     </div>
-                    <h2 class="home-card-title">A live stream of launches, refinements, and public build notes.</h2>
+                    <h2 class="home-card-title">The process is designed to feel direct, premium, and hard to misunderstand.</h2>
                     <p class="home-card-copy">
-                        This area can become the studio feed: recent releases, redesign passes, interface experiments, and short updates
-                        that show momentum without turning the site into a blog-first product.
+                        The build path now runs through package choice, additions, maintenance, and a structured request.
+                        That keeps the decision-making cleaner for both sides before the project even begins.
                     </p>
+
                     <div class="timeline-list">
                         <article class="timeline-item">
-                            <p class="timeline-label">Latest launch</p>
-                            <h3>Polished service site with clearer conversion paths</h3>
-                            <p>Navigation cleanup, stronger section hierarchy, sharper motion, and cleaner route coverage.</p>
+                            <p class="timeline-label">Step 01</p>
+                            <h3>Choose the build direction</h3>
+                            <p>Select the package tier that actually fits the page count, structure depth, and visual ambition.</p>
                         </article>
                         <article class="timeline-item">
-                            <p class="timeline-label">Current build</p>
-                            <h3>Product-facing interface pass for a web application</h3>
-                            <p>Focused on higher trust visuals, reusable panels, and stronger customer-facing structure.</p>
+                            <p class="timeline-label">Step 02</p>
+                            <h3>Layer on additions where they improve the result</h3>
+                            <p>Brand support, copy refinement, forms, extra pages, and other scoped additions are added only where they sharpen the final build.</p>
                         </article>
                         <article class="timeline-item">
-                            <p class="timeline-label">In progress</p>
-                            <h3>Creation archive with outbound links and project snapshots</h3>
-                            <p>A more useful showcase page where each build can connect directly to the live surface.</p>
+                            <p class="timeline-label">Step 03</p>
+                            <h3>Lock in maintenance and submit the request</h3>
+                            <p>The support level and contact path are captured before the conversation, so the quote and delivery plan start from something real.</p>
                         </article>
                     </div>
                 </article>
 
-                <article class="home-card home-portfolio-card">
-                    <span class="eyebrow">Creations page</span>
-                    <h2 class="home-card-title">A dedicated surface for live work, previews, and links out to the real builds.</h2>
+                <article class="home-card home-portfolio-card home-portfolio-preview-card">
+                    <div class="home-section-header">
+                        <span class="eyebrow">Portfolio archive</span>
+                        <a th:href="@{/portfolio}" class="inline-link">Open full archive</a>
+                    </div>
+                    <h2 class="home-card-title">Every project should feel like it belongs inside one consistent studio system.</h2>
                     <p class="home-card-copy">
-                        The portfolio direction should act like a real archive, not just a gallery. Each item can hold a preview,
-                        a short summary, and a direct route to the live site or product.
+                        The portfolio is shifting away from a static gallery into a searchable, filterable archive with
+                        richer project context, live links, and creation notes.
                     </p>
 
                     <div class="home-project-grid">
                         <article class="project-tile">
-                            <img th:src="@{/images/project1.png}" src="/images/project1.png" alt="Editorial web project preview" class="project-tile-image" />
+                            <img th:src="@{/images/project1.png}" src="/images/project1.png" alt="Editorial project preview" class="project-tile-image" />
                             <div class="project-tile-copy">
-                                <p class="section-tag">Editorial site</p>
-                                <h3>Brand-led landing surface</h3>
+                                <p class="section-tag">Website system</p>
+                                <h3>Brand-led landing build</h3>
                             </div>
                         </article>
                         <article class="project-tile">
-                            <img th:src="@{/images/project2.png}" src="/images/project2.png" alt="Storefront project preview" class="project-tile-image" />
+                            <img th:src="@{/images/project2.png}" src="/images/project2.png" alt="Storefront preview" class="project-tile-image" />
                             <div class="project-tile-copy">
-                                <p class="section-tag">Product flow</p>
-                                <h3>Conversion-focused build</h3>
+                                <p class="section-tag">Offer structure</p>
+                                <h3>Conversion-focused storefront</h3>
                             </div>
                         </article>
                         <article class="project-tile">
-                            <img th:src="@{/images/project3.png}" src="/images/project3.png" alt="Portfolio project preview" class="project-tile-image" />
+                            <img th:src="@{/images/project3.png}" src="/images/project3.png" alt="Portfolio build preview" class="project-tile-image" />
                             <div class="project-tile-copy">
                                 <p class="section-tag">Creator surface</p>
-                                <h3>Portfolio with live links</h3>
+                                <h3>Booking-ready portfolio</h3>
                             </div>
                         </article>
-                    </div>
-
-                    <div class="home-action-row">
-                        <a th:href="@{/portfolio}" class="primary-button">See creations</a>
-                        <a th:href="@{/services}" class="secondary-button">View services</a>
                     </div>
                 </article>
             </section>
@@ -192,5 +184,4 @@
 <th:block th:fragment="scripts">
     <script defer th:src="@{/js/home-background.js}" src="/js/home-background.js"></script>
 </th:block>
-</body>
-</html>
+</th:block>

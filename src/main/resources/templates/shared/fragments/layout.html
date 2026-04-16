@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body th:fragment="documentBody(pageKey, content, scripts)"
+      th:attr="data-theme=${activeTheme}"
+      th:classappend="${pageKey == 'home'} ? ' page-home' : ''">
+<div class="site-shell">
+    <th:block th:replace="~{shared/fragments/chrome :: background}"></th:block>
+    <th:block th:replace="~{shared/fragments/chrome :: header(${pageKey})}"></th:block>
+
+    <main class="site-main">
+        <th:block th:replace="${content}"></th:block>
+    </main>
+
+    <th:block th:replace="~{shared/fragments/chrome :: footer}"></th:block>
+</div>
+
+<th:block th:replace="~{shared/fragments/scripts :: sharedScripts}"></th:block>
+<th:block th:replace="${scripts}"></th:block>
+</body>
+</html>

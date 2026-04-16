@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.querySelector("[data-home-network]");
+    const body = document.body;
 
     if (!(canvas instanceof HTMLCanvasElement)) {
         return;
@@ -19,6 +20,136 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+
+    const themePresets = {
+        futuristic: {
+            mode: "network",
+            density: 1,
+            speed: 0.17,
+            cursorDistance: coarsePointer ? 0 : reducedMotion ? 140 : 220,
+            linkDistance: coarsePointer ? 94 : 144,
+            radius: [1.4, 3.5],
+            outerColor: [2, 6, 23],
+            innerColor: [226, 232, 240],
+            ringColor: [103, 232, 249],
+            lineColor: [103, 232, 249],
+            cursorGradient: [
+                [0, [103, 232, 249, 0.12]],
+                [0.38, [59, 130, 246, 0.08]],
+                [1, [2, 6, 23, 0]]
+            ],
+            motion: "free"
+        },
+        classic: {
+            mode: "constellation",
+            density: 1.45,
+            speed: 0.1,
+            cursorDistance: 0,
+            linkDistance: 118,
+            radius: [1.2, 2.7],
+            outerColor: [39, 28, 19],
+            innerColor: [243, 215, 162],
+            ringColor: [232, 192, 125],
+            lineColor: [183, 121, 61],
+            cursorGradient: [],
+            motion: "glide"
+        },
+        clean: {
+            mode: "minimal",
+            density: 1.8,
+            speed: 0.08,
+            cursorDistance: coarsePointer ? 0 : 120,
+            linkDistance: 0,
+            radius: [1.1, 2.4],
+            outerColor: [255, 255, 255],
+            innerColor: [37, 99, 235],
+            ringColor: [14, 165, 233],
+            lineColor: [37, 99, 235],
+            cursorGradient: [
+                [0, [37, 99, 235, 0.1]],
+                [0.45, [56, 189, 248, 0.05]],
+                [1, [255, 255, 255, 0]]
+            ],
+            motion: "glide"
+        },
+        fresh: {
+            mode: "breeze",
+            density: 1.25,
+            speed: 0.11,
+            cursorDistance: coarsePointer ? 0 : 150,
+            linkDistance: 0,
+            radius: [1.6, 3.8],
+            outerColor: [220, 252, 231],
+            innerColor: [15, 118, 110],
+            ringColor: [45, 212, 191],
+            lineColor: [45, 212, 191],
+            cursorGradient: [
+                [0, [45, 212, 191, 0.1]],
+                [0.5, [52, 211, 153, 0.06]],
+                [1, [255, 255, 255, 0]]
+            ],
+            motion: "lift"
+        },
+        "summer-vibes": {
+            mode: "sun",
+            density: 1.12,
+            speed: 0.12,
+            cursorDistance: coarsePointer ? 0 : 165,
+            linkDistance: 0,
+            radius: [2.2, 5],
+            outerColor: [255, 237, 213],
+            innerColor: [249, 115, 22],
+            ringColor: [34, 211, 238],
+            lineColor: [249, 115, 22],
+            cursorGradient: [
+                [0, [249, 115, 22, 0.12]],
+                [0.42, [251, 191, 36, 0.08]],
+                [1, [255, 255, 255, 0]]
+            ],
+            motion: "wave"
+        }
+    };
+
+    const rgba = (rgb, alpha) => `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+
+    const getActiveTheme = () => {
+        const theme = body.dataset.theme;
+        return Object.hasOwn(themePresets, theme) ? theme : "futuristic";
+    };
+
+    const createParticle = (width, height, preset) => {
+        const baseSpeed = reducedMotion ? preset.speed * 0.55 : preset.speed;
+        const radius = preset.radius[0] + Math.random() * (preset.radius[1] - preset.radius[0]);
+        const particle = {
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * baseSpeed,
+            vy: (Math.random() - 0.5) * baseSpeed,
+            radius,
+            shimmer: Math.random() * Math.PI * 2,
+            phase: Math.random() * Math.PI * 2
+        };
+
+        if (preset.motion === "lift") {
+            particle.vx = (Math.random() - 0.5) * baseSpeed * 0.8;
+            particle.vy = -(0.45 + Math.random()) * baseSpeed;
+        }
+
+        if (preset.motion === "wave") {
+            particle.vx = (Math.random() - 0.5) * baseSpeed * 0.75;
+            particle.vy = (Math.random() - 0.5) * baseSpeed * 0.35;
+        }
+
+        return particle;
+    };
+
+    const resetParticle = (particle, width, height, preset) => {
+        particle.x = Math.random() * width;
+        particle.y = preset.motion === "lift" ? height + Math.random() * 40 : Math.random() * height;
+        particle.phase = Math.random() * Math.PI * 2;
+        particle.shimmer = Math.random() * Math.PI * 2;
+    };
+
     const state = {
         cursor: {
             active: false,
@@ -26,33 +157,23 @@ document.addEventListener("DOMContentLoaded", () => {
             y: 0
         },
         frameId: 0,
-        running: true,
+        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
         particles: [],
-        pixelRatio: Math.min(window.devicePixelRatio || 1, 2)
-    };
-
-    const createParticle = (width, height) => {
-        const speed = reducedMotion ? 0.08 : 0.17;
-        return {
-            x: Math.random() * width,
-            y: Math.random() * height,
-            vx: (Math.random() - 0.5) * speed,
-            vy: (Math.random() - 0.5) * speed,
-            radius: 1.4 + Math.random() * 2.1,
-            shimmer: Math.random() * Math.PI * 2
-        };
+        preset: themePresets[getActiveTheme()],
+        running: true
     };
 
     const getParticleCount = (width, height) => {
-        const density = coarsePointer ? 1 : reducedMotion ? 1.35 : 1.9;
-        return Math.max(42, Math.min(140, Math.round((width * height) / 16000 / density)));
+        const densityModifier = coarsePointer ? 1.25 : reducedMotion ? 1.2 : 1;
+        const divisor = 16000 * state.preset.density * densityModifier;
+        return Math.max(24, Math.min(132, Math.round((width * height) / divisor)));
     };
 
     const syncParticles = (width, height) => {
         const targetCount = getParticleCount(width, height);
 
         while (state.particles.length < targetCount) {
-            state.particles.push(createParticle(width, height));
+            state.particles.push(createParticle(width, height, state.preset));
         }
 
         if (state.particles.length > targetCount) {
@@ -73,32 +194,99 @@ document.addEventListener("DOMContentLoaded", () => {
         syncParticles(width, height);
     };
 
-    const drawNode = (particle, time) => {
-        const shimmer = 0.45 + (Math.sin(time * 0.0012 + particle.shimmer) + 1) * 0.16;
-        context.beginPath();
-        context.fillStyle = `rgba(2, 6, 23, ${0.72 * shimmer})`;
-        context.arc(particle.x, particle.y, particle.radius * 1.9, 0, Math.PI * 2);
-        context.fill();
-
-        context.beginPath();
-        context.fillStyle = `rgba(226, 232, 240, ${0.42 * shimmer})`;
-        context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-        context.fill();
-
-        context.beginPath();
-        context.strokeStyle = `rgba(103, 232, 249, ${0.14 * shimmer})`;
-        context.lineWidth = 1;
-        context.arc(particle.x, particle.y, particle.radius * 2.4, 0, Math.PI * 2);
-        context.stroke();
-    };
-
-    const drawLine = (fromX, fromY, toX, toY, alpha, width) => {
+    const drawLine = (fromX, fromY, toX, toY, alpha) => {
         context.beginPath();
         context.moveTo(fromX, fromY);
         context.lineTo(toX, toY);
-        context.strokeStyle = `rgba(103, 232, 249, ${alpha})`;
-        context.lineWidth = width;
+        context.strokeStyle = rgba(state.preset.lineColor, alpha);
+        context.lineWidth = 0.9;
         context.stroke();
+    };
+
+    const drawNode = (particle, time) => {
+        const shimmer = 0.45 + (Math.sin(time * 0.0011 + particle.shimmer) + 1) * 0.16;
+
+        switch (state.preset.mode) {
+            case "minimal":
+                context.beginPath();
+                context.fillStyle = rgba(state.preset.innerColor, 0.34 * shimmer);
+                context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                context.fill();
+                break;
+            case "breeze":
+                context.beginPath();
+                context.fillStyle = rgba(state.preset.outerColor, 0.22 * shimmer);
+                context.arc(particle.x, particle.y, particle.radius * 2.4, 0, Math.PI * 2);
+                context.fill();
+
+                context.beginPath();
+                context.strokeStyle = rgba(state.preset.ringColor, 0.22 * shimmer);
+                context.lineWidth = 1;
+                context.arc(particle.x, particle.y, particle.radius * 1.45, 0, Math.PI * 2);
+                context.stroke();
+                break;
+            case "sun": {
+                const gradient = context.createRadialGradient(
+                    particle.x,
+                    particle.y,
+                    0,
+                    particle.x,
+                    particle.y,
+                    particle.radius * 3.2
+                );
+                gradient.addColorStop(0, rgba(state.preset.innerColor, 0.28 * shimmer));
+                gradient.addColorStop(0.55, rgba(state.preset.ringColor, 0.12 * shimmer));
+                gradient.addColorStop(1, rgba(state.preset.outerColor, 0));
+                context.beginPath();
+                context.fillStyle = gradient;
+                context.arc(particle.x, particle.y, particle.radius * 3.2, 0, Math.PI * 2);
+                context.fill();
+                break;
+            }
+            case "constellation":
+            case "network":
+            default:
+                context.beginPath();
+                context.fillStyle = rgba(state.preset.outerColor, 0.72 * shimmer);
+                context.arc(particle.x, particle.y, particle.radius * 1.9, 0, Math.PI * 2);
+                context.fill();
+
+                context.beginPath();
+                context.fillStyle = rgba(state.preset.innerColor, 0.42 * shimmer);
+                context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                context.fill();
+
+                context.beginPath();
+                context.strokeStyle = rgba(state.preset.ringColor, 0.14 * shimmer);
+                context.lineWidth = 1;
+                context.arc(particle.x, particle.y, particle.radius * 2.4, 0, Math.PI * 2);
+                context.stroke();
+                break;
+        }
+    };
+
+    const renderCursorGlow = () => {
+        if (!state.cursor.active || state.preset.cursorDistance <= 0 || state.preset.cursorGradient.length === 0) {
+            return;
+        }
+
+        const gradient = context.createRadialGradient(
+            state.cursor.x,
+            state.cursor.y,
+            0,
+            state.cursor.x,
+            state.cursor.y,
+            state.preset.cursorDistance * 0.75
+        );
+
+        state.preset.cursorGradient.forEach(([stop, color]) => {
+            gradient.addColorStop(stop, rgba(color.slice(0, 3), color[3]));
+        });
+
+        context.beginPath();
+        context.fillStyle = gradient;
+        context.arc(state.cursor.x, state.cursor.y, state.preset.cursorDistance * 0.75, 0, Math.PI * 2);
+        context.fill();
     };
 
     const render = (time) => {
@@ -108,82 +296,87 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const width = canvas.width / state.pixelRatio;
         const height = canvas.height / state.pixelRatio;
-        const linkDistance = coarsePointer ? 94 : 144;
-        const cursorDistance = coarsePointer ? 0 : reducedMotion ? 140 : 220;
         context.clearRect(0, 0, width, height);
 
         state.particles.forEach((particle) => {
-            particle.x += particle.vx + Math.sin(time * 0.00022 + particle.shimmer) * 0.03;
-            particle.y += particle.vy + Math.cos(time * 0.00018 + particle.shimmer) * 0.03;
+            if (state.preset.motion === "lift") {
+                particle.x += particle.vx + Math.sin(time * 0.001 + particle.phase) * 0.18;
+                particle.y += particle.vy;
 
-            if (particle.x <= -18 || particle.x >= width + 18) {
-                particle.vx *= -1;
+                if (particle.y < -26) {
+                    resetParticle(particle, width, height, state.preset);
+                }
+            } else if (state.preset.motion === "wave") {
+                particle.x += particle.vx + Math.sin(time * 0.0012 + particle.phase) * 0.3;
+                particle.y += particle.vy + Math.cos(time * 0.0009 + particle.phase) * 0.12;
+
+                if (particle.x <= -30 || particle.x >= width + 30) {
+                    particle.vx *= -1;
+                }
+
+                if (particle.y <= -24 || particle.y >= height + 24) {
+                    particle.vy *= -1;
+                }
+            } else {
+                particle.x += particle.vx + Math.sin(time * 0.00022 + particle.shimmer) * 0.03;
+                particle.y += particle.vy + Math.cos(time * 0.00018 + particle.shimmer) * 0.03;
+
+                if (particle.x <= -18 || particle.x >= width + 18) {
+                    particle.vx *= -1;
+                }
+
+                if (particle.y <= -18 || particle.y >= height + 18) {
+                    particle.vy *= -1;
+                }
             }
 
-            if (particle.y <= -18 || particle.y >= height + 18) {
-                particle.vy *= -1;
-            }
-
-            if (state.cursor.active && cursorDistance > 0) {
+            if (state.cursor.active && state.preset.cursorDistance > 0) {
                 const dx = state.cursor.x - particle.x;
                 const dy = state.cursor.y - particle.y;
                 const distance = Math.hypot(dx, dy);
 
-                if (distance < cursorDistance && distance > 0) {
-                    const force = (1 - distance / cursorDistance) * 0.016;
+                if (distance < state.preset.cursorDistance && distance > 0) {
+                    const force = (1 - distance / state.preset.cursorDistance) * (state.preset.mode === "minimal" ? -0.006 : 0.016);
                     particle.x -= dx * force;
                     particle.y -= dy * force;
                 }
             }
         });
 
-        for (let index = 0; index < state.particles.length; index += 1) {
-            const particle = state.particles[index];
+        if (state.preset.linkDistance > 0) {
+            for (let index = 0; index < state.particles.length; index += 1) {
+                const particle = state.particles[index];
 
-            for (let comparisonIndex = index + 1; comparisonIndex < state.particles.length; comparisonIndex += 1) {
-                const comparison = state.particles[comparisonIndex];
-                const dx = particle.x - comparison.x;
-                const dy = particle.y - comparison.y;
-                const distance = Math.hypot(dx, dy);
+                for (let comparisonIndex = index + 1; comparisonIndex < state.particles.length; comparisonIndex += 1) {
+                    const comparison = state.particles[comparisonIndex];
+                    const dx = particle.x - comparison.x;
+                    const dy = particle.y - comparison.y;
+                    const distance = Math.hypot(dx, dy);
 
-                if (distance < linkDistance) {
-                    const alpha = (1 - distance / linkDistance) * 0.18;
-                    drawLine(particle.x, particle.y, comparison.x, comparison.y, alpha, 0.8);
+                    if (distance < state.preset.linkDistance) {
+                        const alpha = (1 - distance / state.preset.linkDistance) * (state.preset.mode === "constellation" ? 0.14 : 0.18);
+                        drawLine(particle.x, particle.y, comparison.x, comparison.y, alpha);
+                    }
+                }
+
+                if (state.cursor.active && state.preset.cursorDistance > 0 && state.preset.mode === "network") {
+                    const dx = state.cursor.x - particle.x;
+                    const dy = state.cursor.y - particle.y;
+                    const distance = Math.hypot(dx, dy);
+
+                    if (distance < state.preset.cursorDistance) {
+                        const alpha = (1 - distance / state.preset.cursorDistance) * 0.38;
+                        drawLine(particle.x, particle.y, state.cursor.x, state.cursor.y, alpha);
+                    }
                 }
             }
+        }
 
-            if (state.cursor.active && cursorDistance > 0) {
-                const dx = state.cursor.x - particle.x;
-                const dy = state.cursor.y - particle.y;
-                const distance = Math.hypot(dx, dy);
-
-                if (distance < cursorDistance) {
-                    const alpha = (1 - distance / cursorDistance) * 0.38;
-                    drawLine(particle.x, particle.y, state.cursor.x, state.cursor.y, alpha, 1);
-                }
-            }
-
+        state.particles.forEach((particle) => {
             drawNode(particle, time);
-        }
+        });
 
-        if (state.cursor.active && cursorDistance > 0) {
-            const gradient = context.createRadialGradient(
-                state.cursor.x,
-                state.cursor.y,
-                0,
-                state.cursor.x,
-                state.cursor.y,
-                cursorDistance * 0.75
-            );
-            gradient.addColorStop(0, "rgba(103, 232, 249, 0.12)");
-            gradient.addColorStop(0.38, "rgba(59, 130, 246, 0.08)");
-            gradient.addColorStop(1, "rgba(2, 6, 23, 0)");
-            context.beginPath();
-            context.fillStyle = gradient;
-            context.arc(state.cursor.x, state.cursor.y, cursorDistance * 0.75, 0, Math.PI * 2);
-            context.fill();
-        }
-
+        renderCursorGlow();
         state.frameId = window.requestAnimationFrame(render);
     };
 
@@ -218,6 +411,11 @@ document.addEventListener("DOMContentLoaded", () => {
         threshold: 0.05
     });
 
+    const syncThemePreset = () => {
+        state.preset = themePresets[getActiveTheme()];
+        resizeCanvas();
+    };
+
     resizeCanvas();
     resizeObserver.observe(shell);
     intersectionObserver.observe(shell);
@@ -225,11 +423,13 @@ document.addEventListener("DOMContentLoaded", () => {
     shell.addEventListener("pointerenter", updateCursor);
     shell.addEventListener("pointerleave", resetCursor);
     shell.addEventListener("pointercancel", resetCursor);
+    document.addEventListener("themechange", syncThemePreset);
     state.frameId = window.requestAnimationFrame(render);
 
     window.addEventListener("pagehide", () => {
         resizeObserver.disconnect();
         intersectionObserver.disconnect();
+        document.removeEventListener("themechange", syncThemePreset);
         window.cancelAnimationFrame(state.frameId);
         state.frameId = 0;
     }, {

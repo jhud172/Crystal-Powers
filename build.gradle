@@ -42,6 +42,14 @@ tasks.named('processResources') {
     dependsOn tasks.named('buildFrontendCss')
 }
 
+tasks.named('bootRun') {
+    def bootRunPort = providers.gradleProperty('bootRunPort')
+            .orElse(providers.environmentVariable('BOOTRUN_PORT'))
+            .orElse('8081')
+
+    systemProperty 'server.port', bootRunPort.get()
+}
+
 tasks.named('test') {
     useJUnitPlatform()
 }
