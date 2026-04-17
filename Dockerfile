@@ -16,7 +16,7 @@ ENV SKIP_FRONTEND_BUILD=true
 COPY gradlew gradlew.bat settings.gradle build.gradle ./
 COPY gradle ./gradle
 COPY src ./src
-COPY --from=frontend-build /app/src/main/resources/static/css/style.css ./src/main/resources/static/css/style.css
+COPY --from=frontend-build /app/src/main/resources/static/css ./src/main/resources/static/css
 
 RUN chmod +x ./gradlew && ./gradlew --no-daemon bootJar
 
