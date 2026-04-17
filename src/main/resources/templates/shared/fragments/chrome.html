@@ -10,15 +10,30 @@
 
 <header th:fragment="header(pageKey)" class="site-header">
     <div class="site-header-inner">
-        <div class="theme-picker">
-            <label for="theme-select" class="theme-picker-label">Theme</label>
-            <select id="theme-select" data-theme-select="true" class="theme-picker-select" aria-label="Choose a site theme">
-                <option value="futuristic" th:selected="${activeTheme == 'futuristic'}">Futuristic</option>
-                <option value="classic" th:selected="${activeTheme == 'classic'}">Classic</option>
-                <option value="clean" th:selected="${activeTheme == 'clean'}">Clean</option>
-                <option value="fresh" th:selected="${activeTheme == 'fresh'}">Fresh</option>
-                <option value="summer-vibes" th:selected="${activeTheme == 'summer-vibes'}">Summer vibes</option>
-            </select>
+        <div class="theme-picker" data-theme-picker="true">
+            <button type="button"
+                    class="theme-picker-trigger"
+                    data-theme-trigger="true"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    aria-label="Choose a site theme">
+                <span class="theme-picker-copy">
+                    <span class="theme-picker-label">Theme</span>
+                    <span class="theme-picker-value" data-theme-value="true"
+                          th:text="${activeTheme == 'summer-vibes' ? 'Summer vibes' : #strings.capitalizeWords(activeTheme.replace('-', ' '))}">
+                        Futuristic
+                    </span>
+                </span>
+                <span class="theme-picker-chevron" aria-hidden="true"></span>
+            </button>
+
+            <div class="theme-picker-menu" data-theme-menu="true" hidden="hidden">
+                <button type="button" class="theme-picker-option" data-theme-option="futuristic">Futuristic</button>
+                <button type="button" class="theme-picker-option" data-theme-option="classic">Classic</button>
+                <button type="button" class="theme-picker-option" data-theme-option="clean">Clean</button>
+                <button type="button" class="theme-picker-option" data-theme-option="fresh">Fresh</button>
+                <button type="button" class="theme-picker-option" data-theme-option="summer-vibes">Summer vibes</button>
+            </div>
         </div>
 
         <a th:href="@{/}" class="brand-link">

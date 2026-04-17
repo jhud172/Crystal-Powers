@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
             density: 1,
             speed: 0.17,
             cursorDistance: coarsePointer ? 0 : reducedMotion ? 140 : 220,
+            cursorForce: 0.016,
             linkDistance: coarsePointer ? 94 : 144,
             radius: [1.4, 3.5],
             outerColor: [2, 6, 23],
@@ -44,7 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
             mode: "constellation",
             density: 1.45,
             speed: 0.1,
-            cursorDistance: 0,
+            cursorDistance: coarsePointer ? 0 : 110,
+            cursorForce: 0.008,
             linkDistance: 118,
             radius: [1.2, 2.7],
             outerColor: [39, 28, 19],
@@ -59,6 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
             density: 1.8,
             speed: 0.08,
             cursorDistance: coarsePointer ? 0 : 120,
+            cursorForce: -0.008,
             linkDistance: 0,
             radius: [1.1, 2.4],
             outerColor: [255, 255, 255],
@@ -77,6 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
             density: 1.25,
             speed: 0.11,
             cursorDistance: coarsePointer ? 0 : 150,
+            cursorForce: 0.012,
             linkDistance: 0,
             radius: [1.6, 3.8],
             outerColor: [220, 252, 231],
@@ -95,6 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
             density: 1.12,
             speed: 0.12,
             cursorDistance: coarsePointer ? 0 : 165,
+            cursorForce: 0.022,
             linkDistance: 0,
             radius: [2.2, 5],
             outerColor: [255, 237, 213],
@@ -126,6 +131,8 @@ document.addEventListener("DOMContentLoaded", () => {
             vx: (Math.random() - 0.5) * baseSpeed,
             vy: (Math.random() - 0.5) * baseSpeed,
             radius,
+            rotation: Math.random() * Math.PI * 2,
+            rotationSpeed: (Math.random() - 0.5) * 0.018,
             shimmer: Math.random() * Math.PI * 2,
             phase: Math.random() * Math.PI * 2
         };
@@ -148,6 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
         particle.y = preset.motion === "lift" ? height + Math.random() * 40 : Math.random() * height;
         particle.phase = Math.random() * Math.PI * 2;
         particle.shimmer = Math.random() * Math.PI * 2;
+        particle.rotation = Math.random() * Math.PI * 2;
     };
 
     const state = {
@@ -205,45 +213,67 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const drawNode = (particle, time) => {
         const shimmer = 0.45 + (Math.sin(time * 0.0011 + particle.shimmer) + 1) * 0.16;
+        const flap = 0.6 + (Math.sin(time * 0.008 + particle.phase) + 1) * 0.18;
 
         switch (state.preset.mode) {
             case "minimal":
+                context.save();
+                context.translate(particle.x, particle.y);
+                context.rotate(particle.rotation);
                 context.beginPath();
-                context.fillStyle = rgba(state.preset.innerColor, 0.34 * shimmer);
-                context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                context.fillStyle = rgba(state.preset.innerColor, 0.26 * shimmer);
+                context.roundRect(-particle.radius * 1.5, -particle.radius * 0.72, particle.radius * 3, particle.radius * 1.44, particle.radius * 0.6);
                 context.fill();
+                context.restore();
                 break;
             case "breeze":
+                context.save();
+                context.translate(particle.x, particle.y);
+                context.rotate(particle.rotation + Math.sin(time * 0.001 + particle.phase) * 0.35);
                 context.beginPath();
-                context.fillStyle = rgba(state.preset.outerColor, 0.22 * shimmer);
-                context.arc(particle.x, particle.y, particle.radius * 2.4, 0, Math.PI * 2);
+                context.fillStyle = rgba(state.preset.outerColor, 0.26 * shimmer);
+                context.ellipse(0, 0, particle.radius * 0.9, particle.radius * 2.3, 0, 0, Math.PI * 2);
                 context.fill();
-
                 context.beginPath();
-                context.strokeStyle = rgba(state.preset.ringColor, 0.22 * shimmer);
+                context.strokeStyle = rgba(state.preset.ringColor, 0.24 * shimmer);
                 context.lineWidth = 1;
-                context.arc(particle.x, particle.y, particle.radius * 1.45, 0, Math.PI * 2);
+                context.moveTo(0, -particle.radius * 1.8);
+                context.lineTo(0, particle.radius * 1.8);
                 context.stroke();
+                context.restore();
                 break;
             case "sun": {
-                const gradient = context.createRadialGradient(
-                    particle.x,
-                    particle.y,
-                    0,
-                    particle.x,
-                    particle.y,
-                    particle.radius * 3.2
-                );
-                gradient.addColorStop(0, rgba(state.preset.innerColor, 0.28 * shimmer));
-                gradient.addColorStop(0.55, rgba(state.preset.ringColor, 0.12 * shimmer));
-                gradient.addColorStop(1, rgba(state.preset.outerColor, 0));
+                context.save();
+                context.translate(particle.x, particle.y);
+                context.rotate(Math.sin(time * 0.0012 + particle.phase) * 0.18);
+                context.fillStyle = rgba(state.preset.innerColor, 0.18 * shimmer);
                 context.beginPath();
-                context.fillStyle = gradient;
-                context.arc(particle.x, particle.y, particle.radius * 3.2, 0, Math.PI * 2);
+                context.ellipse(-particle.radius * flap * 0.55, 0, particle.radius * 1.1, particle.radius * 0.72, -0.5, 0, Math.PI * 2);
+                context.ellipse(particle.radius * flap * 0.55, 0, particle.radius * 1.1, particle.radius * 0.72, 0.5, 0, Math.PI * 2);
                 context.fill();
+                context.beginPath();
+                context.strokeStyle = rgba(state.preset.ringColor, 0.22 * shimmer);
+                context.lineWidth = 1.1;
+                context.moveTo(0, -particle.radius * 0.9);
+                context.lineTo(0, particle.radius * 0.9);
+                context.stroke();
+                context.restore();
                 break;
             }
             case "constellation":
+                context.save();
+                context.translate(particle.x, particle.y);
+                context.rotate(particle.rotation);
+                context.strokeStyle = rgba(state.preset.ringColor, 0.32 * shimmer);
+                context.lineWidth = 1;
+                context.beginPath();
+                context.moveTo(0, -particle.radius * 1.8);
+                context.lineTo(0, particle.radius * 1.8);
+                context.moveTo(-particle.radius * 1.8, 0);
+                context.lineTo(particle.radius * 1.8, 0);
+                context.stroke();
+                context.restore();
+                break;
             case "network":
             default:
                 context.beginPath();
@@ -299,6 +329,8 @@ document.addEventListener("DOMContentLoaded", () => {
         context.clearRect(0, 0, width, height);
 
         state.particles.forEach((particle) => {
+            particle.rotation += particle.rotationSpeed;
+
             if (state.preset.motion === "lift") {
                 particle.x += particle.vx + Math.sin(time * 0.001 + particle.phase) * 0.18;
                 particle.y += particle.vy;
@@ -336,7 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const distance = Math.hypot(dx, dy);
 
                 if (distance < state.preset.cursorDistance && distance > 0) {
-                    const force = (1 - distance / state.preset.cursorDistance) * (state.preset.mode === "minimal" ? -0.006 : 0.016);
+                    const force = (1 - distance / state.preset.cursorDistance) * state.preset.cursorForce;
                     particle.x -= dx * force;
                     particle.y -= dy * force;
                 }

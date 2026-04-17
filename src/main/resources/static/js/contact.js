@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const hiddenFields = {
+        preferredContact: builder.querySelector("[data-contact-hidden-preferred-contact]"),
         package: builder.querySelector("[data-contact-hidden-package]"),
         additions: builder.querySelector("[data-contact-hidden-additions]"),
         maintenance: builder.querySelector("[data-contact-hidden-maintenance]"),
@@ -13,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const groups = {
+        preferredContact: builder.querySelector('[data-select-role="preferred-contact"]'),
         package: builder.querySelector('[data-select-role="package"]'),
         additions: builder.querySelector('[data-select-role="additions"]'),
         maintenance: builder.querySelector('[data-select-role="maintenance"]')
@@ -33,15 +35,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const otherAddButton = builder.querySelector("[data-contact-other-add]");
     const firstNameInput = builder.querySelector("[data-contact-first-name]");
     const lastNameInput = builder.querySelector("[data-contact-last-name]");
-    const preferredContactInput = builder.querySelector("[data-contact-preferred-contact]");
 
     const getMenu = (group) => group?.querySelector("[data-select-menu]");
     const getTrigger = (group) => group?.querySelector("[data-select-trigger]");
     const getDisplay = (group) => group?.querySelector("[data-select-display]");
     const getOptions = (group) => Array.from(group?.querySelectorAll("[data-select-option]") ?? [])
         .filter((option) => option instanceof HTMLButtonElement);
+    const getOptionLabel = (option) => {
+        if (!(option instanceof HTMLButtonElement)) {
+            return "";
+        }
 
+        const explicitLabel = option.dataset.label?.trim();
+        if (explicitLabel) {
+            return explicitLabel;
+        }
+
+        const title = option.querySelector(".contact-select-option-title");
+        return title instanceof HTMLElement ? title.textContent?.trim() ?? "" : option.textContent?.trim() ?? "";
+    };
+    const getDefaultDisplay = (group) => group?.dataset.placeholder?.trim() ?? "Choose one";
     const findOption = (group, value) => getOptions(group).find((option) => option.dataset.value === value) ?? null;
+    const getSelectedSingle = (group) => getOptions(group).find((option) => option.classList.contains("is-selected")) ?? null;
+    const getSelectedMulti = (group) => getOptions(group).filter((option) => option.classList.contains("is-selected"));
 
     const closeSelect = (group) => {
         if (!(group instanceof HTMLElement)) {
@@ -85,8 +101,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    const getSelectedSingle = (group) => getOptions(group).find((option) => option.classList.contains("is-selected")) ?? null;
-
     const setSingleSelection = (group, value) => {
         const option = findOption(group, value);
 
@@ -95,15 +109,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const display = getDisplay(group);
-
         if (display instanceof HTMLElement) {
-            display.textContent = option ? option.textContent?.trim() ?? "" : (group?.dataset.selectRole === "maintenance" ? "Select maintenance" : "Select package");
+            display.textContent = option ? getOptionLabel(option) : getDefaultDisplay(group);
         }
 
         return option;
     };
-
-    const getSelectedMulti = (group) => getOptions(group).filter((option) => option.classList.contains("is-selected"));
 
     const setMultiSelection = (group, values) => {
         const selectedValues = new Set(values);
@@ -117,9 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (display instanceof HTMLElement) {
             if (selectedOptions.length === 0 && !selectedValues.has("Other")) {
-                display.textContent = "Select additions";
+                display.textContent = getDefaultDisplay(group);
             } else if (selectedOptions.length === 1 && !selectedValues.has("Other")) {
-                display.textContent = selectedOptions[0].textContent?.trim() ?? "1 addition selected";
+                display.textContent = getOptionLabel(selectedOptions[0]) || "1 addition selected";
             } else {
                 const count = selectedOptions.length + (selectedValues.has("Other") ? 1 : 0);
                 display.textContent = `${count} additions selected`;
@@ -134,6 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const row = document.createElement("div");
         row.className = "contact-other-row";
+
         const input = document.createElement("input");
         input.type = "text";
         input.className = "field-input";
@@ -145,7 +157,6 @@ document.addEventListener("DOMContentLoaded", () => {
         removeButton.type = "button";
         removeButton.className = "secondary-button contact-other-remove";
         removeButton.textContent = "Remove";
-        removeButton.setAttribute("data-contact-other-remove", "");
 
         row.append(input, removeButton);
         otherList.appendChild(row);
@@ -161,7 +172,6 @@ document.addEventListener("DOMContentLoaded", () => {
             updatePreview();
         });
     };
-
     const getOtherValues = () => {
         if (!(otherList instanceof HTMLElement)) {
             return [];
@@ -174,23 +184,19 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const syncOtherAdditions = () => {
-        if (!(hiddenFields.otherAdditions instanceof HTMLInputElement)) {
-            return;
+        if (hiddenFields.otherAdditions instanceof HTMLInputElement) {
+            hiddenFields.otherAdditions.value = getOtherValues().join("\n");
         }
-
-        hiddenFields.otherAdditions.value = getOtherValues().join("\n");
     };
 
     const syncAdditions = () => {
-        if (!(hiddenFields.additions instanceof HTMLInputElement)) {
-            return;
+        if (hiddenFields.additions instanceof HTMLInputElement) {
+            hiddenFields.additions.value = getSelectedMulti(groups.additions)
+                .map((option) => option.dataset.value ?? "")
+                .filter(Boolean)
+                .join("|");
         }
 
-        const selected = getSelectedMulti(groups.additions)
-            .map((option) => option.dataset.value ?? "")
-            .filter(Boolean);
-
-        hiddenFields.additions.value = selected.join("|");
         syncOtherAdditions();
     };
 
@@ -199,8 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const otherSelected = getSelectedMulti(groups.additions)
-            .some((option) => option.dataset.value === "Other");
+        const otherSelected = getSelectedMulti(groups.additions).some((option) => option.dataset.value === "Other");
         const currentOtherValues = getOtherValues();
         const shouldShow = otherSelected || currentOtherValues.length > 0;
 
@@ -219,43 +224,44 @@ document.addEventListener("DOMContentLoaded", () => {
     const updatePreview = () => {
         const selectedPackage = getSelectedSingle(groups.package);
         const selectedMaintenance = getSelectedSingle(groups.maintenance);
+        const selectedPreferredContact = getSelectedSingle(groups.preferredContact);
         const selectedAdditions = getSelectedMulti(groups.additions)
-            .map((option) => option.dataset.value ?? "")
+            .map((option) => getOptionLabel(option))
             .filter((value) => value && value !== "Other");
         const otherValues = getOtherValues();
         const allAdditions = [...selectedAdditions, ...otherValues];
         const firstName = firstNameInput instanceof HTMLInputElement ? firstNameInput.value.trim() : "";
         const lastName = lastNameInput instanceof HTMLInputElement ? lastNameInput.value.trim() : "";
-        const preferredContact = preferredContactInput instanceof HTMLSelectElement ? preferredContactInput.value.trim() : "";
+        const preferredContact = selectedPreferredContact
+            ? getOptionLabel(selectedPreferredContact)
+            : hiddenFields.preferredContact instanceof HTMLInputElement
+                ? hiddenFields.preferredContact.value.trim()
+                : "";
 
         if (preview.package instanceof HTMLElement) {
-            preview.package.textContent = selectedPackage ? selectedPackage.textContent?.trim() ?? "" : "Nothing selected yet";
+            preview.package.textContent = selectedPackage ? getOptionLabel(selectedPackage) : "Nothing selected yet";
         }
 
         if (preview.packageMeta instanceof HTMLElement) {
             preview.packageMeta.textContent = selectedPackage
-                ? `${selectedPackage.dataset.value ?? ""} · ${selectedPackage.dataset.meta ?? ""}`
+                ? `${selectedPackage.dataset.value ?? ""} - ${selectedPackage.dataset.meta ?? ""}`
                 : "Choose a package from the form.";
         }
 
         if (preview.maintenance instanceof HTMLElement) {
-            preview.maintenance.textContent = selectedMaintenance ? selectedMaintenance.textContent?.trim() ?? "" : "Nothing selected yet";
+            preview.maintenance.textContent = selectedMaintenance ? getOptionLabel(selectedMaintenance) : "Nothing selected yet";
         }
 
         if (preview.maintenanceMeta instanceof HTMLElement) {
             preview.maintenanceMeta.textContent = selectedMaintenance
-                ? `${selectedMaintenance.dataset.value ?? ""} · ${selectedMaintenance.dataset.meta ?? ""}`
+                ? `${selectedMaintenance.dataset.value ?? ""} - ${selectedMaintenance.dataset.meta ?? ""}`
                 : "Choose one support level.";
         }
 
         if (preview.additions instanceof HTMLElement) {
-            if (allAdditions.length === 0) {
-                preview.additions.innerHTML = '<li class="services-summary-chip services-summary-chip-muted">No additions selected</li>';
-            } else {
-                preview.additions.innerHTML = allAdditions
-                    .map((value) => `<li class="services-summary-chip">${value}</li>`)
-                    .join("");
-            }
+            preview.additions.innerHTML = allAdditions.length === 0
+                ? '<li class="services-summary-chip services-summary-chip-muted">No additions selected</li>'
+                : allAdditions.map((value) => `<li class="services-summary-chip">${value}</li>`).join("");
         }
 
         if (preview.contact instanceof HTMLElement) {
@@ -265,7 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (preview.person instanceof HTMLElement) {
             const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
             preview.person.textContent = fullName
-                ? `${fullName}${preferredContact ? ` · prefers ${preferredContact}` : ""}`
+                ? `${fullName}${preferredContact ? ` - prefers ${preferredContact}` : ""}`
                 : "Fill in your details on the right.";
         }
     };
@@ -298,6 +304,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     const value = option.dataset.value ?? "";
                     setSingleSelection(group, value);
 
+                    if (role === "preferredContact" && hiddenFields.preferredContact instanceof HTMLInputElement) {
+                        hiddenFields.preferredContact.value = value;
+                    }
+
                     if (role === "package" && hiddenFields.package instanceof HTMLInputElement) {
                         hiddenFields.package.value = value;
                     }
@@ -307,10 +317,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
 
                     closeSelect(group);
-                }
-
-                if (role === "additions") {
-                    syncAdditions();
                 }
 
                 updatePreview();
@@ -326,15 +332,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    [firstNameInput, lastNameInput].forEach((input) => {
-        input?.addEventListener("input", updatePreview);
-    });
-
-    preferredContactInput?.addEventListener("change", updatePreview);
+    [firstNameInput, lastNameInput].forEach((input) => input?.addEventListener("input", updatePreview));
 
     document.addEventListener("click", (event) => {
         const target = event.target;
-
         if (!(target instanceof Node)) {
             return;
         }
@@ -352,6 +353,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    if (hiddenFields.preferredContact instanceof HTMLInputElement && hiddenFields.preferredContact.value) {
+        setSingleSelection(groups.preferredContact, hiddenFields.preferredContact.value);
+    }
+
     if (hiddenFields.package instanceof HTMLInputElement && hiddenFields.package.value) {
         setSingleSelection(groups.package, hiddenFields.package.value);
     }
@@ -368,16 +373,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (hiddenFields.otherAdditions instanceof HTMLInputElement && hiddenFields.otherAdditions.value.trim()) {
         const otherOption = findOption(groups.additions, "Other");
-
         if (otherOption instanceof HTMLButtonElement) {
             otherOption.classList.add("is-selected");
         }
 
-        hiddenFields.otherAdditions.value
-            .split(/\r?\n/)
-            .map((value) => value.trim())
-            .filter(Boolean)
-            .forEach((value) => createOtherRow(value));
+        hiddenFields.otherAdditions.value.split(/\r?\n/).map((value) => value.trim()).filter(Boolean).forEach((value) => createOtherRow(value));
     }
 
     toggleOtherShell();

@@ -2,34 +2,42 @@
 <th:block th:fragment="content">
     <section class="contact-builder" data-contact-builder>
         <aside class="contact-preview-column">
-            <span class="eyebrow">Start a build</span>
-            <h1 class="services-hero-title">Shape the package, additions, and support level before the project brief is sent.</h1>
-            <p class="services-hero-body">
-                This form mirrors the service builder so the scope is already structured before the final conversation
-                starts. Select the build direction, add the extras you actually need, then complete the contact details.
-            </p>
+            <div class="contact-preview-intro">
+                <span class="eyebrow">Start a build</span>
+                <h1 class="services-hero-title">Shape the package, additions, and support level before the project brief is sent.</h1>
+                <p class="services-hero-body">
+                    This form mirrors the service builder so the scope is already structured before the final conversation
+                    starts. Select the build direction, add the extras you actually need, then complete the contact details.
+                </p>
+
+                <ul class="contact-preview-points">
+                    <li>Package, additions, and maintenance stay structured before the final quote review.</li>
+                    <li>Every selector updates the live summary instantly so the request is easier to check before sending.</li>
+                    <li>The final handoff lands with clearer project context instead of a loose enquiry message.</li>
+                </ul>
+            </div>
 
             <div class="contact-preview-shell">
-                <div class="services-summary-block">
+                <div class="services-summary-block contact-preview-card contact-preview-card-emphasis">
                     <p class="services-summary-label">Selected package</p>
                     <p class="services-summary-value" data-contact-preview-package>Nothing selected yet</p>
                     <p class="services-summary-meta" data-contact-preview-package-meta>Choose a package from the form.</p>
                 </div>
 
-                <div class="services-summary-block">
+                <div class="services-summary-block contact-preview-card">
                     <p class="services-summary-label">Selected additions</p>
                     <ul class="services-summary-chip-list" data-contact-preview-additions>
                         <li class="services-summary-chip services-summary-chip-muted">No additions selected</li>
                     </ul>
                 </div>
 
-                <div class="services-summary-block">
+                <div class="services-summary-block contact-preview-card">
                     <p class="services-summary-label">Maintenance</p>
                     <p class="services-summary-value" data-contact-preview-maintenance>Nothing selected yet</p>
                     <p class="services-summary-meta" data-contact-preview-maintenance-meta>Choose one support level.</p>
                 </div>
 
-                <div class="services-summary-block">
+                <div class="services-summary-block contact-preview-card">
                     <p class="services-summary-label">Contact preference</p>
                     <p class="services-summary-value contact-preview-compact" data-contact-preview-contact>Not set yet</p>
                     <p class="services-summary-meta" data-contact-preview-person>Fill in your details on the right.</p>
@@ -39,10 +47,15 @@
 
         <div class="services-form-shell contact-form-shell">
             <div th:if="${successMessage}" class="mb-6 rounded-[1.4rem] border border-emerald-400/25 bg-emerald-400/10 px-5 py-4 text-sm text-emerald-100" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="mb-6 rounded-[1.4rem] border border-rose-400/25 bg-rose-400/10 px-5 py-4 text-sm text-rose-100" th:text="${errorMessage}"></div>
 
-            <div class="services-form-intro">
+            <div class="services-form-intro contact-form-intro">
                 <p class="section-tag">Quote request</p>
                 <h2 class="mt-3 font-display text-3xl text-white">Build the request with the same structure used on the services page.</h2>
+                <p class="services-form-copy">
+                    Every dropdown now behaves like a dedicated studio selector instead of a default browser control.
+                    Choose the scope, review the preview on the left, then send the final request once the structure is right.
+                </p>
             </div>
 
             <form th:action="@{/contact}" th:object="${contactForm}" method="post" class="contact-builder-form">
@@ -50,121 +63,323 @@
                 <input type="hidden" th:field="*{selectedAdditions}" data-contact-hidden-additions />
                 <input type="hidden" th:field="*{maintenanceSelection}" data-contact-hidden-maintenance />
                 <input type="hidden" th:field="*{otherAdditions}" data-contact-hidden-other-additions />
+                <input type="hidden" th:field="*{preferredContactPoint}" data-contact-hidden-preferred-contact />
 
-                <div>
-                    <label for="firstName" class="field-label">Name</label>
-                    <input id="firstName" type="text" th:field="*{firstName}" class="field-input" placeholder="First name" data-contact-first-name />
-                    <p th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="field-error">First name error</p>
-                </div>
-
-                <div>
-                    <label for="lastName" class="field-label">Last name</label>
-                    <input id="lastName" type="text" th:field="*{lastName}" class="field-input" placeholder="Last name" data-contact-last-name />
-                    <p th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="field-error">Last name error</p>
-                </div>
-
-                <div>
-                    <label for="email" class="field-label">Email</label>
-                    <input id="email" type="email" th:field="*{email}" class="field-input" placeholder="you@example.com" />
-                    <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="field-error">Email error</p>
-                </div>
-
-                <div>
-                    <label for="phoneNumber" class="field-label">Phone number</label>
-                    <input id="phoneNumber" type="tel" th:field="*{phoneNumber}" class="field-input" placeholder="+44 7..." />
-                    <p th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}" class="field-error">Phone number error</p>
-                </div>
-
-                <div class="services-form-span-two">
-                    <label for="preferredContactPoint" class="field-label">Preferred contact point</label>
-                    <select id="preferredContactPoint" th:field="*{preferredContactPoint}" class="field-input" data-contact-preferred-contact>
-                        <option value="">Choose one</option>
-                        <option value="WhatsApp">WhatsApp</option>
-                        <option value="Email">Email</option>
-                    </select>
-                    <p th:if="${#fields.hasErrors('preferredContactPoint')}" th:errors="*{preferredContactPoint}" class="field-error">Contact preference error</p>
-                </div>
-
-                <div class="services-form-span-two contact-select-stack">
-                    <div class="contact-select-group" data-custom-select data-select-type="single" data-select-role="package">
-                        <p class="field-label">Package</p>
-                        <button type="button" class="contact-select-trigger" data-select-trigger aria-expanded="false">
-                            <span class="contact-select-trigger-label">Choose one package</span>
-                            <span class="contact-select-trigger-value" data-select-display>Select package</span>
-                        </button>
-                        <div class="contact-select-menu" data-select-menu hidden>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Basic" data-meta="&pound;349.99 · one-time build">Starter site foundation</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Starter" data-meta="&pound;499.99 · one-time build">Stronger business presence</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Standard" data-meta="&pound;749.99 · one-time build">Balanced premium build</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Experienced" data-meta="&pound;999.99 · one-time build">Advanced business structure</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Multi Grade" data-meta="&pound;1,499.99 · highest tier">Larger custom scope</button>
+                <section class="contact-form-section services-form-span-two">
+                    <div class="contact-form-section-head">
+                        <div>
+                            <p class="section-tag">Contact details</p>
+                            <h3 class="contact-form-section-title">Add the person and reply route for the final handoff.</h3>
                         </div>
-                        <p th:if="${#fields.hasErrors('packageSelection')}" th:errors="*{packageSelection}" class="field-error">Package error</p>
+                        <p class="contact-form-section-copy">The reply preference updates the preview instantly so the contact route is visible before the request is sent.</p>
                     </div>
 
-                    <div class="contact-select-group" data-custom-select data-select-type="multi" data-select-role="additions">
-                        <p class="field-label">Additions</p>
-                        <button type="button" class="contact-select-trigger" data-select-trigger aria-expanded="false">
-                            <span class="contact-select-trigger-label">Choose any additions</span>
-                            <span class="contact-select-trigger-value" data-select-display>Select additions</span>
-                        </button>
-                        <div class="contact-select-menu" data-select-menu hidden>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Basic logo creation" data-meta="&pound;24.99">Basic logo creation</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Refined logo design" data-meta="&pound;49.99">Refined logo design</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Full branding pack" data-meta="&pound;89.99">Full branding pack</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Business card design" data-meta="&pound;19.99">Business card design</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Content polishing / copy refinement" data-meta="&pound;39.99">Content polishing / copy refinement</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Full copywriting support" data-meta="&pound;119.99">Full copywriting support</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Tone and brand voice shaping" data-meta="&pound;59.99">Tone and brand voice shaping</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Advanced booking form" data-meta="&pound;69.99">Advanced booking form</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Blog setup and styling" data-meta="&pound;44.99">Blog setup and styling</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Testimonials / reviews section" data-meta="&pound;29.99">Testimonials / reviews section</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Social media integration" data-meta="&pound;24.99">Social media integration</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Stock image sourcing" data-meta="&pound;19.99">Stock image sourcing</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Image editing / optimisation" data-meta="&pound;24.99">Image editing / optimisation</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Additional page" data-meta="&pound;59.99">Additional page</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Other" data-meta="Custom">Other</button>
+                    <div class="contact-form-section-grid">
+                        <div>
+                            <label for="firstName" class="field-label">Name</label>
+                            <input id="firstName" type="text" th:field="*{firstName}" class="field-input" placeholder="First name" data-contact-first-name />
+                            <p th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="field-error">First name error</p>
                         </div>
-                        <p th:if="${#fields.hasErrors('selectedAdditions')}" th:errors="*{selectedAdditions}" class="field-error">Additions error</p>
+
+                        <div>
+                            <label for="lastName" class="field-label">Last name</label>
+                            <input id="lastName" type="text" th:field="*{lastName}" class="field-input" placeholder="Last name" data-contact-last-name />
+                            <p th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="field-error">Last name error</p>
+                        </div>
+
+                        <div>
+                            <label for="email" class="field-label">Email</label>
+                            <input id="email" type="email" th:field="*{email}" class="field-input" placeholder="you@example.com" />
+                            <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="field-error">Email error</p>
+                        </div>
+
+                        <div>
+                            <label for="phoneNumber" class="field-label">Phone number</label>
+                            <input id="phoneNumber" type="tel" th:field="*{phoneNumber}" class="field-input" placeholder="+44 7..." />
+                            <p th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}" class="field-error">Phone number error</p>
+                        </div>
+
+                        <div class="services-form-span-two">
+                            <div class="contact-select-group" data-custom-select data-select-type="single" data-select-role="preferred-contact" data-placeholder="Choose one">
+                                <p class="field-label">Preferred contact point</p>
+                                <button type="button" class="contact-select-trigger" data-select-trigger aria-expanded="false">
+                                    <span class="contact-select-trigger-copy">
+                                        <span class="contact-select-trigger-label">Choose contact method</span>
+                                        <span class="contact-select-trigger-value" data-select-display>Choose one</span>
+                                    </span>
+                                </button>
+                                <div class="contact-select-menu" data-select-menu hidden>
+                                    <button type="button" class="contact-select-option" data-select-option data-value="WhatsApp" data-label="WhatsApp" data-meta="Fast reply">
+                                        <span class="contact-select-option-copy">
+                                            <span class="contact-select-option-title">WhatsApp</span>
+                                            <span class="contact-select-option-note">Best for quick screenshots, back-and-forth feedback, and short project updates.</span>
+                                        </span>
+                                        <span class="contact-select-option-meta">Fast reply</span>
+                                    </button>
+                                    <button type="button" class="contact-select-option" data-select-option data-value="Email" data-label="Email" data-meta="Structured reply">
+                                        <span class="contact-select-option-copy">
+                                            <span class="contact-select-option-title">Email</span>
+                                            <span class="contact-select-option-note">Best for longer responses, clearer references, and more detailed quote notes.</span>
+                                        </span>
+                                        <span class="contact-select-option-meta">Structured reply</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <p th:if="${#fields.hasErrors('preferredContactPoint')}" th:errors="*{preferredContactPoint}" class="field-error">Contact preference error</p>
+                        </div>
+                    </div>
+                </section>
+                <section class="contact-form-section services-form-span-two">
+                    <div class="contact-form-section-head">
+                        <div>
+                            <p class="section-tag">Build scope</p>
+                            <h3 class="contact-form-section-title">Select the package, additions, and maintenance path.</h3>
+                        </div>
+                        <p class="contact-form-section-copy">Each selector opens as a proper studio dropdown with enough room to review the options clearly.</p>
                     </div>
 
-                    <div class="contact-other-shell" data-contact-other-shell hidden>
-                        <div class="contact-other-header">
-                            <p class="field-label mb-0">Other additions</p>
-                            <button type="button" class="secondary-button contact-other-add" data-contact-other-add>Add another</button>
+                    <div class="contact-select-stack">
+                        <div class="contact-select-group" data-custom-select data-select-type="single" data-select-role="package" data-placeholder="Select package">
+                            <p class="field-label">Package</p>
+                            <button type="button" class="contact-select-trigger" data-select-trigger aria-expanded="false">
+                                <span class="contact-select-trigger-copy">
+                                    <span class="contact-select-trigger-label">Choose one package</span>
+                                    <span class="contact-select-trigger-value" data-select-display>Select package</span>
+                                </span>
+                            </button>
+                            <div class="contact-select-menu" data-select-menu hidden>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Basic" data-label="Starter site foundation" data-meta="&pound;349.99 - one-time build">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Starter site foundation</span>
+                                        <span class="contact-select-option-note">Compact launch site with a clean first version and the core pages needed to get live properly.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;349.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Starter" data-label="Stronger business presence" data-meta="&pound;499.99 - one-time build">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Stronger business presence</span>
+                                        <span class="contact-select-option-note">A broader service-led website for businesses that need more clarity and stronger presentation.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;499.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Standard" data-label="Balanced premium build" data-meta="&pound;749.99 - one-time build">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Balanced premium build</span>
+                                        <span class="contact-select-option-note">The recommended package for a more complete business presence with stronger layout and polish.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;749.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Experienced" data-label="Advanced business structure" data-meta="&pound;999.99 - one-time build">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Advanced business structure</span>
+                                        <span class="contact-select-option-note">Higher-fidelity planning for businesses that need deeper structure and stronger launch support.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;999.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Multi Grade" data-label="Larger custom scope" data-meta="&pound;1,499.99 - highest tier">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Larger custom scope</span>
+                                        <span class="contact-select-option-note">Reserved for broader projects with more pages, more planning, and more involved delivery needs.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;1,499.99</span>
+                                </button>
+                            </div>
+                            <p th:if="${#fields.hasErrors('packageSelection')}" th:errors="*{packageSelection}" class="field-error">Package error</p>
                         </div>
-                        <div class="contact-other-list" data-contact-other-list></div>
-                        <p th:if="${#fields.hasErrors('otherAdditions')}" th:errors="*{otherAdditions}" class="field-error">Other additions error</p>
-                    </div>
 
-                    <div class="contact-select-group" data-custom-select data-select-type="single" data-select-role="maintenance">
-                        <p class="field-label">Maintenance</p>
-                        <button type="button" class="contact-select-trigger" data-select-trigger aria-expanded="false">
-                            <span class="contact-select-trigger-label">Choose one support level</span>
-                            <span class="contact-select-trigger-value" data-select-display>Select maintenance</span>
-                        </button>
-                        <div class="contact-select-menu" data-select-menu hidden>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Basic Maintenance" data-meta="&pound;9.99 · per month">Essential coverage</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Standard Maintenance" data-meta="&pound;19.99 · per month">Ongoing updates</button>
-                            <button type="button" class="contact-select-option" data-select-option data-value="Premium Maintenance" data-meta="&pound;29.99 · per month">Priority support</button>
+                        <div class="contact-select-group" data-custom-select data-select-type="multi" data-select-role="additions" data-placeholder="Select additions">
+                            <p class="field-label">Additions</p>
+                            <button type="button" class="contact-select-trigger" data-select-trigger aria-expanded="false">
+                                <span class="contact-select-trigger-copy">
+                                    <span class="contact-select-trigger-label">Choose any additions</span>
+                                    <span class="contact-select-trigger-value" data-select-display>Select additions</span>
+                                </span>
+                            </button>
+                            <div class="contact-select-menu" data-select-menu hidden>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Basic logo creation" data-label="Basic logo creation" data-meta="&pound;24.99">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Basic logo creation</span>
+                                        <span class="contact-select-option-note">A clean concept logo for projects that still need a starting identity.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;24.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Refined logo design" data-label="Refined logo design" data-meta="&pound;49.99">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Refined logo design</span>
+                                        <span class="contact-select-option-note">A sharper pass for a more polished logo direction and better shape balance.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;49.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Full branding pack" data-label="Full branding pack" data-meta="&pound;89.99">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Full branding pack</span>
+                                        <span class="contact-select-option-note">Colour direction, supporting identity assets, and a stronger visual system around the site.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;89.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Business card design" data-label="Business card design" data-meta="&pound;19.99">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Business card design</span>
+                                        <span class="contact-select-option-note">A clean card layout aligned to the website style and ready for print handoff.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;19.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Content polishing / copy refinement" data-label="Content polishing / copy refinement" data-meta="&pound;39.99">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Content polishing / copy refinement</span>
+                                        <span class="contact-select-option-note">Tighten existing wording so the offer reads more clearly and professionally.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;39.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Full copywriting support" data-label="Full copywriting support" data-meta="&pound;119.99">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Full copywriting support</span>
+                                        <span class="contact-select-option-note">Stronger written content support for service pages, calls to action, and page structure.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;119.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Tone and brand voice shaping" data-label="Tone and brand voice shaping" data-meta="&pound;59.99">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Tone and brand voice shaping</span>
+                                        <span class="contact-select-option-note">Refine the tone so the website sounds more consistent and better positioned.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;59.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Advanced booking form" data-label="Advanced booking form" data-meta="&pound;69.99">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Advanced booking form</span>
+                                        <span class="contact-select-option-note">A more capable enquiry or booking flow for better lead capture and clearer intake.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;69.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Blog setup and styling" data-label="Blog setup and styling" data-meta="&pound;44.99">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Blog setup and styling</span>
+                                        <span class="contact-select-option-note">A styled content area ready for updates, news, or ongoing publishing.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;44.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Testimonials / reviews section" data-label="Testimonials / reviews section" data-meta="&pound;29.99">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Testimonials / reviews section</span>
+                                        <span class="contact-select-option-note">Trust-focused review blocks that strengthen credibility around the offer.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;29.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Social media integration" data-label="Social media integration" data-meta="&pound;24.99">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Social media integration</span>
+                                        <span class="contact-select-option-note">Connect profile links or feeds so the wider brand presence feels more joined up.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;24.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Stock image sourcing" data-label="Stock image sourcing" data-meta="&pound;19.99">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Stock image sourcing</span>
+                                        <span class="contact-select-option-note">Help finding cleaner visual assets that match the direction of the build.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;19.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Image editing / optimisation" data-label="Image editing / optimisation" data-meta="&pound;24.99">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Image editing / optimisation</span>
+                                        <span class="contact-select-option-note">Prepare or optimise supplied imagery so it lands more cleanly inside the final layout.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;24.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Additional page" data-label="Additional page" data-meta="&pound;59.99">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Additional page</span>
+                                        <span class="contact-select-option-note">Extend the structure with another page where the package scope needs more room.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;59.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Other" data-label="Other" data-meta="Custom">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Other</span>
+                                        <span class="contact-select-option-note">Add a custom addition manually if the requirement does not fit the fixed list.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">Custom</span>
+                                </button>
+                            </div>
+                            <p th:if="${#fields.hasErrors('selectedAdditions')}" th:errors="*{selectedAdditions}" class="field-error">Additions error</p>
                         </div>
-                        <p th:if="${#fields.hasErrors('maintenanceSelection')}" th:errors="*{maintenanceSelection}" class="field-error">Maintenance error</p>
+
+                        <div class="contact-other-shell" data-contact-other-shell hidden>
+                            <div class="contact-other-header">
+                                <div>
+                                    <p class="field-label mb-0">Other additions</p>
+                                    <p class="contact-other-copy">Use custom entries for additions that need manual scoping in the quote.</p>
+                                </div>
+                                <button type="button" class="secondary-button contact-other-add" data-contact-other-add>Add another</button>
+                            </div>
+                            <div class="contact-other-list" data-contact-other-list></div>
+                            <p th:if="${#fields.hasErrors('otherAdditions')}" th:errors="*{otherAdditions}" class="field-error">Other additions error</p>
+                        </div>
+
+                        <div class="contact-select-group" data-custom-select data-select-type="single" data-select-role="maintenance" data-placeholder="Select maintenance">
+                            <p class="field-label">Maintenance</p>
+                            <button type="button" class="contact-select-trigger" data-select-trigger aria-expanded="false">
+                                <span class="contact-select-trigger-copy">
+                                    <span class="contact-select-trigger-label">Choose one support level</span>
+                                    <span class="contact-select-trigger-value" data-select-display>Select maintenance</span>
+                                </span>
+                            </button>
+                            <div class="contact-select-menu" data-select-menu hidden>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Basic Maintenance" data-label="Essential coverage" data-meta="&pound;9.99 - per month">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Essential coverage</span>
+                                        <span class="contact-select-option-note">The basic support layer for hosting checks, domain support, and a connected site.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;9.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Standard Maintenance" data-label="Ongoing updates" data-meta="&pound;19.99 - per month">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Ongoing updates</span>
+                                        <span class="contact-select-option-note">Best for regular tweaks, small edits, and keeping the live site in shape after launch.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;19.99</span>
+                                </button>
+                                <button type="button" class="contact-select-option" data-select-option data-value="Premium Maintenance" data-label="Priority support" data-meta="&pound;29.99 - per month">
+                                    <span class="contact-select-option-copy">
+                                        <span class="contact-select-option-title">Priority support</span>
+                                        <span class="contact-select-option-note">The faster-response support path for higher-priority sites and heavier post-launch needs.</span>
+                                    </span>
+                                    <span class="contact-select-option-meta">&pound;29.99</span>
+                                </button>
+                            </div>
+                            <p th:if="${#fields.hasErrors('maintenanceSelection')}" th:errors="*{maintenanceSelection}" class="field-error">Maintenance error</p>
+                        </div>
                     </div>
-                </div>
+                </section>
 
-                <div class="services-form-span-two">
-                    <label for="message" class="field-label">Message</label>
-                    <textarea id="message" th:field="*{message}" rows="6" class="field-input resize-y" placeholder="What do you need built, changed, or supported?"></textarea>
-                    <p th:if="${#fields.hasErrors('message')}" th:errors="*{message}" class="field-error">Message error</p>
-                </div>
+                <section class="contact-form-section services-form-span-two">
+                    <div class="contact-form-section-head">
+                        <div>
+                            <p class="section-tag">Project notes</p>
+                            <h3 class="contact-form-section-title">Add the final brief and anything that should affect the quote.</h3>
+                        </div>
+                        <p class="contact-form-section-copy">Use the message for the main request and the extra information box for constraints, references, or supporting notes.</p>
+                    </div>
+                    <div class="contact-form-section-grid">
+                        <div class="services-form-span-two">
+                            <label for="message" class="field-label">Message</label>
+                            <textarea id="message" th:field="*{message}" rows="6" class="field-input resize-y" placeholder="What do you need built, changed, or supported?"></textarea>
+                            <p th:if="${#fields.hasErrors('message')}" th:errors="*{message}" class="field-error">Message error</p>
+                        </div>
 
-                <div class="services-form-span-two">
-                    <label for="extraInformation" class="field-label">Extra information</label>
-                    <textarea id="extraInformation" th:field="*{extraInformation}" rows="4" class="field-input resize-y" placeholder="Anything else that should shape the quote or the delivery plan."></textarea>
-                    <p th:if="${#fields.hasErrors('extraInformation')}" th:errors="*{extraInformation}" class="field-error">Extra information error</p>
-                </div>
+                        <div class="services-form-span-two">
+                            <label for="extraInformation" class="field-label">Extra information</label>
+                            <textarea id="extraInformation" th:field="*{extraInformation}" rows="4" class="field-input resize-y" placeholder="Anything else that should shape the quote or the delivery plan."></textarea>
+                            <p th:if="${#fields.hasErrors('extraInformation')}" th:errors="*{extraInformation}" class="field-error">Extra information error</p>
+                        </div>
+                    </div>
+                </section>
 
-                <button type="submit" class="primary-button w-full sm:w-auto">Send build request</button>
+                <div class="contact-form-submit services-form-span-two">
+                    <p class="contact-form-submit-note">The completed request is sent through the same structured flow as the services builder so the quote starts with the chosen scope.</p>
+                    <button type="submit" class="primary-button w-full sm:w-auto">Send build request</button>
+                </div>
             </form>
         </div>
     </section>

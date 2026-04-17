@@ -2,7 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const body = document.body;
     const navToggle = document.querySelector("[data-nav-toggle]");
     const navMenu = document.querySelector("[data-nav-menu]");
-    const themeSelectors = Array.from(document.querySelectorAll("[data-theme-select]"));
+    const themePickers = Array.from(document.querySelectorAll("[data-theme-picker]"))
+        .filter((picker) => picker instanceof HTMLElement);
     const themeColorMeta = document.querySelector('meta[name="theme-color"]');
     const cookieName = "crystal_theme";
     const availableThemes = new Set([
@@ -12,6 +13,13 @@ document.addEventListener("DOMContentLoaded", () => {
         "fresh",
         "summer-vibes"
     ]);
+    const themeLabels = {
+        futuristic: "Futuristic",
+        classic: "Classic",
+        clean: "Clean",
+        fresh: "Fresh",
+        "summer-vibes": "Summer vibes"
+    };
     const themeColors = {
         futuristic: "#060816",
         classic: "#11100d",
@@ -39,18 +47,62 @@ document.addEventListener("DOMContentLoaded", () => {
         document.cookie = `${cookieName}=${encodeURIComponent(theme)}; Max-Age=31536000; Path=/; SameSite=Lax`;
     };
 
-    const syncThemeSelectors = (theme) => {
-        themeSelectors.forEach((selector) => {
-            if (selector instanceof HTMLSelectElement) {
-                selector.value = theme;
+    const closeThemePicker = (picker) => {
+        picker.dataset.themeOpen = "false";
+        const trigger = picker.querySelector("[data-theme-trigger]");
+        const menu = picker.querySelector("[data-theme-menu]");
+
+        if (trigger instanceof HTMLButtonElement) {
+            trigger.setAttribute("aria-expanded", "false");
+        }
+
+        if (menu instanceof HTMLElement) {
+            menu.hidden = true;
+        }
+    };
+
+    const closeAllThemePickers = () => {
+        themePickers.forEach((picker) => closeThemePicker(picker));
+    };
+
+    const openThemePicker = (picker) => {
+        closeAllThemePickers();
+        picker.dataset.themeOpen = "true";
+        const trigger = picker.querySelector("[data-theme-trigger]");
+        const menu = picker.querySelector("[data-theme-menu]");
+
+        if (trigger instanceof HTMLButtonElement) {
+            trigger.setAttribute("aria-expanded", "true");
+        }
+
+        if (menu instanceof HTMLElement) {
+            menu.hidden = false;
+        }
+    };
+
+    const syncThemePickers = (theme) => {
+        themePickers.forEach((picker) => {
+            picker.dataset.activeTheme = theme;
+
+            const value = picker.querySelector("[data-theme-value]");
+            if (value instanceof HTMLElement) {
+                value.textContent = themeLabels[theme];
             }
+
+            picker.querySelectorAll("[data-theme-option]").forEach((option) => {
+                if (!(option instanceof HTMLButtonElement)) {
+                    return;
+                }
+
+                option.dataset.themeActive = String(option.dataset.themeOption === theme);
+            });
         });
     };
 
     const applyTheme = (theme, persistChoice = true) => {
         const normalizedTheme = normalizeTheme(theme);
         body.dataset.theme = normalizedTheme;
-        syncThemeSelectors(normalizedTheme);
+        syncThemePickers(normalizedTheme);
 
         if (themeColorMeta instanceof HTMLMetaElement) {
             themeColorMeta.content = themeColors[normalizedTheme];
@@ -71,17 +123,67 @@ document.addEventListener("DOMContentLoaded", () => {
     applyTheme(initialTheme, false);
     persistTheme(initialTheme);
 
-    themeSelectors.forEach((selector) => {
-        selector.addEventListener("change", (event) => {
-            const target = event.currentTarget;
+    themePickers.forEach((picker) => {
+        const trigger = picker.querySelector("[data-theme-trigger]");
+        const options = Array.from(picker.querySelectorAll("[data-theme-option]"))
+            .filter((option) => option instanceof HTMLButtonElement);
 
-            if (!(target instanceof HTMLSelectElement)) {
+        closeThemePicker(picker);
+        picker.dataset.themeOpen = "false";
+
+        trigger?.addEventListener("click", () => {
+            if (picker.dataset.themeOpen === "true") {
+                closeThemePicker(picker);
                 return;
             }
 
-            applyTheme(target.value);
+            openThemePicker(picker);
+        });
+
+        options.forEach((option) => {
+            option.addEventListener("click", () => {
+                const nextTheme = normalizeTheme(option.dataset.themeOption ?? "");
+                applyTheme(nextTheme);
+                closeThemePicker(picker);
+            });
         });
     });
+
+    document.addEventListener("pointerdown", (event) => {
+        const target = event.target;
+
+        if (!(target instanceof Node)) {
+            return;
+        }
+
+        themePickers.forEach((picker) => {
+            if (!picker.contains(target)) {
+                closeThemePicker(picker);
+            }
+        });
+    });
+
+    document.addEventListener("focusin", (event) => {
+        const target = event.target;
+
+        if (!(target instanceof Node)) {
+            return;
+        }
+
+        themePickers.forEach((picker) => {
+            if (!picker.contains(target)) {
+                closeThemePicker(picker);
+            }
+        });
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeAllThemePickers();
+        }
+    });
+
+    window.addEventListener("blur", closeAllThemePickers);
 
     window.requestAnimationFrame(() => {
         body.classList.add("theme-ready");
