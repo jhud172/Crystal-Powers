@@ -6,6 +6,7 @@
 @import "../pages/portfolio.css";
 @import "../pages/contact.css";
 @import "../pages/support.css";
+@import "../pages/public-scenes.css";
 
 @tailwind base;
 @tailwind components;
@@ -1588,4 +1589,3 @@
     transition: none !important;
   }
 }
-
