@@ -89,6 +89,18 @@ body[data-theme="fresh"] .site-footer-panel,
 body[data-theme="fresh"] .section-card,
 body[data-theme="fresh"] .home-card,
 body[data-theme="fresh"] .pricing-card,
-body[data-theme="fresh"] .addon-card {
+body[data-theme="fresh"] .addon-card,
+body[data-theme="fresh"] .service-choice-shell,
+body[data-theme="fresh"] .addon-select-shell,
+body[data-theme="fresh"] .services-summary-shell,
+body[data-theme="fresh"] .services-summary-block,
+body[data-theme="fresh"] .services-hero-panel,
+body[data-theme="fresh"] .portfolio-search-shell,
+body[data-theme="fresh"] .portfolio-card-trigger,
+body[data-theme="fresh"] .dialog-panel,
+body[data-theme="fresh"] .contact-preview-intro,
+body[data-theme="fresh"] .contact-form-section,
+body[data-theme="fresh"] .contact-other-shell,
+body[data-theme="fresh"] .contact-select-trigger {
   border-radius: 1.8rem;
 }

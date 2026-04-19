@@ -2,11 +2,11 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Spring Boot-CrystalProductionApplication<crystal-production-website>",
+            "name": "Spring Boot-CrystalPowerApplication<crystal-power-website>",
             "request": "launch",
             "cwd": "${workspaceFolder}",
-            "mainClass": "com.crystalproduction.website.CrystalProductionApplication",
-            "projectName": "crystal-production-website",
+            "mainClass": "com.crystalpower.website.CrystalPowerApplication",
+            "projectName": "crystal-power-website",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
         }

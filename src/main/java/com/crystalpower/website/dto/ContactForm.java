@@ -1,4 +1,4 @@
-package com.crystalproduction.website.dto;
+package com.crystalpower.website.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

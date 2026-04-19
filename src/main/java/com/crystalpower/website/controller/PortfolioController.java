@@ -1,4 +1,4 @@
-package com.crystalproduction.website.controller;
+package com.crystalpower.website.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;

@@ -105,7 +105,19 @@ body[data-theme="clean"] .site-footer-panel,
 body[data-theme="clean"] .section-card,
 body[data-theme="clean"] .home-card,
 body[data-theme="clean"] .pricing-card,
-body[data-theme="clean"] .addon-card {
+body[data-theme="clean"] .addon-card,
+body[data-theme="clean"] .service-choice-shell,
+body[data-theme="clean"] .addon-select-shell,
+body[data-theme="clean"] .services-summary-shell,
+body[data-theme="clean"] .services-summary-block,
+body[data-theme="clean"] .services-hero-panel,
+body[data-theme="clean"] .portfolio-search-shell,
+body[data-theme="clean"] .portfolio-card-trigger,
+body[data-theme="clean"] .dialog-panel,
+body[data-theme="clean"] .contact-preview-intro,
+body[data-theme="clean"] .contact-form-section,
+body[data-theme="clean"] .contact-other-shell,
+body[data-theme="clean"] .contact-select-trigger {
   border-radius: 1.15rem;
 }
 

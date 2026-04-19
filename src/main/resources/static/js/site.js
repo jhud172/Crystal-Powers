@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const body = document.body;
+    const siteHeader = document.querySelector(".site-header");
     const navToggle = document.querySelector("[data-nav-toggle]");
     const navMenu = document.querySelector("[data-nav-menu]");
     const themePickers = Array.from(document.querySelectorAll("[data-theme-picker]"))
@@ -27,6 +28,9 @@ document.addEventListener("DOMContentLoaded", () => {
         fresh: "#f3fff9",
         "summer-vibes": "#fff7ef"
     };
+    const themePickerTransitionMs = 220;
+    const mobileMenuTransitionMs = 260;
+    const themePickerTimers = new WeakMap();
 
     const normalizeTheme = (value) => availableThemes.has(value) ? value : "futuristic";
 
@@ -47,8 +51,19 @@ document.addEventListener("DOMContentLoaded", () => {
         document.cookie = `${cookieName}=${encodeURIComponent(theme)}; Max-Age=31536000; Path=/; SameSite=Lax`;
     };
 
-    const closeThemePicker = (picker) => {
+    const clearThemePickerTimer = (picker) => {
+        const timer = themePickerTimers.get(picker);
+
+        if (timer) {
+            window.clearTimeout(timer);
+            themePickerTimers.delete(picker);
+        }
+    };
+
+    const closeThemePicker = (picker, immediate = false) => {
+        clearThemePickerTimer(picker);
         picker.dataset.themeOpen = "false";
+        picker.dataset.themeState = immediate ? "closed" : "closing";
         const trigger = picker.querySelector("[data-theme-trigger]");
         const menu = picker.querySelector("[data-theme-menu]");
 
@@ -57,17 +72,40 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (menu instanceof HTMLElement) {
-            menu.hidden = true;
+            if (menu.hidden) {
+                picker.dataset.themeState = "closed";
+                return;
+            }
+
+            if (immediate) {
+                menu.hidden = true;
+                picker.dataset.themeState = "closed";
+                return;
+            }
+
+            const timer = window.setTimeout(() => {
+                menu.hidden = true;
+                picker.dataset.themeState = "closed";
+                themePickerTimers.delete(picker);
+            }, themePickerTransitionMs);
+
+            themePickerTimers.set(picker, timer);
         }
     };
 
-    const closeAllThemePickers = () => {
-        themePickers.forEach((picker) => closeThemePicker(picker));
+    const closeAllThemePickers = (excludePicker = null) => {
+        themePickers.forEach((picker) => {
+            if (picker !== excludePicker) {
+                closeThemePicker(picker);
+            }
+        });
     };
 
     const openThemePicker = (picker) => {
-        closeAllThemePickers();
+        clearThemePickerTimer(picker);
+        closeAllThemePickers(picker);
         picker.dataset.themeOpen = "true";
+        picker.dataset.themeState = "open";
         const trigger = picker.querySelector("[data-theme-trigger]");
         const menu = picker.querySelector("[data-theme-menu]");
 
@@ -128,8 +166,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const options = Array.from(picker.querySelectorAll("[data-theme-option]"))
             .filter((option) => option instanceof HTMLButtonElement);
 
-        closeThemePicker(picker);
+        closeThemePicker(picker, true);
         picker.dataset.themeOpen = "false";
+        picker.dataset.themeState = "closed";
 
         trigger?.addEventListener("click", () => {
             if (picker.dataset.themeOpen === "true") {
@@ -187,30 +226,141 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.requestAnimationFrame(() => {
         body.classList.add("theme-ready");
+
+        if (siteHeader instanceof HTMLElement) {
+            window.requestAnimationFrame(() => {
+                siteHeader.dataset.headerReady = "true";
+            });
+        }
     });
 
-    if (!navToggle || !navMenu) {
+    if (siteHeader instanceof HTMLElement) {
+        let lastScrollY = window.scrollY;
+        let lastDirection = 0;
+        let travelDistance = 0;
+        let ticking = false;
+        const hideThreshold = 12;
+        const showThreshold = 8;
+
+        const syncHeaderVisibility = () => {
+            const currentScrollY = window.scrollY;
+            const delta = currentScrollY - lastScrollY;
+            const direction = delta === 0 ? 0 : delta > 0 ? 1 : -1;
+
+            siteHeader.classList.toggle("is-scrolled", currentScrollY > 12);
+
+            if (currentScrollY <= 24) {
+                siteHeader.classList.remove("is-hidden");
+                travelDistance = 0;
+                lastDirection = 0;
+                lastScrollY = currentScrollY;
+                ticking = false;
+                return;
+            }
+
+            if (direction !== 0) {
+                if (direction !== lastDirection) {
+                    travelDistance = Math.abs(delta);
+                    lastDirection = direction;
+                } else {
+                    travelDistance += Math.abs(delta);
+                }
+
+                if (direction > 0 && travelDistance >= hideThreshold) {
+                    siteHeader.classList.add("is-hidden");
+                    travelDistance = 0;
+                }
+
+                if (direction < 0 && travelDistance >= showThreshold) {
+                    siteHeader.classList.remove("is-hidden");
+                    travelDistance = 0;
+                }
+            }
+
+            lastScrollY = currentScrollY;
+            ticking = false;
+        };
+
+        syncHeaderVisibility();
+        window.addEventListener("scroll", () => {
+            if (ticking) {
+                return;
+            }
+
+            ticking = true;
+            window.requestAnimationFrame(syncHeaderVisibility);
+        }, { passive: true });
+    }
+
+    if (!(navToggle instanceof HTMLButtonElement) || !(navMenu instanceof HTMLElement)) {
         return;
     }
 
-    const closeMenu = () => {
-        navToggle.setAttribute("aria-expanded", "false");
-        navMenu.classList.add("hidden");
+    let mobileMenuTimer = 0;
+
+    const setMobileMenuAvailability = (isOpen) => {
+        navMenu.setAttribute("aria-hidden", String(!isOpen));
+
+        if ("inert" in navMenu) {
+            navMenu.inert = !isOpen;
+        }
     };
+
+    const openMenu = () => {
+        window.clearTimeout(mobileMenuTimer);
+        navMenu.classList.remove("hidden");
+        navMenu.dataset.open = "false";
+        setMobileMenuAvailability(true);
+
+        window.requestAnimationFrame(() => {
+            navToggle.setAttribute("aria-expanded", "true");
+            navMenu.dataset.open = "true";
+        });
+    };
+
+    const closeMenu = (immediate = false) => {
+        window.clearTimeout(mobileMenuTimer);
+        navToggle.setAttribute("aria-expanded", "false");
+        navMenu.dataset.open = "false";
+        setMobileMenuAvailability(false);
+
+        if (immediate) {
+            navMenu.classList.add("hidden");
+            return;
+        }
+
+        mobileMenuTimer = window.setTimeout(() => {
+            navMenu.classList.add("hidden");
+        }, mobileMenuTransitionMs);
+    };
+
+    closeMenu(true);
 
     navToggle.addEventListener("click", () => {
         const isExpanded = navToggle.getAttribute("aria-expanded") === "true";
-        navToggle.setAttribute("aria-expanded", String(!isExpanded));
-        navMenu.classList.toggle("hidden");
+
+        if (isExpanded) {
+            closeMenu();
+            return;
+        }
+
+        openMenu();
     });
 
     navMenu.querySelectorAll("a").forEach((link) => {
         link.addEventListener("click", closeMenu);
     });
 
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && navToggle.getAttribute("aria-expanded") === "true") {
+            closeMenu();
+            navToggle.focus();
+        }
+    });
+
     window.addEventListener("resize", () => {
         if (window.innerWidth >= 768) {
-            closeMenu();
+            closeMenu(true);
         }
     });
 });

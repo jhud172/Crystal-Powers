@@ -10,11 +10,14 @@ document.addEventListener("DOMContentLoaded", () => {
         .filter((button) => button instanceof HTMLButtonElement);
     const items = Array.from(page.querySelectorAll("[data-portfolio-item]"))
         .filter((item) => item instanceof HTMLElement);
+    const emptyState = page.querySelector("[data-portfolio-empty]");
+    const resultsCopy = page.querySelector("[data-portfolio-results-copy]");
     const dialog = page.querySelector("[data-portfolio-dialog]") ?? document.querySelector("[data-portfolio-dialog]");
     const dialogTitle = document.querySelector("[data-portfolio-dialog-title]");
     const dialogCompany = document.querySelector("[data-portfolio-dialog-company]");
     const dialogMeta = document.querySelector("[data-portfolio-dialog-meta]");
     const dialogLink = document.querySelector("[data-portfolio-dialog-link]");
+    const dialogImage = document.querySelector("[data-portfolio-dialog-image]");
     const panels = {
         about: document.querySelector('[data-portfolio-panel="about"]'),
         creation: document.querySelector('[data-portfolio-panel="creation"]'),
@@ -53,15 +56,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const filterItems = () => {
         const term = searchInput instanceof HTMLInputElement ? searchInput.value.trim().toLowerCase() : "";
+        let visibleCount = 0;
 
         items.forEach((item) => {
             const categories = item.dataset.category?.toLowerCase() ?? "";
             const haystack = item.dataset.search?.toLowerCase() ?? "";
             const matchesFilter = activeFilter === "all" || categories.includes(activeFilter);
             const matchesSearch = term.length === 0 || haystack.includes(term);
+            const isVisible = matchesFilter && matchesSearch;
 
-            item.classList.toggle("is-hidden", !(matchesFilter && matchesSearch));
+            item.classList.toggle("is-hidden", !isVisible);
+
+            if (isVisible) {
+                visibleCount += 1;
+            }
         });
+
+        if (emptyState instanceof HTMLElement) {
+            emptyState.hidden = visibleCount !== 0;
+        }
+
+        if (resultsCopy instanceof HTMLElement) {
+            const filterLabel = activeFilter === "all" ? "all projects" : `${activeFilter} projects`;
+            resultsCopy.textContent = term
+                ? `${visibleCount} match${visibleCount === 1 ? "" : "es"} for "${term}"`
+                : `Showing ${filterLabel}`;
+        }
     };
 
     const fillPanel = (target, source) => {
@@ -96,6 +116,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (dialogLink instanceof HTMLAnchorElement) {
             dialogLink.href = link;
+        }
+
+        if (dialogImage instanceof HTMLImageElement) {
+            const sourceImage = item.querySelector(".portfolio-card-image");
+
+            if (sourceImage instanceof HTMLImageElement) {
+                dialogImage.src = sourceImage.currentSrc || sourceImage.src;
+                dialogImage.alt = sourceImage.alt;
+            } else {
+                dialogImage.removeAttribute("src");
+                dialogImage.alt = "";
+            }
         }
 
         fillPanel(panels.about, item.querySelector("[data-portfolio-about]"));

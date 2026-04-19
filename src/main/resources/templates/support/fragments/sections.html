@@ -1,55 +1,103 @@
 <th:block xmlns:th="http://www.thymeleaf.org">
 <th:block th:fragment="content">
-    <section class="grid gap-12 lg:grid-cols-[0.95fr_1.05fr]">
-        <div>
-            <span class="eyebrow">Support</span>
-            <h1 class="mt-8 font-display text-4xl text-white sm:text-5xl">A clear help path, not a maze of contact methods.</h1>
-            <p class="mt-6 text-lg leading-8 text-slate-300">
-                Support is intentionally simple. Use the contact page for project enquiries or request changes,
-                and use the direct community channel when you already have an active delivery running.
-            </p>
-        </div>
-        <div class="section-card">
-            <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">Response expectations</p>
-            <dl class="mt-6 grid gap-6 sm:grid-cols-2">
-                <div>
-                    <dt class="text-sm font-semibold text-white">Project enquiries</dt>
-                    <dd class="mt-2 text-sm leading-7 text-slate-300">Use the site contact form with scope, timeline, and the problem to solve.</dd>
-                </div>
-                <div>
-                    <dt class="text-sm font-semibold text-white">Active delivery support</dt>
-                    <dd class="mt-2 text-sm leading-7 text-slate-300">Use the agreed support channel so updates stay attached to the current workstream.</dd>
-                </div>
-            </dl>
-        </div>
-    </section>
+    <div class="page-stack">
+        <section class="page-scene page-scene-secondary" data-interactive-backdrop="support">
+            <div class="page-scene-shell">
+                <div class="page-scene-grid">
+                    <div class="page-scene-copy" data-reveal="up">
+                        <div class="scene-meta-row">
+                            <span class="eyebrow">Support</span>
+                            <span class="scene-signal-pill">Simple route, faster context</span>
+                        </div>
+                        <h1 class="page-scene-title">A cleaner help path with less friction, better routing, and clearer expectations from the first message.</h1>
+                        <p class="page-scene-body">
+                            Support is intentionally kept simple. New requests, scoped changes, and active delivery updates
+                            should each land through the right route so replies stay fast and the context stays attached to the work.
+                        </p>
+                        <div class="scene-action-row">
+                            <a th:href="@{/contact}" class="primary-button">Open contact</a>
+                            <a th:href="@{/services}" class="secondary-button">Review build routes</a>
+                        </div>
+                    </div>
 
-    <section class="grid gap-6 lg:grid-cols-3">
-        <article class="section-card">
-            <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">01</p>
-            <h2 class="mt-4 font-display text-2xl text-white">State the route</h2>
-            <p class="mt-4 text-sm leading-7 text-slate-300">Say whether the request is a new build, a structure pass, a visual revision, or support for an existing delivery.</p>
-        </article>
-        <article class="section-card">
-            <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">02</p>
-            <h2 class="mt-4 font-display text-2xl text-white">Attach real context</h2>
-            <p class="mt-4 text-sm leading-7 text-slate-300">Include the page, asset, controller, or flow that is affected. The fastest fixes come from precise context.</p>
-        </article>
-        <article class="section-card">
-            <p class="text-xs uppercase tracking-[0.24em] text-cyan-300">03</p>
-            <h2 class="mt-4 font-display text-2xl text-white">Keep the stack aligned</h2>
-            <p class="mt-4 text-sm leading-7 text-slate-300">Support changes stay inside the established structure: base layout, fragments, dedicated CSS, and dedicated JS.</p>
-        </article>
-    </section>
+                    <div class="scene-visual-column" data-reveal="left">
+                        <div class="floating-cluster">
+                            <article class="floating-panel floating-panel-glass" data-tilt data-depth="14">
+                                <p class="floating-panel-kicker">Response lanes</p>
+                                <ul class="floating-list">
+                                    <li>New build enquiries</li>
+                                    <li>Active delivery updates</li>
+                                    <li>Scoped revision requests</li>
+                                </ul>
+                            </article>
+                            <article class="floating-panel floating-panel-mini" data-tilt data-depth="8">
+                                <p class="floating-panel-kicker">Best support input</p>
+                                <p class="floating-panel-note">State the route, attach the real page or flow, and be precise about the change.</p>
+                            </article>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <section class="section-card flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-            <span class="eyebrow">Need a direct next step?</span>
-            <h2 class="mt-5 font-display text-3xl text-white">Use the contact form for scoped requests.</h2>
-            <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300">That gives you a stable route for new work, updates, and structured support without depending on old flat HTML pages or direct file links.</p>
-        </div>
-        <a th:href="@{/contact}" class="primary-button">Open contact</a>
-    </section>
+        <section class="support-lane-grid">
+            <article class="story-panel" data-reveal="up" data-tilt>
+                <p class="story-kicker">Project enquiries</p>
+                <h2 class="story-title-small">Use the site contact form</h2>
+                <p class="story-copy">Best for new builds, structured requests, pricing direction, and anything that still needs proper scoping.</p>
+            </article>
+            <article class="story-panel" data-reveal="up" data-tilt>
+                <p class="story-kicker">Active delivery support</p>
+                <h2 class="story-title-small">Use the agreed working channel</h2>
+                <p class="story-copy">When a project is already running, keep updates attached to that workstream so decisions and revisions stay traceable.</p>
+            </article>
+            <article class="story-panel" data-reveal="up" data-tilt>
+                <p class="story-kicker">Revision requests</p>
+                <h2 class="story-title-small">Send context, not just intent</h2>
+                <p class="story-copy">Reference the exact page, section, asset, or interaction so changes can be resolved without guesswork.</p>
+            </article>
+        </section>
+
+        <section class="split-story-grid">
+            <article class="story-panel story-panel-large" data-reveal="up" data-tilt>
+                <span class="eyebrow">Support protocol</span>
+                <div class="story-line-list">
+                    <div class="story-line-item">
+                        <span class="story-line-index">01</span>
+                        <p>State whether the request is new work, a refinement pass, or support for an existing delivery.</p>
+                    </div>
+                    <div class="story-line-item">
+                        <span class="story-line-index">02</span>
+                        <p>Attach the real context: page, asset, controller, template, or interaction path.</p>
+                    </div>
+                    <div class="story-line-item">
+                        <span class="story-line-index">03</span>
+                        <p>Keep the stack aligned so fixes land through the real shared structure instead of temporary hacks.</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="story-panel story-panel-highlight" data-reveal="up" data-tilt>
+                <span class="eyebrow">Why this matters</span>
+                <h2 class="story-title">The fastest support is not louder support. It is support that arrives with enough structure to be actioned properly.</h2>
+                <p class="story-copy">
+                    That means keeping the route simple, keeping the context precise, and keeping the implementation
+                    inside the established layout, CSS, and JS system rather than solving symptoms in isolation.
+                </p>
+            </article>
+        </section>
+
+        <section class="final-callout" data-reveal="up">
+            <div class="final-callout-copy">
+                <span class="eyebrow">Need a direct next step?</span>
+                <h2 class="final-callout-title">Use the contact form for scoped requests and structured support.</h2>
+                <p class="final-callout-body">That keeps the request attached to the real project context and makes the reply route clearer from the start.</p>
+            </div>
+            <div class="final-callout-actions">
+                <a th:href="@{/contact}" class="primary-button">Open contact</a>
+            </div>
+        </section>
+    </div>
 </th:block>
 
 <th:block th:fragment="scripts"></th:block>

@@ -1,0 +1,242 @@
+@layer components {
+  .portfolio-shell {
+    @apply grid gap-8;
+  }
+
+  .portfolio-hero {
+    @apply grid gap-6 xl:grid-cols-[1.08fr_0.92fr];
+  }
+
+  .portfolio-hero-copy {
+    @apply max-w-4xl;
+  }
+
+  .portfolio-search-shell {
+    @apply rounded-[2rem] border p-6 backdrop-blur-xl sm:p-7;
+    border-color: var(--panel-border);
+    background: var(--panel-surface-elevated);
+    box-shadow: var(--panel-shadow);
+  }
+
+  .portfolio-search-input {
+    @apply mt-2;
+  }
+
+  .portfolio-filter-row {
+    @apply mt-5 flex flex-wrap gap-3;
+  }
+
+  .portfolio-filter-chip {
+    @apply inline-flex items-center rounded-full border px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.26em];
+    border-color: var(--secondary-button-border);
+    background: var(--secondary-button-bg);
+    color: var(--secondary-button-text);
+  }
+
+  .portfolio-filter-chip:hover,
+  .portfolio-filter-chip.is-active {
+    border-color: var(--pricing-featured-border);
+    background: var(--pricing-badge-bg);
+    color: var(--color-text-primary);
+  }
+
+  .portfolio-grid {
+    @apply grid gap-5 md:grid-cols-2 xl:grid-cols-3;
+  }
+
+  .portfolio-card {
+    @apply h-full;
+  }
+
+  .portfolio-card.is-hidden {
+    display: none;
+  }
+
+  .portfolio-card-trigger {
+    @apply relative flex h-full w-full flex-col rounded-[1.75rem] border p-4 text-left backdrop-blur-xl;
+    overflow: hidden;
+    border-color: var(--panel-border);
+    background: var(--panel-surface-soft);
+    box-shadow: var(--panel-shadow);
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), border-color 260ms ease, box-shadow 320ms ease, background 260ms ease;
+  }
+
+  .portfolio-card-trigger::after {
+    content: "";
+    position: absolute;
+    inset: auto 1.1rem 0.9rem 1.1rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+    opacity: 0.75;
+    transition: opacity 240ms ease;
+  }
+
+  .portfolio-card-trigger:hover {
+    transform: translateY(-6px) scale(1.01);
+    border-color: color-mix(in srgb, var(--pricing-featured-border) 55%, var(--panel-border) 45%);
+    box-shadow: 0 24px 56px rgba(2, 6, 23, 0.34), 0 0 0 1px rgba(103, 232, 249, 0.08);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+      var(--section-surface-strong);
+  }
+
+  .portfolio-card-trigger:hover::after {
+    opacity: 1;
+  }
+
+  .portfolio-card-media {
+    position: relative;
+  }
+
+  .portfolio-card-image {
+    @apply h-64 w-full rounded-[1.45rem] border object-cover;
+    border-color: var(--panel-border);
+    transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1), filter 260ms ease;
+  }
+
+  .portfolio-card-trigger:hover .portfolio-card-image {
+    transform: scale(1.025);
+    filter: saturate(1.06) brightness(1.03);
+  }
+
+  .portfolio-card-logo-badge {
+    position: absolute;
+    top: 0.85rem;
+    right: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    padding: 0.45rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 14px 30px rgba(2, 6, 23, 0.18);
+  }
+
+  .portfolio-card-logo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .portfolio-card-copy {
+    @apply flex flex-1 flex-col px-2 pb-2 pt-6;
+  }
+
+  .portfolio-card-head {
+    @apply flex items-center justify-between gap-4;
+  }
+
+  .portfolio-card-pill {
+    @apply inline-flex items-center rounded-full border px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.24em];
+    border-color: var(--panel-border);
+    background: var(--section-surface-soft);
+    color: var(--color-text-subtle);
+  }
+
+  .portfolio-card-title {
+    @apply mt-3 font-display text-2xl;
+    color: var(--color-text-primary);
+  }
+
+  .portfolio-card-body {
+    @apply mt-4 text-sm leading-7;
+    color: var(--color-text-muted);
+  }
+
+  .portfolio-dialog {
+    padding: 0;
+  }
+
+  .portfolio-dialog-inner {
+    @apply p-6 sm:p-8;
+  }
+
+  .portfolio-dialog-head {
+    @apply flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-start sm:justify-between;
+    border-color: var(--panel-border);
+  }
+
+  .portfolio-dialog-title {
+    @apply mt-3 font-display text-3xl;
+    color: var(--color-text-primary);
+  }
+
+  .portfolio-dialog-company {
+    @apply mt-3 text-sm leading-7;
+    color: var(--color-text-muted);
+  }
+
+  .portfolio-tab-shell {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 0.35rem;
+    border: 1px solid var(--panel-border);
+    border-radius: 9999px;
+    background: var(--section-surface-soft);
+  }
+
+  .portfolio-tab-track {
+    position: absolute;
+    inset: 0.35rem;
+    pointer-events: none;
+  }
+
+  .portfolio-tab-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc((100% - 1rem) / 3);
+    height: 100%;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, rgba(103, 232, 249, 0.22), rgba(124, 58, 237, 0.2));
+    border: 1px solid rgba(103, 232, 249, 0.32);
+    transform: translateX(calc(var(--portfolio-tab-index, 0) * 100%));
+    transition: transform 280ms ease;
+  }
+
+  .portfolio-tab {
+    @apply relative z-[1] rounded-full px-4 py-3 text-[0.68rem] font-semibold uppercase tracking-[0.24em];
+    color: var(--color-text-muted);
+  }
+
+  .portfolio-tab.is-active {
+    color: var(--color-text-primary);
+  }
+
+  .portfolio-dialog-body {
+    @apply mt-6;
+  }
+
+  .portfolio-dialog-panel {
+    @apply text-sm leading-7;
+    color: var(--color-text-muted);
+  }
+
+  .portfolio-dialog-panel p + ul,
+  .portfolio-dialog-panel ul + p {
+    @apply mt-4;
+  }
+
+  .portfolio-dialog-panel ul {
+    @apply space-y-3;
+    color: var(--color-text-secondary);
+  }
+
+  .portfolio-dialog-panel li {
+    @apply border-l pl-4;
+    border-color: var(--panel-border);
+  }
+
+  .portfolio-dialog-footer {
+    @apply mt-8 border-t pt-6;
+    border-color: var(--panel-border);
+  }
+}
+

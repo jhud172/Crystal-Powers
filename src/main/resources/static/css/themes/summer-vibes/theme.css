@@ -89,6 +89,18 @@ body[data-theme="summer-vibes"] .site-footer-panel,
 body[data-theme="summer-vibes"] .section-card,
 body[data-theme="summer-vibes"] .home-card,
 body[data-theme="summer-vibes"] .pricing-card,
-body[data-theme="summer-vibes"] .addon-card {
+body[data-theme="summer-vibes"] .addon-card,
+body[data-theme="summer-vibes"] .service-choice-shell,
+body[data-theme="summer-vibes"] .addon-select-shell,
+body[data-theme="summer-vibes"] .services-summary-shell,
+body[data-theme="summer-vibes"] .services-summary-block,
+body[data-theme="summer-vibes"] .services-hero-panel,
+body[data-theme="summer-vibes"] .portfolio-search-shell,
+body[data-theme="summer-vibes"] .portfolio-card-trigger,
+body[data-theme="summer-vibes"] .dialog-panel,
+body[data-theme="summer-vibes"] .contact-preview-intro,
+body[data-theme="summer-vibes"] .contact-form-section,
+body[data-theme="summer-vibes"] .contact-other-shell,
+body[data-theme="summer-vibes"] .contact-select-trigger {
   border-radius: 2rem;
 }

@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const builder = document.querySelector("[data-services-builder]");
     const quoteForm = document.querySelector("[data-quote-form]");
+    const collapsedPreviewHeight = "5.75rem";
 
     if (!(builder instanceof HTMLElement)) {
         return;
@@ -12,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .filter((input) => input instanceof HTMLInputElement);
     const addonOptions = Array.from(document.querySelectorAll("[data-addon-option]"))
         .filter((input) => input instanceof HTMLInputElement);
-    const expandButtons = Array.from(builder.querySelectorAll("[data-expand-toggle]"))
+    const expandButtons = Array.from(document.querySelectorAll("[data-expand-toggle]"))
         .filter((button) => button instanceof HTMLButtonElement);
     const summarySection = document.querySelector("[data-services-summary]");
 
@@ -207,6 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const toggleExpandable = (button) => {
         const card = button.closest(".service-choice-card");
         const panel = card?.querySelector("[data-expandable]");
+        const controls = button.closest(".service-choice-controls");
 
         if (!(panel instanceof HTMLElement)) {
             return;
@@ -218,8 +220,9 @@ document.addEventListener("DOMContentLoaded", () => {
             panel.style.maxHeight = `${panel.scrollHeight}px`;
             window.requestAnimationFrame(() => {
                 panel.classList.remove("is-expanded");
-                panel.style.maxHeight = "0px";
+                panel.style.maxHeight = collapsedPreviewHeight;
             });
+            controls?.classList.remove("is-expanded");
             button.setAttribute("aria-expanded", "false");
             button.textContent = "Read more";
             return;
@@ -227,8 +230,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
         panel.classList.add("is-expanded");
         panel.style.maxHeight = `${panel.scrollHeight}px`;
+        controls?.classList.add("is-expanded");
         button.setAttribute("aria-expanded", "true");
         button.textContent = "Read less";
+    };
+
+    const bindToggleableSingleSelect = (inputs) => {
+        inputs.forEach((input) => {
+            const card = getCard(input);
+
+            if (!(card instanceof HTMLElement)) {
+                return;
+            }
+
+            const triggers = Array.from(card.querySelectorAll(`label[for="${input.id}"]`))
+                .filter((label) => label instanceof HTMLLabelElement);
+
+            triggers.forEach((label) => {
+                label.addEventListener("click", (event) => {
+                    if (!input.checked) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    input.checked = false;
+                    renderSummary();
+                });
+            });
+        });
     };
 
     const syncFilePreview = () => {
@@ -286,18 +315,57 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     restoreSelectionsFromHiddenFields();
+    bindToggleableSingleSelect(packageOptions);
+    bindToggleableSingleSelect(maintenanceOptions);
 
     expandButtons.forEach((button) => {
         const card = button.closest(".service-choice-card");
         const panel = card?.querySelector("[data-expandable]");
+        const controls = button.closest(".service-choice-controls");
 
-        if (panel instanceof HTMLElement) {
-            panel.style.maxHeight = "0px";
+        if (!(panel instanceof HTMLElement)) {
+            button.hidden = true;
+            if (controls instanceof HTMLElement) {
+                controls.classList.add("service-choice-controls-static");
+                controls.classList.remove("is-toggleable", "is-expanded");
+            }
+            return;
         }
 
-        button.addEventListener("click", () => {
-            toggleExpandable(button);
-        });
+        const hasExtendedContent = panel.scrollHeight > 110;
+        button.hidden = !hasExtendedContent;
+
+        if (controls instanceof HTMLElement) {
+            controls.classList.toggle("service-choice-controls-static", !hasExtendedContent);
+            controls.classList.toggle("is-toggleable", hasExtendedContent);
+        }
+
+        if (hasExtendedContent) {
+            panel.classList.remove("is-expanded");
+            panel.style.maxHeight = collapsedPreviewHeight;
+            controls?.classList.remove("is-expanded");
+            button.setAttribute("aria-expanded", "false");
+            button.textContent = "Read more";
+
+            controls?.addEventListener("click", (event) => {
+                const target = event.target;
+
+                if (!(target instanceof Element)) {
+                    return;
+                }
+
+                if (target.closest(".service-choice-action-select")) {
+                    return;
+                }
+
+                event.preventDefault();
+                toggleExpandable(button);
+            });
+            return;
+        }
+
+        panel.classList.add("is-expanded");
+        panel.style.maxHeight = `${panel.scrollHeight}px`;
     });
 
     [...packageOptions, ...maintenanceOptions, ...addonOptions].forEach((input) => {

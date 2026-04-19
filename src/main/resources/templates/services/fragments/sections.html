@@ -218,26 +218,47 @@
                     </div>
                     <div class="service-choice-controls">
                         <button type="button" class="service-read-toggle" data-expand-toggle aria-expanded="false">Read more</button>
-                        <label for="package-multi-grade" class="service-choice-action service-choice-action-select">Add package</label>
+                        <label for="package-multi-grade" class="service-choice-action service-choice-action-select">Select package</label>
                     </div>
                 </div>
             </article>
-        </div>
-    </section>
 
-    <section class="section-card services-quote-card">
-        <div>
-            <p class="section-tag">Custom quote</p>
-            <h2 class="mt-3 font-display text-3xl text-white">Need a scope that sits between the fixed package tiers?</h2>
-            <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
-                If the project lands between packages, the final structure can be shaped around the real page count,
-                delivery complexity, and additions required.
-            </p>
-        </div>
-        <div class="services-quote-points">
-            <span class="surface-chip">Mixed page counts</span>
-            <span class="surface-chip">Bespoke feature scope</span>
-            <span class="surface-chip">Manual quote shaping</span>
+            <article class="service-choice-card">
+                <input id="package-custom-quote" type="radio" name="packageSelection" class="sr-only service-choice-input" data-package-option />
+                <div class="service-choice-shell">
+                    <label for="package-custom-quote" class="service-choice-select">
+                        <div class="service-choice-head">
+                            <div>
+                                <p class="service-choice-tier">Custom Quote</p>
+                                <h3 class="service-choice-title">Tailored project scope</h3>
+                            </div>
+                            <div class="service-choice-price-group">
+                                <p class="service-choice-price">Custom</p>
+                                <p class="service-choice-price-note">scoped to brief</p>
+                            </div>
+                        </div>
+                        <p class="service-choice-copy">Choose this when the project sits between fixed tiers or needs a more tailored structure from the start.</p>
+                        <ul class="service-choice-list">
+                            <li>Flexible page count and layout planning</li>
+                            <li>Quoted around the real scope and features</li>
+                            <li>Ideal for bespoke or in-between builds</li>
+                        </ul>
+                    </label>
+                    <div class="service-choice-expand" data-expandable>
+                        <div class="service-choice-expand-inner">
+                            <p class="service-choice-expand-copy">A tailored route for projects that need a more exact quote based on content depth, feature count, and delivery complexity.</p>
+                            <ul class="service-choice-list service-choice-list-secondary">
+                                <li>Manual scope review before final pricing</li>
+                                <li>Built around the actual business requirements</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="service-choice-controls">
+                        <button type="button" class="service-read-toggle" data-expand-toggle aria-expanded="false">Read more</button>
+                        <label for="package-custom-quote" class="service-choice-action service-choice-action-select">Select package</label>
+                    </div>
+                </div>
+            </article>
         </div>
     </section>
 
@@ -498,7 +519,7 @@
         </div>
 
         <div class="maintenance-grid services-choice-grid services-maintenance-grid">
-            <article class="service-choice-card service-choice-card-compact">
+            <article class="service-choice-card">
                 <input id="maintenance-basic" type="radio" name="maintenanceSelection" class="sr-only service-choice-input" data-maintenance-option />
                 <div class="service-choice-shell">
                     <label for="maintenance-basic" class="service-choice-select">
@@ -512,23 +533,33 @@
                                 <p class="service-choice-price-note">per month</p>
                             </div>
                         </div>
-                        <p class="service-choice-copy">Essential support for keeping the site connected and running.</p>
+                        <p class="service-choice-copy">Essential support for keeping the site online, connected, and stable.</p>
                         <ul class="service-choice-list">
-                            <li>Hosting support</li>
-                            <li>Domain connection support</li>
-                            <li>Uptime check guidance</li>
+                            <li>Hosting support and connection checks</li>
+                            <li>Domain and uptime guidance</li>
+                            <li>Core support for a smaller live site</li>
                         </ul>
                     </label>
-                    <div class="service-choice-controls service-choice-controls-static">
+                    <div class="service-choice-expand" data-expandable>
+                        <div class="service-choice-expand-inner">
+                            <p class="service-choice-expand-copy">A light-touch option for businesses that mainly need the site kept live with the basics covered.</p>
+                            <ul class="service-choice-list service-choice-list-secondary">
+                                <li>Best for low-change websites</li>
+                                <li>Clear starting support without heavier monthly work</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="service-choice-controls">
+                        <button type="button" class="service-read-toggle" data-expand-toggle aria-expanded="false">Read more</button>
                         <label for="maintenance-basic" class="service-choice-action service-choice-action-select">Select maintenance</label>
                     </div>
                 </div>
             </article>
 
-            <article class="service-choice-card service-choice-card-featured service-choice-card-compact">
+            <article class="service-choice-card service-choice-card-featured">
                 <input id="maintenance-standard" type="radio" name="maintenanceSelection" class="sr-only service-choice-input" data-maintenance-option />
                 <div class="service-choice-shell">
-                    <span class="pricing-badge">Popular</span>
+                    <span class="pricing-badge">Recommended</span>
                     <label for="maintenance-standard" class="service-choice-select">
                         <div class="service-choice-head">
                             <div>
@@ -540,20 +571,30 @@
                                 <p class="service-choice-price-note">per month</p>
                             </div>
                         </div>
-                        <p class="service-choice-copy">Ongoing updates, small edits, and general support for an actively used business site.</p>
+                        <p class="service-choice-copy">The balanced support plan for edits, routine updates, and a business site that stays actively used.</p>
                         <ul class="service-choice-list">
                             <li>Everything in Basic</li>
                             <li>Small text and image edits</li>
-                            <li>Routine updates and general support</li>
+                            <li>Routine support and update handling</li>
                         </ul>
                     </label>
-                    <div class="service-choice-controls service-choice-controls-static">
+                    <div class="service-choice-expand" data-expandable>
+                        <div class="service-choice-expand-inner">
+                            <p class="service-choice-expand-copy">Ideal when the website needs regular attention without moving into a heavy priority-retainer setup.</p>
+                            <ul class="service-choice-list service-choice-list-secondary">
+                                <li>Good fit for most active business websites</li>
+                                <li>Steady support window for ongoing changes</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="service-choice-controls">
+                        <button type="button" class="service-read-toggle" data-expand-toggle aria-expanded="false">Read more</button>
                         <label for="maintenance-standard" class="service-choice-action service-choice-action-select">Select maintenance</label>
                     </div>
                 </div>
             </article>
 
-            <article class="service-choice-card service-choice-card-compact">
+            <article class="service-choice-card">
                 <input id="maintenance-premium" type="radio" name="maintenanceSelection" class="sr-only service-choice-input" data-maintenance-option />
                 <div class="service-choice-shell">
                     <label for="maintenance-premium" class="service-choice-select">
@@ -567,14 +608,24 @@
                                 <p class="service-choice-price-note">per month</p>
                             </div>
                         </div>
-                        <p class="service-choice-copy">Priority support for businesses that expect faster turnaround and ongoing improvements.</p>
+                        <p class="service-choice-copy">Priority help for sites that need faster turnarounds and more regular refinement.</p>
                         <ul class="service-choice-list">
                             <li>Everything in Standard</li>
-                            <li>Priority changes</li>
-                            <li>Quicker turnaround with ongoing improvements</li>
+                            <li>Priority changes and faster response</li>
+                            <li>Better suited to evolving live sites</li>
                         </ul>
                     </label>
-                    <div class="service-choice-controls service-choice-controls-static">
+                    <div class="service-choice-expand" data-expandable>
+                        <div class="service-choice-expand-inner">
+                            <p class="service-choice-expand-copy">Best for businesses expecting a more active stream of updates, changes, and post-launch improvements.</p>
+                            <ul class="service-choice-list service-choice-list-secondary">
+                                <li>Faster support flow for recurring requests</li>
+                                <li>Stronger monthly care for higher-demand sites</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="service-choice-controls">
+                        <button type="button" class="service-read-toggle" data-expand-toggle aria-expanded="false">Read more</button>
                         <label for="maintenance-premium" class="service-choice-action service-choice-action-select">Select maintenance</label>
                     </div>
                 </div>

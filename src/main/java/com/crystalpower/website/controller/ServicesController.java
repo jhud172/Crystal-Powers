@@ -1,7 +1,7 @@
-package com.crystalproduction.website.controller;
+package com.crystalpower.website.controller;
 
-import com.crystalproduction.website.dto.ContactForm;
-import com.crystalproduction.website.service.InquiryEmailService;
+import com.crystalpower.website.dto.ContactForm;
+import com.crystalpower.website.service.InquiryEmailService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

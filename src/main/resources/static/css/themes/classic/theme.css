@@ -72,7 +72,19 @@ body[data-theme="classic"] .site-footer-panel,
 body[data-theme="classic"] .section-card,
 body[data-theme="classic"] .home-card,
 body[data-theme="classic"] .pricing-card,
-body[data-theme="classic"] .addon-card {
+body[data-theme="classic"] .addon-card,
+body[data-theme="classic"] .service-choice-shell,
+body[data-theme="classic"] .addon-select-shell,
+body[data-theme="classic"] .services-summary-shell,
+body[data-theme="classic"] .services-summary-block,
+body[data-theme="classic"] .services-hero-panel,
+body[data-theme="classic"] .portfolio-search-shell,
+body[data-theme="classic"] .portfolio-card-trigger,
+body[data-theme="classic"] .dialog-panel,
+body[data-theme="classic"] .contact-preview-intro,
+body[data-theme="classic"] .contact-form-section,
+body[data-theme="classic"] .contact-other-shell,
+body[data-theme="classic"] .contact-select-trigger {
   border-radius: 1.35rem;
 }
 

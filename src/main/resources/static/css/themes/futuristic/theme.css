@@ -9,6 +9,18 @@ body[data-theme="futuristic"] .site-footer-panel,
 body[data-theme="futuristic"] .section-card,
 body[data-theme="futuristic"] .home-card,
 body[data-theme="futuristic"] .pricing-card,
-body[data-theme="futuristic"] .addon-card {
+body[data-theme="futuristic"] .addon-card,
+body[data-theme="futuristic"] .service-choice-shell,
+body[data-theme="futuristic"] .addon-select-shell,
+body[data-theme="futuristic"] .services-summary-shell,
+body[data-theme="futuristic"] .services-summary-block,
+body[data-theme="futuristic"] .services-hero-panel,
+body[data-theme="futuristic"] .portfolio-search-shell,
+body[data-theme="futuristic"] .portfolio-card-trigger,
+body[data-theme="futuristic"] .dialog-panel,
+body[data-theme="futuristic"] .contact-preview-intro,
+body[data-theme="futuristic"] .contact-form-section,
+body[data-theme="futuristic"] .contact-other-shell,
+body[data-theme="futuristic"] .contact-select-trigger {
   backdrop-filter: blur(24px);
 }

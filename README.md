@@ -1,6 +1,6 @@
-# Crystal Production Website
+# Crystal Power Website
 
-This repository currently serves a premium multi-page Crystal Production marketing site on Spring Boot and Thymeleaf. The site presents Crystal Production as a digital build studio focused on websites, community systems, automation, creative support, and structured delivery.
+This repository currently serves a premium multi-page Crystal Power marketing site on Spring Boot and Thymeleaf. The site presents Crystal Power as a digital build studio focused on websites, community systems, automation, creative support, and structured delivery.
 
 ## Current Site Structure
 
@@ -12,7 +12,7 @@ This repository currently serves a premium multi-page Crystal Production marketi
   Page entry templates for `homepage`, `about`, `services`, `portfolio`, `support`, and `contact`.
 - `src/main/resources/templates/<page>/fragments/sections.html`
   Page-specific content fragments and page-specific script imports where needed.
-- `src/main/java/com/crystalproduction/website/controller/ThemePreferenceAdvice.java`
+- `src/main/java/com/crystalpower/website/controller/ThemePreferenceAdvice.java`
   Shared cookie-backed theme preference model for all pages.
 - `src/main/frontend/styles/global/global.css`
   Tailwind source for shared layout, utilities, and theme-aware component rules.

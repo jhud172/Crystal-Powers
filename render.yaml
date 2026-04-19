@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: crystal-production
+    name: crystal-power
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile

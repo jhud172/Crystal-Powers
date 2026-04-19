@@ -1,0 +1,86 @@
+@layer components {
+  .site-footer {
+    @apply px-4 pb-6 sm:px-6 lg:px-8;
+  }
+
+  .site-footer-panel {
+    @apply mx-auto w-full max-w-7xl rounded-[2rem] border px-6 py-8 backdrop-blur-xl lg:px-8;
+    border-color: var(--panel-border);
+    background: var(--footer-surface);
+    box-shadow: var(--panel-shadow-strong);
+  }
+
+  .site-footer-grid {
+    @apply grid gap-10 border-b pb-8 lg:grid-cols-[1.2fr_0.8fr_0.8fr];
+    border-color: var(--panel-border);
+  }
+
+  .footer-brand {
+    @apply max-w-2xl;
+  }
+
+  .footer-title {
+    @apply mt-6 font-display text-3xl leading-tight sm:text-4xl;
+    color: var(--color-text-primary);
+  }
+
+  .footer-copy {
+    @apply mt-4 max-w-xl text-sm leading-7;
+    color: var(--color-text-muted);
+  }
+
+  .footer-column {
+    @apply border-t pt-6 lg:border-t-0 lg:border-l lg:pl-8 lg:pt-0;
+    border-color: var(--panel-border);
+  }
+
+  .footer-heading {
+    @apply text-xs font-semibold uppercase tracking-[0.28em];
+    color: var(--color-text-subtle);
+  }
+
+  .footer-links {
+    @apply mt-5 flex flex-col gap-3;
+  }
+
+  .footer-link {
+    @apply relative inline-flex w-fit text-sm transition duration-300;
+    color: var(--color-text-muted);
+  }
+
+  .footer-link:hover {
+    color: var(--color-text-primary);
+  }
+
+  .footer-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -0.18rem;
+    width: 100%;
+    height: 1px;
+    transform: scaleX(0);
+    transform-origin: left;
+    background: linear-gradient(90deg, var(--color-accent-strong), var(--color-accent));
+    transition: transform 220ms ease;
+  }
+
+  .footer-link:hover::after {
+    transform: scaleX(1);
+  }
+
+  .footer-list {
+    @apply mt-5 space-y-3 text-sm leading-7;
+    color: var(--color-text-muted);
+  }
+
+  .site-footer-meta {
+    @apply flex flex-col gap-4 pt-6 text-xs uppercase tracking-[0.22em] lg:flex-row lg:items-center lg:justify-between;
+    color: var(--color-text-subtle);
+  }
+
+  .site-footer-meta-links {
+    @apply flex flex-wrap gap-5;
+  }
+}
+

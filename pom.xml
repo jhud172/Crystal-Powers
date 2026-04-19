@@ -11,11 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.crystalproduction</groupId>
-    <artifactId>crystal-production-website</artifactId>
+    <groupId>com.crystalpower</groupId>
+    <artifactId>crystal-power-website</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>crystal-production-website</name>
-    <description>Spring Boot website for Crystal Production LTD</description>
+    <name>crystal-power-website</name>
+    <description>Spring Boot website for Crystal Power LTD</description>
 
     <properties>
         <java.version>25</java.version>

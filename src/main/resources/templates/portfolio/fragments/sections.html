@@ -1,66 +1,104 @@
 <th:block xmlns:th="http://www.thymeleaf.org">
 <th:block th:fragment="content">
-    <section class="portfolio-shell" data-portfolio-page>
-        <div class="portfolio-hero">
-            <div class="portfolio-hero-copy">
-                <span class="eyebrow">Portfolio archive</span>
-                <h1 class="services-hero-title">Search, filter, and open each build like a proper project surface instead of a static gallery.</h1>
-                <p class="services-hero-body">
-                    Each item opens into a richer breakdown covering the build, the creation process, what makes the
-                    result work, and where the final project lives.
-                </p>
-            </div>
+    <section class="portfolio-shell page-stack" data-portfolio-page>
+        <section class="page-scene page-scene-secondary portfolio-scene" data-interactive-backdrop="portfolio">
+            <div class="page-scene-shell">
+                <div class="page-scene-grid">
+                    <div class="page-scene-copy" data-reveal="up">
+                        <div class="scene-meta-row">
+                            <span class="eyebrow">Portfolio archive</span>
+                            <span class="scene-signal-pill">Searchable project surfaces</span>
+                        </div>
+                        <h1 class="page-scene-title">Search, filter, and open each build like a premium project release instead of a static gallery tile.</h1>
+                        <p class="page-scene-body">
+                            Each item opens into a richer breakdown covering the build, the creation process,
+                            what makes the result work, and where the final project lives.
+                        </p>
+                        <div class="scene-action-row">
+                            <a th:href="@{/contact}" class="primary-button">Start a similar build</a>
+                            <a th:href="@{/services}" class="secondary-button">See service routes</a>
+                        </div>
+                    </div>
 
-            <div class="portfolio-search-shell">
-                <label for="portfolio-search" class="field-label">Search the archive</label>
-                <input id="portfolio-search" type="search" class="field-input portfolio-search-input" placeholder="Search by project, category, company, or feature" data-portfolio-search />
-                <div class="portfolio-filter-row" data-portfolio-filters>
-                    <button type="button" class="portfolio-filter-chip is-active" data-portfolio-filter="all">All</button>
-                    <button type="button" class="portfolio-filter-chip" data-portfolio-filter="website">Website</button>
-                    <button type="button" class="portfolio-filter-chip" data-portfolio-filter="ecommerce">E-commerce</button>
-                    <button type="button" class="portfolio-filter-chip" data-portfolio-filter="creator">Creator</button>
-                    <button type="button" class="portfolio-filter-chip" data-portfolio-filter="launch">Launch</button>
-                    <button type="button" class="portfolio-filter-chip" data-portfolio-filter="system">System</button>
+                    <div class="scene-visual-column" data-reveal="left">
+                        <div class="floating-cluster">
+                            <article class="floating-panel floating-panel-glass" data-tilt data-depth="14">
+                                <p class="floating-panel-kicker">Archive features</p>
+                                <ul class="floating-list">
+                                    <li>Filterable categories</li>
+                                    <li>Expanded project dialog</li>
+                                    <li>Launch-style card treatment</li>
+                                </ul>
+                            </article>
+                            <article class="floating-panel floating-panel-mini" data-tilt data-depth="8">
+                                <p class="floating-panel-kicker">Current focus</p>
+                                <p class="floating-panel-note">Websites, product surfaces, creator pages, and structured launch systems.</p>
+                            </article>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="portfolio-search-shell" data-reveal="up">
+                    <label for="portfolio-search" class="field-label">Search the archive</label>
+                    <input id="portfolio-search" type="search" class="field-input portfolio-search-input" placeholder="Search by project, category, company, or feature" data-portfolio-search />
+                    <div class="portfolio-filter-row" data-portfolio-filters>
+                        <button type="button" class="portfolio-filter-chip is-active" data-portfolio-filter="all">All</button>
+                        <button type="button" class="portfolio-filter-chip" data-portfolio-filter="website">Website</button>
+                        <button type="button" class="portfolio-filter-chip" data-portfolio-filter="ecommerce">E-commerce</button>
+                        <button type="button" class="portfolio-filter-chip" data-portfolio-filter="creator">Creator</button>
+                        <button type="button" class="portfolio-filter-chip" data-portfolio-filter="launch">Launch</button>
+                        <button type="button" class="portfolio-filter-chip" data-portfolio-filter="system">System</button>
+                    </div>
+                    <div class="portfolio-results-meta">
+                        <span class="surface-chip">Interactive previews</span>
+                        <span class="surface-chip">Dialog breakdowns</span>
+                        <span class="surface-chip" data-portfolio-results-copy>Showing all projects</span>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <div class="portfolio-grid" data-portfolio-grid>
-            <article class="portfolio-card" data-portfolio-item data-category="website launch" data-search="editorial service landing flow website launch system private client premium typography conversion">
+            <article class="portfolio-card" data-portfolio-item data-category="website launch system" data-search="one to one 1to1 platform coaching website app dashboard trainer client progress launch fitness">
                 <button type="button" class="portfolio-card-trigger" data-portfolio-open>
-                    <img th:src="@{/images/project1.png}" src="/images/project1.png" alt="Editorial service landing flow" class="portfolio-card-image" />
+                    <div class="portfolio-card-media">
+                        <img th:src="@{/images/1to1-website.png}" src="/images/1to1-website.png" alt="One To One platform website display" class="portfolio-card-image" />
+                        <span class="portfolio-card-logo-badge" aria-hidden="true">
+                            <img th:src="@{/images/1to1-logo.png}" src="/images/1to1-logo.png" alt="" class="portfolio-card-logo-image" />
+                        </span>
+                    </div>
                     <div class="portfolio-card-copy">
                         <div class="portfolio-card-head">
-                            <p class="section-tag">Website / Launch</p>
-                            <span class="portfolio-card-pill">Private client</span>
+                            <p class="section-tag">Latest / Website</p>
+                            <span class="portfolio-card-pill">One To One</span>
                         </div>
-                        <h2 class="portfolio-card-title">Editorial service landing flow</h2>
-                        <p class="portfolio-card-body">A premium website direction focused on tone, hierarchy, and a cleaner path from first impression to enquiry.</p>
+                        <h2 class="portfolio-card-title">One To One platform launch</h2>
+                        <p class="portfolio-card-body">A clean coaching and progress platform surface combining stronger product clarity, dashboard-style structure, and a smoother client journey.</p>
                     </div>
                 </button>
                 <div class="sr-only">
-                    <p data-portfolio-title>Editorial service landing flow</p>
-                    <p data-portfolio-company>Private client · editorial service brand</p>
-                    <p data-portfolio-link>/portfolio/editorial-service-landing-flow</p>
-                    <p data-portfolio-meta>Website build · Launch system</p>
+                    <p data-portfolio-title>One To One platform launch</p>
+                    <p data-portfolio-company>One To One · coaching and client progress platform</p>
+                    <p data-portfolio-link>/portfolio/one-to-one-platform-launch</p>
+                    <p data-portfolio-meta>Website build · Product launch surface</p>
                     <div data-portfolio-about>
-                        <p>The build was structured to feel premium immediately: editorial pacing, generous spacing, and a cleaner hierarchy around the service offer.</p>
+                        <p>This project focused on a cleaner digital product presentation for the One To One platform, using the supplied logo and full site display to give the brand a more launch-ready first impression.</p>
                         <ul>
-                            <li>Strong opening hero with clearer trust signals</li>
-                            <li>Service sections ordered around decision-making</li>
-                            <li>Sharper enquiry path without overloading the page</li>
+                            <li>Clearer visual hierarchy across the homepage and core actions</li>
+                            <li>Sharper product-led presentation with a cleaner trust path</li>
+                            <li>Balanced layout built for readability and smoother engagement</li>
                         </ul>
                     </div>
                     <div data-portfolio-creation>
-                        <p>I built this around a cleaner page rhythm, bolder typography, and sections that guide the eye instead of competing for attention.</p>
+                        <p>The build was shaped around the real interface direction, pairing the platform display with the project branding so the first card reads like a proper featured release rather than a placeholder gallery item.</p>
                         <ul>
-                            <li>Refined route structure and section ordering</li>
-                            <li>Adjusted spacing and card balance to feel more expensive</li>
-                            <li>Focused the visual system on conversion rather than decoration</li>
+                            <li>Integrated branded project visuals directly into the portfolio surface</li>
+                            <li>Used a cleaner card structure with more controlled spacing</li>
+                            <li>Kept the page premium while making the product feel more usable and real</li>
                         </ul>
                     </div>
                     <div data-portfolio-result>
-                        <p>What makes it work is the way the page feels intentional from top to bottom. The layout does not just look polished; it supports the offer and makes the client feel more established.</p>
+                        <p>It works because the project now feels like a finished platform story. The logo, site display, and project summary all connect into a cleaner and more confident featured showcase.</p>
                     </div>
                 </div>
             </article>
@@ -260,15 +298,23 @@
                 </div>
             </article>
         </div>
+
+        <div class="portfolio-empty-state" data-portfolio-empty hidden>
+            <p class="portfolio-empty-title">No matching projects found.</p>
+            <p class="portfolio-empty-copy">Try another search term or switch back to a broader category filter.</p>
+        </div>
     </section>
 
     <dialog class="dialog-panel portfolio-dialog" data-portfolio-dialog>
         <div class="portfolio-dialog-inner">
             <div class="portfolio-dialog-head">
-                <div>
+                <div class="portfolio-dialog-copy">
                     <p class="section-tag" data-portfolio-dialog-meta>Project surface</p>
                     <h2 class="portfolio-dialog-title" data-portfolio-dialog-title>Project title</h2>
                     <p class="portfolio-dialog-company" data-portfolio-dialog-company>Company</p>
+                </div>
+                <div class="portfolio-dialog-visual">
+                    <img src="" alt="" class="portfolio-dialog-image" data-portfolio-dialog-image />
                 </div>
                 <button type="button" class="secondary-button" data-portfolio-close>Close</button>
             </div>

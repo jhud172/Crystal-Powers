@@ -1,6 +1,6 @@
-package com.crystalproduction.website.service;
+package com.crystalpower.website.service;
 
-import com.crystalproduction.website.dto.ContactForm;
+import com.crystalpower.website.dto.ContactForm;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.ObjectProvider;
@@ -93,7 +93,7 @@ public class InquiryEmailService {
             fullName = "New enquiry";
         }
 
-        return String.format("Crystal Production | %s | %s | %s", sourceLabel, packageSelection, fullName);
+        return String.format("Crystal Power | %s | %s | %s", sourceLabel, packageSelection, fullName);
     }
 
     private String buildHtmlBody(ContactForm form, String sourceLabel, MultipartFile[] referenceFiles) {
@@ -104,7 +104,7 @@ public class InquiryEmailService {
         html.append("<!DOCTYPE html><html><body style=\"margin:0;padding:32px;background:#0b1020;color:#e5edf9;font-family:'Segoe UI',Arial,sans-serif;\">");
         html.append("<div style=\"max-width:760px;margin:0 auto;border:1px solid rgba(255,255,255,0.08);border-radius:28px;overflow:hidden;background:linear-gradient(180deg,#10172d,#0b1020);box-shadow:0 32px 80px rgba(2,6,23,0.45);\">");
         html.append("<div style=\"padding:28px 32px;border-bottom:1px solid rgba(255,255,255,0.08);background:radial-gradient(circle at top right, rgba(103,232,249,0.16), transparent 240px),linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));\">");
-        html.append("<div style=\"font-size:12px;letter-spacing:0.32em;text-transform:uppercase;color:#67e8f9;font-weight:700;\">Crystal Production</div>");
+        html.append("<div style=\"font-size:12px;letter-spacing:0.32em;text-transform:uppercase;color:#67e8f9;font-weight:700;\">Crystal Power</div>");
         html.append("<h1 style=\"margin:14px 0 0;font-size:32px;line-height:1.08;color:#ffffff;\">New website build request</h1>");
         html.append("<p style=\"margin:14px 0 0;font-size:15px;line-height:1.8;color:#c7d2e5;\">");
         html.append(escape(sourceLabel)).append(" submitted a structured enquiry with package, maintenance, additions, and contact details.");

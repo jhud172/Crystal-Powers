@@ -1,6 +1,46 @@
 <th:block xmlns:th="http://www.thymeleaf.org">
 <th:block th:fragment="content">
-    <section class="contact-builder" data-contact-builder>
+    <div class="page-stack">
+    <section class="page-scene page-scene-secondary contact-scene" data-interactive-backdrop="contact">
+        <div class="page-scene-shell">
+            <div class="page-scene-grid">
+                <div class="page-scene-copy" data-reveal="up">
+                    <div class="scene-meta-row">
+                        <span class="eyebrow">Contact</span>
+                        <span class="scene-signal-pill">Structured build intake</span>
+                    </div>
+                    <h1 class="page-scene-title">A premium contact flow that behaves more like a guided build intake than a generic enquiry form.</h1>
+                    <p class="page-scene-body">
+                        The form now sits inside a fuller visual system while keeping the structured package, additions,
+                        maintenance, and contact routing already wired into the backend flow.
+                    </p>
+                    <div class="scene-action-row">
+                        <a th:href="@{/services}" class="secondary-button">Review services first</a>
+                        <a href="#contact-builder" class="primary-button">Jump to the form</a>
+                    </div>
+                </div>
+
+                <div class="scene-visual-column" data-reveal="left">
+                    <div class="floating-cluster">
+                        <article class="floating-panel floating-panel-glass" data-tilt data-depth="14">
+                            <p class="floating-panel-kicker">Form logic</p>
+                            <ul class="floating-list">
+                                <li>Live summary updates</li>
+                                <li>Custom selectors</li>
+                                <li>Structured quote handoff</li>
+                            </ul>
+                        </article>
+                        <article class="floating-panel floating-panel-mini" data-tilt data-depth="9">
+                            <p class="floating-panel-kicker">Built for clarity</p>
+                            <p class="floating-panel-note">Choose the route, shape the scope, and send one cleaner request.</p>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="contact-builder" data-contact-builder id="contact-builder">
         <aside class="contact-preview-column">
             <div class="contact-preview-intro">
                 <span class="eyebrow">Start a build</span>
@@ -15,6 +55,11 @@
                     <li>Every selector updates the live summary instantly so the request is easier to check before sending.</li>
                     <li>The final handoff lands with clearer project context instead of a loose enquiry message.</li>
                 </ul>
+
+                <div class="contact-preview-orbit">
+                    <div class="contact-preview-orbit-ring"></div>
+                    <div class="contact-preview-orbit-core"></div>
+                </div>
             </div>
 
             <div class="contact-preview-shell">
@@ -383,6 +428,19 @@
             </form>
         </div>
     </section>
+
+    <section class="final-callout" data-reveal="up">
+        <div class="final-callout-copy">
+            <span class="eyebrow">Before you send</span>
+            <h2 class="final-callout-title">The form is designed to arrive with enough structure for a stronger first reply.</h2>
+            <p class="final-callout-body">Choose the scope properly, use the notes fields for references and constraints, and let the live preview catch anything that still needs shaping.</p>
+        </div>
+        <div class="final-callout-actions">
+            <a th:href="@{/portfolio}" class="secondary-button">See the work first</a>
+            <a href="#contact-builder" class="primary-button">Back to the form</a>
+        </div>
+    </section>
+    </div>
 </th:block>
 
 <th:block th:fragment="scripts">

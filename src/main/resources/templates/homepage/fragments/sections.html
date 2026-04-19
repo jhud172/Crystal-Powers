@@ -1,183 +1,192 @@
 <th:block xmlns:th="http://www.thymeleaf.org">
 <th:block th:fragment="content">
-    <div class="home-stage hero-network-shell" data-home-network-shell="true">
-        <div class="hero-network-backdrop" aria-hidden="true">
-            <canvas class="hero-network-canvas" data-home-network="true"></canvas>
-            <div class="hero-network-orb hero-network-orb-primary"></div>
-            <div class="hero-network-orb hero-network-orb-secondary"></div>
-            <div class="hero-network-orb hero-network-orb-tertiary"></div>
-        </div>
+    <div class="page-stack page-stack-home">
+        <section class="page-scene page-scene-home hero-network-shell" data-home-network-shell="true" data-interactive-backdrop="hero">
+            <div class="hero-network-backdrop" aria-hidden="true">
+                <canvas class="hero-network-canvas" data-home-network="true"></canvas>
+                <div class="hero-network-orb hero-network-orb-primary"></div>
+                <div class="hero-network-orb hero-network-orb-secondary"></div>
+                <div class="hero-network-orb hero-network-orb-tertiary"></div>
+            </div>
 
-        <div class="home-stage-inner">
-            <section class="home-command-grid">
-                <article class="home-card home-command-card">
-                    <span class="eyebrow">Futuristic digital direction</span>
-                    <p class="home-kicker">Premium websites, launch surfaces, and digital systems built to look confident before the first click.</p>
-                    <h1 class="home-command-display">Design the first impression like it already belongs in the market.</h1>
-                    <p class="home-command-lead">
-                        Crystal Production builds polished website systems for brands, founders, and businesses that
-                        need more than a functional presence. The work is structured to feel premium, read clearly,
-                        and carry more authority from the first screen onward.
-                    </p>
-
-                    <div class="home-command-chip-row">
-                        <span class="surface-chip">Premium websites</span>
-                        <span class="surface-chip">Launch systems</span>
-                        <span class="surface-chip">Quote-led build flows</span>
-                        <span class="surface-chip">Futuristic presentation</span>
-                    </div>
-
-                    <div class="home-command-actions">
-                        <a th:href="@{/contact}" class="primary-button">Start a build</a>
-                        <a th:href="@{/portfolio}" class="secondary-button">View portfolio</a>
-                    </div>
-
-                    <div class="home-proof-strip">
-                        <article class="home-proof-item">
-                            <p class="home-proof-value">Sharper trust</p>
-                            <p class="home-proof-copy">Layouts designed to make the offer feel more established on first contact.</p>
-                        </article>
-                        <article class="home-proof-item">
-                            <p class="home-proof-value">Cleaner scope</p>
-                            <p class="home-proof-copy">Packages, additions, and support aligned before the build starts drifting.</p>
-                        </article>
-                        <article class="home-proof-item">
-                            <p class="home-proof-value">Delivery ready</p>
-                            <p class="home-proof-copy">Built to move from design presence into real deployment and maintenance.</p>
-                        </article>
-                    </div>
-                </article>
-
-                <aside class="home-floating-rail">
-                    <article class="home-card home-floating-card home-floating-card-wide">
-                        <p class="section-tag">Studio signal</p>
-                        <h2 class="home-card-title">A website should feel like a product surface, not just a stack of sections.</h2>
-                        <p class="home-card-copy">
-                            The focus is deliberate structure, stronger typography, cleaner decision paths, and a finish
-                            that feels considered instead of assembled.
-                        </p>
-                    </article>
-
-                    <article class="home-card home-floating-card">
-                        <img th:src="@{/images/WebsiteImage.png}"
-                             src="/images/WebsiteImage.png"
-                             alt="Premium website direction"
-                             class="home-floating-image" />
-                        <div class="home-floating-copy">
-                            <p class="section-tag">Main build focus</p>
-                            <h3 class="home-floating-title">Website systems with stronger positioning and cleaner conversion flow.</h3>
+            <div class="page-scene-shell">
+                <div class="page-scene-grid">
+                    <div class="page-scene-copy" data-reveal="up">
+                        <div class="scene-meta-row">
+                            <span class="eyebrow">Crystal Power studio</span>
+                            <span class="scene-signal-pill">Immersive public pages now live</span>
                         </div>
-                    </article>
 
-                    <div class="home-floating-duo">
-                        <article class="home-card home-floating-mini">
-                            <p class="section-tag">Recent style</p>
-                            <h3 class="home-floating-mini-title">Centralised composition</h3>
-                            <p class="home-card-copy">Larger visual anchors, less scattered content, and more intentional spacing.</p>
-                        </article>
-                        <article class="home-card home-floating-mini">
-                            <p class="section-tag">Shared system</p>
-                            <h3 class="home-floating-mini-title">Whole-site consistency</h3>
-                            <p class="home-card-copy">Services, portfolio, and contact now point back to the same design language.</p>
-                        </article>
+                        <h1 class="page-scene-title">A futuristic studio surface with floating depth, calmer structure, and a more premium first hit.</h1>
+                        <p class="page-scene-body">
+                            The home page now behaves like a launch environment instead of a simple section stack.
+                            It carries a live background, floating visual objects, richer motion, and clearer routes into the work.
+                        </p>
+
+                        <div class="scene-action-row">
+                            <a th:href="@{/contact}" class="primary-button" data-sound-trigger="hero-cta">Start a build</a>
+                            <a th:href="@{/portfolio}" class="secondary-button" data-sound-trigger="hero-cta">Explore the portfolio</a>
+                        </div>
+
+                        <div class="scene-signal-grid">
+                            <article class="signal-block" data-reveal="up">
+                                <p class="signal-value">3D mood</p>
+                                <p class="signal-copy">Layered glow, perspective panels, and floating hardware-like surfaces.</p>
+                            </article>
+                            <article class="signal-block" data-reveal="up">
+                                <p class="signal-value">Interactive</p>
+                                <p class="signal-copy">Pointer response, hover lift, reveal motion, and a hidden overdrive mode.</p>
+                            </article>
+                            <article class="signal-block" data-reveal="up">
+                                <p class="signal-value">Sharper flow</p>
+                                <p class="signal-copy">A cleaner route from first impression to services, proof, and contact.</p>
+                            </article>
+                        </div>
                     </div>
-                </aside>
-            </section>
 
-            <section class="home-focus-grid">
-                <article class="home-card service-preview-card home-focus-card">
-                    <p class="section-tag">01 / Positioning</p>
-                    <h2 class="home-card-title">Make the business feel more premium before the conversation starts.</h2>
-                    <p class="home-card-copy">
-                        Clear hierarchy, stronger copy framing, cleaner section rhythm, and presentation that carries more authority from the first screen.
-                    </p>
-                </article>
+                    <div class="scene-visual-column" data-reveal="left">
+                        <div class="floating-cluster">
+                            <article class="floating-panel floating-panel-display" data-tilt data-depth="22">
+                                <div class="floating-panel-screen">
+                                    <img th:src="@{/images/WebsiteImage.png}"
+                                         src="/images/WebsiteImage.png"
+                                         alt="Crystal Power landing page showcase"
+                                         class="floating-panel-image" />
+                                </div>
+                                <div class="floating-panel-copy">
+                                    <p class="section-tag">Live composition</p>
+                                    <h2 class="floating-panel-title">The whole page now reads like a product reveal.</h2>
+                                </div>
+                            </article>
 
-                <article class="home-card service-preview-card home-focus-card">
-                    <p class="section-tag">02 / Structure</p>
-                    <h2 class="home-card-title">Build with a defined package, additions, and support path from the start.</h2>
-                    <p class="home-card-copy">
-                        The site now pushes toward scoped delivery instead of vague enquiry. That reduces friction and keeps the offer easier to understand.
-                    </p>
-                </article>
+                            <article class="floating-panel floating-panel-glass" data-tilt data-depth="14">
+                                <p class="floating-panel-kicker">Depth stack</p>
+                                <ul class="floating-list">
+                                    <li>Interactive field lighting</li>
+                                    <li>Float and drift animations</li>
+                                    <li>Hover lift on key surfaces</li>
+                                </ul>
+                            </article>
 
-                <article class="home-card service-preview-card home-focus-card">
-                    <p class="section-tag">03 / Delivery</p>
-                    <h2 class="home-card-title">Design choices stay connected to launch, maintenance, and ongoing updates.</h2>
-                    <p class="home-card-copy">
-                        The work is not styled in isolation. It is built to move from presentation into a real deployment flow that still feels polished.
-                    </p>
-                </article>
-            </section>
-
-            <section class="home-story-grid">
-                <article class="home-card home-story-card">
-                    <div class="home-section-header">
-                        <span class="eyebrow">How builds move</span>
-                        <a th:href="@{/services}" class="inline-link">See package flow</a>
+                            <article class="floating-panel floating-panel-mini" data-tilt data-depth="10">
+                                <p class="floating-panel-kicker">Secret mode</p>
+                                <p class="floating-panel-note">Double-click the pulse core in the header.</p>
+                            </article>
+                        </div>
                     </div>
-                    <h2 class="home-card-title">The process is designed to feel direct, premium, and hard to misunderstand.</h2>
-                    <p class="home-card-copy">
-                        The build path now runs through package choice, additions, maintenance, and a structured request.
-                        That keeps the decision-making cleaner for both sides before the project even begins.
+                </div>
+
+                <div class="scene-marquee" data-reveal="up">
+                    <span>Premium websites</span>
+                    <span>Launch systems</span>
+                    <span>Interactive backgrounds</span>
+                    <span>Portfolio surfaces</span>
+                    <span>Structured contact flows</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-band content-band-grid">
+            <article class="story-panel story-panel-large" data-reveal="up" data-tilt>
+                <div class="story-panel-head">
+                    <span class="eyebrow">Visual thesis</span>
+                    <a th:href="@{/about}" class="inline-link">Studio approach</a>
+                </div>
+                <h2 class="story-title">Futuristic, clean, and professional does not mean cold. It means deliberate space, controlled glow, and motion with purpose.</h2>
+                <p class="story-copy">
+                    This update shifts the site toward a calmer kind of ambition. The design is brighter in intent,
+                    deeper in atmosphere, and more confident in how it introduces the business.
+                </p>
+            </article>
+
+            <article class="story-panel story-panel-metric" data-reveal="up" data-tilt>
+                <p class="story-kicker">Launch logic</p>
+                <div class="metric-ladder">
+                    <div class="metric-rung">
+                        <span class="metric-number">01</span>
+                        <p>Pull attention with a fuller scene.</p>
+                    </div>
+                    <div class="metric-rung">
+                        <span class="metric-number">02</span>
+                        <p>Show stronger proof and clearer routes.</p>
+                    </div>
+                    <div class="metric-rung">
+                        <span class="metric-number">03</span>
+                        <p>Move directly into a structured build request.</p>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="showcase-grid">
+            <article class="showcase-card" data-reveal="up" data-tilt>
+                <div class="showcase-copy">
+                    <span class="eyebrow">System direction</span>
+                    <h2 class="showcase-title">Public pages now feel connected instead of separately styled.</h2>
+                    <p class="showcase-body">
+                        Home, about, portfolio, support, and contact now share the same atmosphere system:
+                        glowing layers, floating surfaces, stronger spacing, and more cinematic content framing.
                     </p>
+                </div>
+                <div class="showcase-chip-row">
+                    <span class="surface-chip">Shared motion language</span>
+                    <span class="surface-chip">Premium hover depth</span>
+                    <span class="surface-chip">Improved mobile presence</span>
+                </div>
+            </article>
 
-                    <div class="timeline-list">
-                        <article class="timeline-item">
-                            <p class="timeline-label">Step 01</p>
-                            <h3>Choose the build direction</h3>
-                            <p>Select the package tier that actually fits the page count, structure depth, and visual ambition.</p>
-                        </article>
-                        <article class="timeline-item">
-                            <p class="timeline-label">Step 02</p>
-                            <h3>Layer on additions where they improve the result</h3>
-                            <p>Brand support, copy refinement, forms, extra pages, and other scoped additions are added only where they sharpen the final build.</p>
-                        </article>
-                        <article class="timeline-item">
-                            <p class="timeline-label">Step 03</p>
-                            <h3>Lock in maintenance and submit the request</h3>
-                            <p>The support level and contact path are captured before the conversation, so the quote and delivery plan start from something real.</p>
-                        </article>
-                    </div>
-                </article>
+            <article class="showcase-card showcase-card-media" data-reveal="up" data-tilt>
+                <img th:src="@{/images/project1.png}" src="/images/project1.png" alt="Editorial project preview" class="showcase-image" />
+                <div class="showcase-overlay-copy">
+                    <span class="section-tag">Featured work</span>
+                    <h3>Work surfaces are now framed like releases, not placeholders.</h3>
+                </div>
+            </article>
+        </section>
 
-                <article class="home-card home-portfolio-card home-portfolio-preview-card">
-                    <div class="home-section-header">
-                        <span class="eyebrow">Portfolio archive</span>
-                        <a th:href="@{/portfolio}" class="inline-link">Open full archive</a>
-                    </div>
-                    <h2 class="home-card-title">Every project should feel like it belongs inside one consistent studio system.</h2>
-                    <p class="home-card-copy">
-                        The portfolio is shifting away from a static gallery into a searchable, filterable archive with
-                        richer project context, live links, and creation notes.
-                    </p>
+        <section class="project-band">
+            <article class="project-band-card" data-reveal="up" data-tilt>
+                <img th:src="@{/images/project1.png}" src="/images/project1.png" alt="Editorial website project preview" class="project-band-image" />
+                <div class="project-band-copy">
+                    <p class="section-tag">Website system</p>
+                    <h3 class="project-band-title">Sharper editorial landing builds</h3>
+                    <p class="project-band-body">Cleaner brand hierarchy, stronger section rhythm, and richer atmosphere from the first viewport.</p>
+                </div>
+            </article>
 
-                    <div class="home-project-grid">
-                        <article class="project-tile">
-                            <img th:src="@{/images/project1.png}" src="/images/project1.png" alt="Editorial project preview" class="project-tile-image" />
-                            <div class="project-tile-copy">
-                                <p class="section-tag">Website system</p>
-                                <h3>Brand-led landing build</h3>
-                            </div>
-                        </article>
-                        <article class="project-tile">
-                            <img th:src="@{/images/project2.png}" src="/images/project2.png" alt="Storefront preview" class="project-tile-image" />
-                            <div class="project-tile-copy">
-                                <p class="section-tag">Offer structure</p>
-                                <h3>Conversion-focused storefront</h3>
-                            </div>
-                        </article>
-                        <article class="project-tile">
-                            <img th:src="@{/images/project3.png}" src="/images/project3.png" alt="Portfolio build preview" class="project-tile-image" />
-                            <div class="project-tile-copy">
-                                <p class="section-tag">Creator surface</p>
-                                <h3>Booking-ready portfolio</h3>
-                            </div>
-                        </article>
-                    </div>
-                </article>
-            </section>
-        </div>
+            <article class="project-band-card" data-reveal="up" data-tilt>
+                <img th:src="@{/images/project2.png}" src="/images/project2.png" alt="Conversion-led product page preview" class="project-band-image" />
+                <div class="project-band-copy">
+                    <p class="section-tag">Conversion surface</p>
+                    <h3 class="project-band-title">More deliberate product storytelling</h3>
+                    <p class="project-band-body">Less clutter, better scan paths, and a clearer route toward the key action.</p>
+                </div>
+            </article>
+
+            <article class="project-band-card" data-reveal="up" data-tilt>
+                <img th:src="@{/images/project3.png}" src="/images/project3.png" alt="Booking-ready portfolio preview" class="project-band-image" />
+                <div class="project-band-copy">
+                    <p class="section-tag">Creator presence</p>
+                    <h3 class="project-band-title">Portfolio pages that carry more weight</h3>
+                    <p class="project-band-body">Booking-ready layouts where the work still leads and the interface supports it.</p>
+                </div>
+            </article>
+        </section>
+
+        <section class="final-callout" data-reveal="up">
+            <div class="final-callout-copy">
+                <span class="eyebrow">Next move</span>
+                <h2 class="final-callout-title">Use the rebuilt flow to move straight into a more polished website, launch page, or product-facing surface.</h2>
+                <p class="final-callout-body">
+                    The public pages now carry the same premium standard the client-facing work is supposed to promise.
+                    The next step is simply choosing the right build route and sending the brief.
+                </p>
+            </div>
+            <div class="final-callout-actions">
+                <a th:href="@{/services}" class="secondary-button">See services</a>
+                <a th:href="@{/contact}" class="primary-button">Send the brief</a>
+            </div>
+        </section>
     </div>
 </th:block>
 

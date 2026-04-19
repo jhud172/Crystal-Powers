@@ -1,9 +1,11 @@
-package com.crystalproduction.website;
+package com.crystalpower.website;
 
+import com.crystalpower.website.service.InquiryEmailService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -13,10 +15,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class CrystalProductionApplicationTests {
+class CrystalPowerApplicationTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private InquiryEmailService inquiryEmailService;
 
     @Test
     void contextLoads() {
@@ -50,8 +55,12 @@ class CrystalProductionApplicationTests {
     @Test
     void contactFormSubmissionRedirectsWhenValid() throws Exception {
         mockMvc.perform(post("/contact")
-                        .param("name", "Test User")
+                        .param("firstName", "Test")
+                        .param("lastName", "User")
                         .param("email", "test@example.com")
+                        .param("preferredContactPoint", "Email")
+                        .param("packageSelection", "Standard")
+                        .param("maintenanceSelection", "Standard Maintenance")
                         .param("message", "I need a website refresh."))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/contact"));
