@@ -13,32 +13,41 @@
 
 <header th:fragment="header(pageKey)" class="site-header" data-header-ready="false">
     <div class="site-header-inner">
-        <div class="site-header-brand-shell">
-            <a th:href="@{/}" class="brand-link">
-                <span class="brand-mark-shell" aria-hidden="true">
-                    <span class="brand-badge">
-                        <img th:src="@{/images/cp-logo.png}" src="/images/cp-logo.png" alt="Crystal Power logo" class="brand-badge-image" />
-                    </span>
-                    <span class="brand-ufo-beam">
-                        <span class="brand-ufo-ring"></span>
-                        <span class="brand-ufo-ring"></span>
-                        <span class="brand-ufo-ring"></span>
-                        <span class="brand-ufo-ring"></span>
-                        <span class="brand-ufo-pool"></span>
-                    </span>
-                </span>
-                <span class="brand-copy">
-                    <span class="brand-kicker">High-end digital studio</span>
-                    <span class="brand-title-row">
-                        <span class="brand-title">Crystal Power</span>
-                        <span class="brand-descriptor">Launch systems</span>
-                    </span>
-                    <span class="brand-subtitle">Premium websites, conversion-led builds, and polished digital surfaces.</span>
-                </span>
-            </a>
+        <div class="site-header-ufo" aria-hidden="true">
+            <span class="site-header-ufo-ring"></span>
+            <span class="site-header-ufo-ring"></span>
+            <span class="site-header-ufo-ring"></span>
+            <span class="site-header-ufo-ring"></span>
+            <span class="site-header-ufo-ring"></span>
+            <span class="site-header-ufo-pool"></span>
         </div>
 
-        <div class="site-header-utility">
+        <a th:href="@{/}" class="brand-link">
+            <span class="brand-mark-shell" aria-hidden="true">
+                <span class="brand-badge">
+                    <img th:src="@{/images/cp-logo.png}" src="/images/cp-logo.png" alt="Crystal Power logo" class="brand-badge-image" />
+                </span>
+            </span>
+            <span class="brand-copy">
+                <span class="brand-kicker">High-end digital studio</span>
+                <span class="brand-title-row">
+                    <span class="brand-title">Crystal Power</span>
+                    <span class="brand-descriptor">Launch systems</span>
+                </span>
+                <span class="brand-subtitle">Premium websites, conversion-led builds, and polished digital surfaces.</span>
+            </span>
+        </a>
+
+        <nav class="site-nav hidden md:flex">
+            <a th:href="@{/}" class="nav-link" th:classappend="${pageKey == 'home'} ? ' nav-link-active'">Home</a>
+            <a th:href="@{/about}" class="nav-link" th:classappend="${pageKey == 'about'} ? ' nav-link-active'">About</a>
+            <a th:href="@{/services}" class="nav-link" th:classappend="${pageKey == 'services'} ? ' nav-link-active'">Services</a>
+            <a th:href="@{/portfolio}" class="nav-link" th:classappend="${pageKey == 'portfolio'} ? ' nav-link-active'">Portfolio</a>
+            <a th:href="@{/support}" class="nav-link" th:classappend="${pageKey == 'support'} ? ' nav-link-active'">Support</a>
+            <a th:href="@{/contact}" class="nav-link" th:classappend="${pageKey == 'contact'} ? ' nav-link-active'">Contact</a>
+        </nav>
+
+        <div class="site-header-utility hidden md:flex">
             <a th:href="@{/contact}" class="site-status-pill" data-sound-trigger="true">
                 <span class="site-status-dot"></span>
                 <span class="site-status-copy">
@@ -72,29 +81,6 @@
                     <button type="button" class="theme-picker-option" data-theme-option="summer-vibes">Summer vibes</button>
                 </div>
             </div>
-        </div>
-
-        <button type="button"
-                data-nav-toggle="true"
-                aria-controls="mobile-nav-panel"
-                aria-expanded="false"
-                class="nav-toggle md:hidden">
-            <span class="nav-toggle-label">Menu</span>
-            <span class="nav-toggle-icon" aria-hidden="true">
-                <span></span>
-                <span></span>
-            </span>
-        </button>
-
-        <div class="site-header-actions hidden md:flex">
-            <nav class="site-nav">
-                <a th:href="@{/}" class="nav-link" th:classappend="${pageKey == 'home'} ? ' nav-link-active'">Home</a>
-                <a th:href="@{/about}" class="nav-link" th:classappend="${pageKey == 'about'} ? ' nav-link-active'">About</a>
-                <a th:href="@{/services}" class="nav-link" th:classappend="${pageKey == 'services'} ? ' nav-link-active'">Services</a>
-                <a th:href="@{/portfolio}" class="nav-link" th:classappend="${pageKey == 'portfolio'} ? ' nav-link-active'">Portfolio</a>
-                <a th:href="@{/support}" class="nav-link" th:classappend="${pageKey == 'support'} ? ' nav-link-active'">Support</a>
-                <a th:href="@{/contact}" class="nav-link" th:classappend="${pageKey == 'contact'} ? ' nav-link-active'">Contact</a>
-            </nav>
 
             <button type="button"
                     class="site-secret-node"
@@ -109,6 +95,56 @@
                 <span class="site-cta-label">Start a build</span>
                 <span class="site-cta-meta">Book intro</span>
             </a>
+        </div>
+
+        <div class="site-header-mobile-utility md:hidden">
+            <a th:href="@{/contact}" class="site-status-pill site-status-pill-mobile" data-sound-trigger="true">
+                <span class="site-status-dot"></span>
+                <span class="site-status-copy">
+                    <span class="site-status-label">Live status</span>
+                    <span class="site-status-text">Build queue open</span>
+                </span>
+            </a>
+
+            <div class="site-header-mobile-actions">
+                <div class="theme-picker" data-theme-picker="true">
+                    <button type="button"
+                            class="theme-picker-trigger"
+                            data-theme-trigger="true"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                            aria-label="Choose a site theme">
+                        <span class="theme-picker-copy">
+                            <span class="theme-picker-label">Theme</span>
+                            <span class="theme-picker-value" data-theme-value="true"
+                                  th:text="${activeTheme == 'summer-vibes' ? 'Summer vibes' : #strings.capitalizeWords(activeTheme.replace('-', ' '))}">
+                                Futuristic
+                            </span>
+                        </span>
+                        <span class="theme-picker-chevron" aria-hidden="true"></span>
+                    </button>
+
+                    <div class="theme-picker-menu" data-theme-menu="true" hidden="hidden">
+                        <button type="button" class="theme-picker-option" data-theme-option="futuristic">Futuristic</button>
+                        <button type="button" class="theme-picker-option" data-theme-option="classic">Classic</button>
+                        <button type="button" class="theme-picker-option" data-theme-option="clean">Clean</button>
+                        <button type="button" class="theme-picker-option" data-theme-option="fresh">Fresh</button>
+                        <button type="button" class="theme-picker-option" data-theme-option="summer-vibes">Summer vibes</button>
+                    </div>
+                </div>
+
+                <button type="button"
+                        data-nav-toggle="true"
+                        aria-controls="mobile-nav-panel"
+                        aria-expanded="false"
+                        class="nav-toggle">
+                    <span class="nav-toggle-label">Menu</span>
+                    <span class="nav-toggle-icon" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+            </div>
         </div>
     </div>
 

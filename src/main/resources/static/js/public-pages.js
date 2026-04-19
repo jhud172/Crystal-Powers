@@ -33,9 +33,12 @@ document.addEventListener("DOMContentLoaded", () => {
         .filter((element) => element instanceof HTMLElement);
     const secretStatusNodes = Array.from(document.querySelectorAll("[data-secret-status]"))
         .filter((element) => element instanceof HTMLElement);
+    const motionStates = new WeakMap();
+    const activeMotionTargets = new Set();
 
     let audioContext = null;
     let overdriveTimeout = 0;
+    let motionFrame = 0;
 
     const setSecretStatus = (message) => {
         secretStatusNodes.forEach((node) => {
@@ -117,13 +120,76 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 18000);
     };
 
-    const applyMotion = (target) => {
-        const rotateX = Number(target.dataset.motionRotateX || 0);
-        const rotateY = Number(target.dataset.motionRotateY || 0);
-        const depthShift = Number(target.dataset.motionDepthShift || 0);
-        const hoverLift = target.dataset.motionHover === "true" ? -6 : 0;
+    const getMotionState = (target) => {
+        let state = motionStates.get(target);
 
-        target.style.transform = `perspective(1400px) translate3d(0, ${depthShift + hoverLift}px, 0) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        if (!state) {
+            state = {
+                currentRotateX: 0,
+                currentRotateY: 0,
+                currentDepth: Number(target.dataset.motionDepthShift || 0),
+                currentLift: 0,
+                currentScale: 1,
+                targetRotateX: 0,
+                targetRotateY: 0,
+                targetDepth: Number(target.dataset.motionDepthShift || 0),
+                targetLift: 0,
+                targetScale: 1,
+                hover: false
+            };
+
+            motionStates.set(target, state);
+        }
+
+        return state;
+    };
+
+    const renderMotion = (target, state) => {
+        target.style.transform = `perspective(1400px) translate3d(0, ${state.currentDepth + state.currentLift}px, 0) rotateX(${state.currentRotateX}deg) rotateY(${state.currentRotateY}deg) scale(${state.currentScale})`;
+    };
+
+    const queueMotion = (target) => {
+        activeMotionTargets.add(target);
+
+        if (motionFrame !== 0) {
+            return;
+        }
+
+        const tick = () => {
+            motionFrame = 0;
+            let hasActiveTargets = false;
+
+            activeMotionTargets.forEach((element) => {
+                const state = getMotionState(element);
+
+                state.currentRotateX += (state.targetRotateX - state.currentRotateX) * 0.18;
+                state.currentRotateY += (state.targetRotateY - state.currentRotateY) * 0.18;
+                state.currentDepth += (state.targetDepth - state.currentDepth) * 0.16;
+                state.currentLift += (state.targetLift - state.currentLift) * 0.18;
+                state.currentScale += (state.targetScale - state.currentScale) * 0.16;
+
+                renderMotion(element, state);
+
+                const settled = Math.abs(state.currentRotateX - state.targetRotateX) < 0.02
+                    && Math.abs(state.currentRotateY - state.targetRotateY) < 0.02
+                    && Math.abs(state.currentDepth - state.targetDepth) < 0.02
+                    && Math.abs(state.currentLift - state.targetLift) < 0.02
+                    && Math.abs(state.currentScale - state.targetScale) < 0.002;
+
+                if (settled && !state.hover) {
+                    activeMotionTargets.delete(element);
+                    return;
+                }
+
+                hasActiveTargets = true;
+            });
+
+            if (hasActiveTargets) {
+                motionFrame = window.requestAnimationFrame(tick);
+            }
+        };
+
+        motionFrame = window.requestAnimationFrame(tick);
     };
 
     const syncDepth = () => {
@@ -139,9 +205,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const center = rect.top + (rect.height * 0.5);
             const delta = (center - viewportCenter) / Math.max(window.innerHeight, 1);
             const shift = Math.max(Math.min(delta * depth * -0.45, depth), -depth);
+            const state = getMotionState(target);
 
             target.dataset.motionDepthShift = String(Number(shift.toFixed(2)));
-            applyMotion(target);
+            state.targetDepth = Number(shift.toFixed(2));
+            queueMotion(target);
         });
     };
 
@@ -173,9 +241,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!reducedMotion) {
         motionTargets.forEach((target) => {
+            const state = getMotionState(target);
+
+            renderMotion(target, state);
+
             target.addEventListener("pointerenter", () => {
-                target.dataset.motionHover = "true";
-                applyMotion(target);
+                state.hover = true;
+                state.targetLift = target.classList.contains("site-secret-node") ? -4 : -6;
+                state.targetScale = target.classList.contains("portfolio-card-trigger") ? 1.008 : 1;
+                queueMotion(target);
             });
 
             target.addEventListener("pointermove", (event) => {
@@ -183,16 +257,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 const x = ((event.clientX - rect.left) / Math.max(rect.width, 1)) - 0.5;
                 const y = ((event.clientY - rect.top) / Math.max(rect.height, 1)) - 0.5;
 
-                target.dataset.motionRotateX = String(Number((-y * 7.5).toFixed(2)));
-                target.dataset.motionRotateY = String(Number((x * 9).toFixed(2)));
-                applyMotion(target);
+                state.targetRotateX = Number((-y * 6.8).toFixed(2));
+                state.targetRotateY = Number((x * 8.2).toFixed(2));
+                queueMotion(target);
             });
 
             target.addEventListener("pointerleave", () => {
-                target.dataset.motionHover = "false";
-                target.dataset.motionRotateX = "0";
-                target.dataset.motionRotateY = "0";
-                applyMotion(target);
+                state.hover = false;
+                state.targetRotateX = 0;
+                state.targetRotateY = 0;
+                state.targetLift = 0;
+                state.targetScale = 1;
+                queueMotion(target);
             });
         });
     } else {
