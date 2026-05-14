@@ -29,33 +29,13 @@
                 </span>
             </span>
             <span class="brand-copy">
-                <span class="brand-kicker">High-end digital studio</span>
                 <span class="brand-title-row">
                     <span class="brand-title">Crystal Power</span>
-                    <span class="brand-descriptor">Launch systems</span>
                 </span>
-                <span class="brand-subtitle">Premium websites, conversion-led builds, and polished digital surfaces.</span>
             </span>
         </a>
 
-        <nav class="site-nav hidden md:flex">
-            <a th:href="@{/}" class="nav-link" th:classappend="${pageKey == 'home'} ? ' nav-link-active'">Home</a>
-            <a th:href="@{/about}" class="nav-link" th:classappend="${pageKey == 'about'} ? ' nav-link-active'">About</a>
-            <a th:href="@{/services}" class="nav-link" th:classappend="${pageKey == 'services'} ? ' nav-link-active'">Services</a>
-            <a th:href="@{/portfolio}" class="nav-link" th:classappend="${pageKey == 'portfolio'} ? ' nav-link-active'">Portfolio</a>
-            <a th:href="@{/support}" class="nav-link" th:classappend="${pageKey == 'support'} ? ' nav-link-active'">Support</a>
-            <a th:href="@{/contact}" class="nav-link" th:classappend="${pageKey == 'contact'} ? ' nav-link-active'">Contact</a>
-        </nav>
-
-        <div class="site-header-utility hidden md:flex">
-            <a th:href="@{/contact}" class="site-status-pill" data-sound-trigger="true">
-                <span class="site-status-dot"></span>
-                <span class="site-status-copy">
-                    <span class="site-status-label">Live status</span>
-                    <span class="site-status-text">Build queue open</span>
-                </span>
-            </a>
-
+        <div class="site-header-theme-shell hidden md:flex">
             <div class="theme-picker" data-theme-picker="true">
                 <button type="button"
                         class="theme-picker-trigger"
@@ -81,13 +61,30 @@
                     <button type="button" class="theme-picker-option" data-theme-option="summer-vibes">Summer vibes</button>
                 </div>
             </div>
+        </div>
+
+        <nav class="site-nav hidden md:flex">
+            <a th:href="@{/}" class="nav-link" th:classappend="${pageKey == 'home'} ? ' nav-link-active'">Home</a>
+            <a th:href="@{/about}" class="nav-link" th:classappend="${pageKey == 'about'} ? ' nav-link-active'">About</a>
+            <a th:href="@{/services}" class="nav-link" th:classappend="${pageKey == 'services'} ? ' nav-link-active'">Services</a>
+            <a th:href="@{/portfolio}" class="nav-link" th:classappend="${pageKey == 'portfolio'} ? ' nav-link-active'">Portfolio</a>
+            <a th:href="@{/support}" class="nav-link" th:classappend="${pageKey == 'support'} ? ' nav-link-active'">Support</a>
+            <a th:href="@{/contact}" class="nav-link" th:classappend="${pageKey == 'contact'} ? ' nav-link-active'">Contact</a>
+        </nav>
+
+        <div class="site-header-utility hidden md:flex">
 
             <button type="button"
-                    class="site-secret-node"
+                    class="site-secret-node music-button"
                     data-secret-trigger="brand-core"
                     data-depth="6"
-                    aria-label="Activate hidden visual mode"
-                    title="Double-click the pulse core">
+                    aria-label="Activate audio pulse"
+                    title="Audio pulse">
+                <span class="music-button-bars" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
                 <span class="site-secret-node-core"></span>
             </button>
 
@@ -98,14 +95,6 @@
         </div>
 
         <div class="site-header-mobile-utility md:hidden">
-            <a th:href="@{/contact}" class="site-status-pill site-status-pill-mobile" data-sound-trigger="true">
-                <span class="site-status-dot"></span>
-                <span class="site-status-copy">
-                    <span class="site-status-label">Live status</span>
-                    <span class="site-status-text">Build queue open</span>
-                </span>
-            </a>
-
             <div class="site-header-mobile-actions">
                 <div class="theme-picker" data-theme-picker="true">
                     <button type="button"
@@ -134,10 +123,23 @@
                 </div>
 
                 <button type="button"
+                        class="site-secret-node music-button"
+                        data-secret-trigger="brand-core"
+                        aria-label="Activate audio pulse"
+                        title="Audio pulse">
+                    <span class="music-button-bars" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+                    <span class="site-secret-node-core"></span>
+                </button>
+
+                <button type="button"
                         data-nav-toggle="true"
                         aria-controls="mobile-nav-panel"
                         aria-expanded="false"
-                        class="nav-toggle">
+                        class="nav-toggle mobile-menu-button">
                     <span class="nav-toggle-label">Menu</span>
                     <span class="nav-toggle-icon" aria-hidden="true">
                         <span></span>
@@ -158,14 +160,6 @@
             <a th:href="@{/contact}" class="nav-link mobile-nav-link" th:classappend="${pageKey == 'contact'} ? ' nav-link-active'">Contact</a>
 
             <div class="mobile-nav-cta-shell">
-                <button type="button"
-                        class="site-secret-node"
-                        data-secret-trigger="brand-core"
-                        aria-label="Activate hidden visual mode"
-                        title="Double-click the pulse core">
-                    <span class="site-secret-node-core"></span>
-                </button>
-
                 <a th:href="@{/contact}" class="primary-button site-cta site-cta-mobile">
                     <span class="site-cta-label">Start a build</span>
                     <span class="site-cta-meta">Book intro</span>
@@ -176,6 +170,13 @@
 </header>
 
 <footer th:fragment="footer" class="site-footer">
+    <div class="site-footer-transition" aria-hidden="true">
+        <span class="site-footer-transition-line"></span>
+        <span class="site-footer-transition-orbit site-footer-transition-orbit-left"></span>
+        <span class="site-footer-transition-orbit site-footer-transition-orbit-right"></span>
+        <span class="site-footer-transition-core"></span>
+    </div>
+
     <div class="site-footer-panel">
         <div class="site-footer-grid">
             <div class="footer-brand">
