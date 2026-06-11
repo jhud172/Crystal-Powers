@@ -127,6 +127,7 @@ public class PortfolioController {
 
         model.addAttribute("pageTitle", project.title());
         model.addAttribute("pageDescription", project.summary());
+        model.addAttribute("pageUrl", "https://www.crystalpowers.co.uk/portfolio/" + slug);
         model.addAttribute("projectTitle", project.title());
         model.addAttribute("projectCompany", project.company());
         model.addAttribute("projectMeta", project.meta());

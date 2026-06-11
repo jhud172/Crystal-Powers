@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.crystalpowers.co.uk/sitemap.xml
