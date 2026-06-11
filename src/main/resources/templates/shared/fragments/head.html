@@ -1,13 +1,70 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:fragment="documentHead(pageTitle, pageDescription)">
+<head th:fragment="documentHead(pageTitle, pageDescription, pageUrl)">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title th:text="${pageTitle} + ' | Crystal Power'">Crystal Power</title>
     <meta name="description"
           th:content="${pageDescription}"
           content="Crystal Power builds premium websites, automation, and digital product experiences." />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Crystal Power" />
     <meta name="theme-color" content="#060816" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" th:href="${pageUrl}" />
+
+    <!-- Sitemap -->
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Crystal Power" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:title" th:content="${pageTitle} + ' | Crystal Power'" content="Crystal Power" />
+    <meta property="og:description" th:content="${pageDescription}"
+          content="Crystal Power builds premium websites, automation, and digital product experiences." />
+    <meta property="og:url" th:content="${pageUrl}" />
+    <meta property="og:image" content="https://www.crystalpowers.co.uk/images/WebsiteImage.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Crystal Power – Premium Website Design Studio" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" th:content="${pageTitle} + ' | Crystal Power'" content="Crystal Power" />
+    <meta name="twitter:description" th:content="${pageDescription}"
+          content="Crystal Power builds premium websites, automation, and digital product experiences." />
+    <meta name="twitter:image" content="https://www.crystalpowers.co.uk/images/WebsiteImage.png" />
+    <meta name="twitter:image:alt" content="Crystal Power – Premium Website Design Studio" />
+
+    <!-- JSON-LD: Organisation -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Crystal Power",
+      "url": "https://www.crystalpowers.co.uk",
+      "logo": "https://www.crystalpowers.co.uk/images/cp-logo.png",
+      "description": "Crystal Power is a UK-based premium website design studio building high-quality websites, landing pages, and digital product experiences.",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "url": "https://www.crystalpowers.co.uk/contact"
+      }
+    }
+    </script>
+
+    <!-- JSON-LD: WebSite (enables Google Sitelinks search box) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Crystal Power",
+      "url": "https://www.crystalpowers.co.uk"
+    }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap"

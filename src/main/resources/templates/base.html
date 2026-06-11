@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:fragment="layout(pageTitle, pageDescription, pageKey, content, scripts)">
-<th:block th:replace="~{shared/fragments/head :: documentHead(${pageTitle}, ${pageDescription})}"></th:block>
+      th:fragment="layout(pageTitle, pageDescription, pageKey, pageUrl, content, scripts)">
+<th:block th:replace="~{shared/fragments/head :: documentHead(${pageTitle}, ${pageDescription}, ${pageUrl})}"></th:block>
 <th:block th:replace="~{shared/fragments/layout :: documentBody(${pageKey}, ${content}, ${scripts})}"></th:block>
 </html>
