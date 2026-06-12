@@ -5,6 +5,10 @@
 build
 target
 node_modules
+frontend/node_modules
+frontend/dist
+.env
+*.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

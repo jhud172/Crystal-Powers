@@ -1,0 +1,25 @@
+@layer components {
+  .about-orbit-shell .floating-panel-display {
+    padding: 0.9rem;
+    background:
+      radial-gradient(circle at top left, rgba(255, 226, 191, 0.08), transparent 16rem),
+      var(--panel-surface-soft);
+  }
+
+  .about-orbit-shell .floating-panel-image {
+    border-radius: 1rem;
+    min-height: 18rem;
+    object-fit: cover;
+    filter: saturate(1.05) contrast(1.04);
+  }
+
+  .about-orbit-shell .about-stat-panel {
+    border-color: color-mix(in srgb, var(--color-accent-strong) 28%, var(--panel-border));
+  }
+
+  @media (max-width: 767px) {
+    .about-orbit-shell .floating-panel-image {
+      min-height: 13rem;
+    }
+  }
+}

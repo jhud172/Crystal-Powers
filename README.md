@@ -1,96 +1,109 @@
-# Crystal Power Website
+# Crystal Powers Website
 
-This repository currently serves a premium multi-page Crystal Power marketing site on Spring Boot and Thymeleaf. The site presents Crystal Power as a digital build studio focused on websites, community systems, automation, creative support, and structured delivery.
+Crystal Powers is a React frontend with a Spring Boot backend API. React is the only public UI source; Spring Boot serves the production build and handles enquiry validation, uploads, and email delivery.
 
-## Current Site Structure
+## Folder Structure
 
-- `src/main/resources/templates/base.html`
-  Thin Thymeleaf layout entry point that delegates shared page chrome to dedicated fragments.
-- `src/main/resources/templates/shared/fragments/`
-  Shared document head, page shell, header, footer, and shared script fragments.
-- `src/main/resources/templates/<page>/index.html`
-  Page entry templates for `homepage`, `about`, `services`, `portfolio`, `support`, and `contact`.
-- `src/main/resources/templates/<page>/fragments/sections.html`
-  Page-specific content fragments and page-specific script imports where needed.
-- `src/main/java/com/crystalpower/website/controller/ThemePreferenceAdvice.java`
-  Shared cookie-backed theme preference model for all pages.
-- `src/main/frontend/styles/global/global.css`
-  Tailwind source for shared layout, utilities, and theme-aware component rules.
-- `src/main/resources/static/css/themes/<theme>/theme.css`
-  Theme-specific design tokens and overrides for `futuristic`, `classic`, `clean`, `fresh`, and `summer-vibes`.
-- `src/main/resources/static/css/global/global.css`
-  Generated global stylesheet built from Tailwind.
-- `src/main/resources/static/js/site.js`
-  Shared navigation and theme-switching behaviour with cookie persistence.
-- `src/main/resources/static/js/home-background.js`
-  Theme-aware animated homepage background renderer.
-- `src/main/resources/static/favicon.svg`
-  Shared favicon served across every page through the shared head fragment.
-- `src/main/resources/static/site.webmanifest`
-  Shared manifest metadata for icon and theme setup.
+- `frontend/` - Vite, React, TypeScript, and Tailwind public website.
+- `frontend/src/app/` - app shell, routing composition, layout, navigation, theme picker, and footer.
+- `frontend/src/routes/` - route-level pages for the public website.
+- `frontend/src/features/` - feature-owned data and form helpers for contact, services, and portfolio.
+- `frontend/src/styles/` - active CSS source split into base, components, pages, and themes.
+- `frontend/public/` - public images, favicon, and manifest used by the React app.
+- `src/main/java/com/crystalpower/website/api/` - JSON API controllers.
+- `src/main/java/com/crystalpower/website/web/` - SPA forwarding and legacy redirect controllers.
+- `src/main/java/com/crystalpower/website/service/` - backend services for email delivery and upload validation.
+- `docs/` - project notes and status documentation.
 
-## Routing
+## Routes
 
-The live routes are:
+React owns these public routes:
 
 - `/`
 - `/about`
 - `/services`
 - `/portfolio`
+- `/portfolio/:slug`
 - `/support`
 - `/contact`
 
-Legacy flat-file routes such as `/home.html`, `/about.html`, and `/portfolio.html` now redirect to the new controller-backed routes.
+Legacy flat-file routes such as `/home.html`, `/about.html`, and `/portfolio.html` redirect to the matching React route.
 
-## Frontend Build
-
-Tailwind is compiled through npm.
-
-Install dependencies:
+## Frontend Development
 
 ```powershell
+cd frontend
 npm install
+npm run dev
 ```
 
-Build the global stylesheet:
+Open `http://localhost:5173/`. Vite proxies `/api` requests to Spring Boot on `http://localhost:8080`.
+
+Build the frontend:
 
 ```powershell
-npm run build:css
+cd frontend
+npm run build
 ```
 
-Watch the global stylesheet during frontend work:
+## Backend Development
 
-```powershell
-npm run watch:css
-```
-
-## Run The Application
-
-The Gradle wrapper is configured and the CSS build is wired into the Spring resource pipeline.
-
-Run tests:
-
-```powershell
-.\gradlew.bat test
-```
-
-Run the app:
+Run Spring Boot from the repository root:
 
 ```powershell
 .\gradlew.bat bootRun
 ```
 
-Then open:
+Open `http://localhost:8080/`.
 
-- `http://localhost:8080/`
+## API Endpoints
 
-## Contact Flow
+- `POST /api/contact` - structured contact enquiry.
+- `POST /api/services` - services quote request with optional image/video uploads.
 
-The contact page now posts through Spring MVC with validation. Successful submission redirects back to `/contact` with a confirmation message, and invalid input stays on the page with field-level errors.
+Both endpoints return JSON:
 
-## Notes
+```json
+{
+  "success": false,
+  "message": "Please check the highlighted fields and try again.",
+  "fieldErrors": {}
+}
+```
 
-- HTML files contain markup only.
-- CSS is split into global layout styles plus dedicated theme folders.
-- JavaScript is kept in dedicated files under `src/main/resources/static/js`.
-- Theme selection is cookie-backed so the chosen design follows the user across pages.
+## Environment Variables
+
+Copy `.env.example` for local reference and configure equivalent variables in deployment:
+
+- `MAIL_HOST`
+- `MAIL_PORT`
+- `MAIL_USERNAME`
+- `MAIL_PASSWORD`
+- `APP_MAIL_TO`
+- `APP_MAIL_FROM`
+
+Never commit real credentials.
+
+## Build And Test
+
+Run the full local build pipeline from the project root:
+
+```powershell
+.\build.ps1
+```
+
+This installs frontend dependencies, builds the React app, runs backend tests, and packages the Spring Boot jar.
+
+Useful options:
+
+```powershell
+.\build.ps1 -SkipTests
+.\build.ps1 -RunAfterBuild
+.\build.ps1 -RunAfterBuild -Port 8081
+```
+
+Gradle builds `frontend/dist` and packages it into the Spring Boot jar.
+
+## Deployment
+
+The Dockerfile builds the frontend in a Node stage, copies `frontend/dist` into the Spring static resources, then packages and runs the Spring Boot jar.

@@ -1,0 +1,39 @@
+@import "./base/global.css";
+@import "./themes/futuristic/theme.css";
+@import "./themes/classic/theme.css";
+@import "./themes/clean/theme.css";
+@import "./themes/fresh/theme.css";
+@import "./themes/summer-vibes/theme.css";
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #060816;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.react-page-main {
+  min-height: 100vh;
+}
+
+.theme-picker-option[data-theme-active="true"],
+.nav-link-active {
+  color: #ffffff;
+}
+
+.choice-card-button {
+  width: 100%;
+  height: 100%;
+  text-align: left;
+}
+
+.form-status {
+  margin-bottom: 1rem;
+}

@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.13'
+    id 'org.springframework.boot' version '3.5.14'
     id 'io.spring.dependency-management' version '1.1.5'
 }
 
@@ -9,7 +9,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
@@ -19,7 +19,6 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
 
@@ -31,22 +30,34 @@ dependencies {
 
 def npmCommand = org.gradle.internal.os.OperatingSystem.current().isWindows() ? 'npm.cmd' : 'npm'
 
-tasks.register('buildFrontendCss', Exec) {
-    commandLine npmCommand, 'run', 'build:css'
-    // Docker builds precompile CSS in the dedicated Node stage.
+tasks.register('installFrontend', Exec) {
+    workingDir file('frontend')
+    commandLine npmCommand, 'ci'
+    onlyIf {
+        !providers.environmentVariable('SKIP_FRONTEND_BUILD').present
+    }
+}
+
+tasks.register('buildFrontend', Exec) {
+    dependsOn tasks.named('installFrontend')
+    workingDir file('frontend')
+    commandLine npmCommand, 'run', 'build'
     onlyIf {
         !providers.environmentVariable('SKIP_FRONTEND_BUILD').present
     }
 }
 
 tasks.named('processResources') {
-    dependsOn tasks.named('buildFrontendCss')
+    dependsOn tasks.named('buildFrontend')
+    from('frontend/dist') {
+        into 'static'
+    }
 }
 
 tasks.named('bootRun') {
     def bootRunPort = providers.gradleProperty('bootRunPort')
             .orElse(providers.environmentVariable('BOOTRUN_PORT'))
-            .orElse('8081')
+            .orElse('8080')
 
     systemProperty 'server.port', bootRunPort.get()
 }

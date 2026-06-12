@@ -1,0 +1,14 @@
+{
+  "name": "Crystal Powers",
+  "short_name": "Crystal Powers",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#060816",
+  "background_color": "#060816",
+  "display": "standalone"
+}

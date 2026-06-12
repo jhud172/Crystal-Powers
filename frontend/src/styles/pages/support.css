@@ -1,0 +1,27 @@
+@layer components {
+  .support-lane-grid .story-panel {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .support-lane-grid .story-panel::after {
+    content: "";
+    position: absolute;
+    left: 1.5rem;
+    right: 1.5rem;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-accent-strong), transparent);
+    opacity: 0.28;
+  }
+
+  .support-lane-grid .story-title-small {
+    max-width: 12ch;
+  }
+
+  @media (max-width: 767px) {
+    .support-lane-grid .story-title-small {
+      max-width: none;
+    }
+  }
+}

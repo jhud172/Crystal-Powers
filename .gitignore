@@ -5,6 +5,11 @@ target/
 .codex-temp/
 .codex-runtime/
 node_modules/
+frontend/dist/
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+.env
 
 # Ignore Gradle GUI config
 gradle-app.setting
