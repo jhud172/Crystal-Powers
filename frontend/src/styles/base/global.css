@@ -442,7 +442,7 @@
   }
 
   .site-glow-side {
-    @apply -right-24 top-24 hidden h-[30rem] w-[30rem] rounded-full lg:block;
+    @apply right-0 top-24 hidden h-[30rem] w-[30rem] rounded-full lg:block;
     background: var(--glow-side);
   }
 
