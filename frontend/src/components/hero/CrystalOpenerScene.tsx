@@ -2,6 +2,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ContactShadows, Float, PerspectiveCamera, Sparkles } from "@react-three/drei";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
+import { usePrefersReducedMotion } from "../../hooks/usePrefersReducedMotion";
 
 type SceneProps = {
   reducedMotion?: boolean;
@@ -18,21 +19,6 @@ function browserSupportsWebGL() {
   return Boolean(canvas.getContext("webgl2") ?? canvas.getContext("webgl"));
 }
 
-function usePrefersReducedMotion() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(query.matches);
-
-    const onChange = () => setPrefersReducedMotion(query.matches);
-    query.addEventListener("change", onChange);
-
-    return () => query.removeEventListener("change", onChange);
-  }, []);
-
-  return prefersReducedMotion;
-}
 
 function createDiamondGeometry() {
   const table = makeRing(8, 0.68, 0.28, 0.68, 0.08);

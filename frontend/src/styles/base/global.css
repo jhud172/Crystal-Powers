@@ -569,15 +569,17 @@
     color: #ffe4e6;
   }
 
-  [data-reveal],
-  .story-panel,
-  .showcase-card,
-  .project-band-card,
-  .portfolio-card,
-  .contact-preview-intro,
-  .contact-preview-card,
-  .contact-form-section,
-  .final-callout {
+  /* Hidden state — only active after JS has added body.reveal-ready.
+     Without that class (JS failed or not yet loaded) all content is visible. */
+  body.reveal-ready [data-reveal],
+  body.reveal-ready .story-panel,
+  body.reveal-ready .showcase-card,
+  body.reveal-ready .project-band-card,
+  body.reveal-ready .portfolio-card,
+  body.reveal-ready .contact-preview-intro,
+  body.reveal-ready .contact-preview-card,
+  body.reveal-ready .contact-form-section,
+  body.reveal-ready .final-callout {
     opacity: 0;
     transform: translate3d(0, 1.6rem, 0) scale(0.985);
     filter: blur(12px);
@@ -588,32 +590,26 @@
     will-change: opacity, transform, filter;
   }
 
-  [data-reveal="left"] {
+  body.reveal-ready [data-reveal="left"] {
     transform: translate3d(1.5rem, 0, 0) scale(0.985);
   }
 
-  [data-reveal].is-visible,
-  .page-scene [data-reveal],
-  .story-panel.is-visible,
-  .showcase-card.is-visible,
-  .project-band-card.is-visible,
-  .portfolio-card.is-visible,
-  .contact-preview-intro.is-visible,
-  .contact-preview-card.is-visible,
-  .contact-form-section.is-visible,
-  .final-callout.is-visible {
+  /* Visible state — triggered by .is-visible (JS) or always for page-scene
+     (PageHero). body .page-scene specificity (0-2-1) beats the hidden state
+     rule above at equal specificity via cascade order. */
+  body.reveal-ready [data-reveal].is-visible,
+  body .page-scene [data-reveal],
+  body.reveal-ready .story-panel.is-visible,
+  body.reveal-ready .showcase-card.is-visible,
+  body.reveal-ready .project-band-card.is-visible,
+  body.reveal-ready .portfolio-card.is-visible,
+  body.reveal-ready .contact-preview-intro.is-visible,
+  body.reveal-ready .contact-preview-card.is-visible,
+  body.reveal-ready .contact-form-section.is-visible,
+  body.reveal-ready .final-callout.is-visible {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
     filter: blur(0);
-  }
-
-  body.is-overdrive {
-    --color-accent-strong: #a7f3ff;
-    --panel-tint-soft: rgba(125, 211, 252, 0.22);
-  }
-
-  body.is-overdrive .site-shell {
-    filter: saturate(1.12);
   }
 
   .section-divider {
@@ -838,14 +834,12 @@
   .site-cursor-aura,
   .orbital-ring-large,
   .orbital-ring-small,
-  .contact-preview-orbit-ring,
-  body.is-overdrive .site-secret-node-core {
+  .contact-preview-orbit-ring {
     animation: none !important;
   }
 
   [data-tilt],
   .portfolio-card-trigger,
-  .site-secret-node,
   .floating-panel,
   .story-panel,
   .showcase-card,
