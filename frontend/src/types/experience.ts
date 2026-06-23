@@ -7,6 +7,20 @@ export type PointerCapability = "fine" | "coarse" | "none";
 /** Reduced-motion preference state. */
 export type ReducedMotionState = "reduce" | "no-preference";
 
+/** Conservative device capability summary for optional experience layers. */
+export interface DeviceCapabilitySnapshot {
+  reducedMotion: ReducedMotionState;
+  pointer: PointerCapability;
+  hover: boolean;
+  webgl: boolean;
+  memoryGb?: number;
+  hardwareConcurrency: number;
+  viewportWidth: number;
+  viewportHeight: number;
+  touchPoints: number;
+  saveData: boolean;
+}
+
 /** Experience feature flags controlling optional enhancements. */
 export interface ExperienceFeatureFlags {
   /** WebGL / Three.js crystal scene enabled. */
@@ -21,4 +35,11 @@ export interface ExperienceFeatureFlags {
   postProcessing: boolean;
   /** Idle animation (floating, sparkles). */
   idleAnimation: boolean;
+}
+
+/** Shared result for deciding optional visual quality. */
+export interface ExperienceQualityDecision {
+  level: QualityLevel;
+  capabilities: DeviceCapabilitySnapshot;
+  features: ExperienceFeatureFlags;
 }

@@ -4,6 +4,8 @@
 **Auditor:** Copilot Task Agent  
 **Purpose:** Pre-flight review before any advanced animation or visual enhancement work. No visual redesign was performed.
 
+**Current accuracy note:** this is a historical audit. Later work added the interaction foundation, hooks, reusable advanced-experience components, route-aware reveal refresh, cursor aura, tilt, reduced-motion handling, and removed the old `body.is-overdrive` / `.site-secret-node` systems. Treat this file as project history and verify current state against `docs/INTERACTION_FOUNDATION.md`, `docs/CODEX_SESSION_HANDOVER.md`, and the code before acting on any finding.
+
 ---
 
 ## Table of Contents

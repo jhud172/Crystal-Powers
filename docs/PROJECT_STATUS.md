@@ -6,7 +6,7 @@ Crystal Powers now uses a clean React + Spring Boot architecture.
 
 - React/Vite/Tailwind is the only public frontend.
 - Spring Boot provides JSON APIs and serves the production React build.
-- Legacy Thymeleaf templates and duplicate static frontend assets have been removed.
+- Legacy Thymeleaf routing has been replaced by the React SPA. Inactive source templates still exist under `src/main/resources/templates/` and should be treated as deferred cleanup, not active public UI.
 
 ## Current Architecture
 
@@ -37,7 +37,7 @@ The services endpoint supports image/video uploads with file count, content type
 ## Cleanup Status
 
 - Old root npm/Tailwind build removed.
-- Old Thymeleaf UI removed.
+- Old Thymeleaf UI removed from active routing; inactive template files remain in source for audit/deferred cleanup.
 - Duplicate Spring static frontend assets removed.
 - Project notes moved under `docs/`.
 - Gradle remains the production build orchestrator.

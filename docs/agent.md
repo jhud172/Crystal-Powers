@@ -161,8 +161,8 @@ All three are initialised in `Layout.tsx` on mount and cleaned up on unmount. Ro
 
 | Endpoint | Method | Handler | Purpose |
 |----------|--------|---------|---------|
-| `/api/contact` | POST | `ContactController` | Structured contact enquiry |
-| `/api/services` | POST | `ServicesController` | Quote request with optional file uploads |
+| `/api/contact` | POST | `ApiInquiryController` | Structured contact enquiry |
+| `/api/services` | POST | `ApiInquiryController` | Quote request with optional file uploads |
 
 Both return `{ success, message, fieldErrors }`.
 

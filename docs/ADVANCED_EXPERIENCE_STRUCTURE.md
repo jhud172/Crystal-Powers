@@ -2,6 +2,8 @@
 
 This document describes the reusable advanced-experience component architecture created for the Crystal Powers frontend.
 
+**Current accuracy note:** this file includes intended/reserved architecture as well as files that already exist. `components/transitions/`, `lib/animation/`, and `providers/` are reserved concepts and are not currently present in the repository.
+
 ## Directory Structure
 
 ```text
@@ -26,7 +28,7 @@ frontend/src/
 │   ├── three/             Three.js component wrappers
 │   │   ├── CrystalFallback.tsx
 │   │   └── index.ts
-│   ├── transitions/       (Reserved for route transition components)
+│   ├── transitions/       (Planned route transitions; directory not present)
 │   ├── ui/                Generic UI primitives
 │   │   ├── PremiumLink.tsx
 │   │   ├── SectionHeading.tsx
@@ -53,7 +55,7 @@ frontend/src/
 │   │   └── portfolio.ts  (existing data)
 │   └── services/          Existing services feature
 ├── lib/
-│   ├── animation/         (Reserved for animation utilities)
+│   ├── animation/         (Planned animation utilities; directory not present)
 │   ├── performance/       Capability detection and constants
 │   │   ├── capabilities.ts
 │   │   └── constants.ts
@@ -61,7 +63,7 @@ frontend/src/
 │       ├── loaders.ts
 │       ├── materials.ts
 │       └── quality.ts
-├── providers/             (Reserved for React context providers)
+├── providers/             (Planned React context providers; directory not present)
 ├── styles/
 │   ├── base/global.css    Existing base styles
 │   ├── components/
@@ -191,8 +193,8 @@ Every component checks `(prefers-reduced-motion: reduce)`:
 
 - **GSAP/Motion wrappers** — animation libraries not yet installed
 - **Lenis scroll wrapper** — smooth scroll library not yet installed
-- **Route transition component** — directory reserved but no implementation yet
-- **React context providers** — directory reserved for future state management
+- **Route transition component** — reserved concept, no directory or implementation yet
+- **React context providers** — reserved concept for future state management, no directory yet
 - **Additional Three.js scene components** — existing scene left untouched
 - **Page-level redesign components** — homepage not redesigned
 

@@ -6,6 +6,8 @@ export interface QualityPreset {
   level: QualityLevel;
   /** Device pixel ratio range [min, max]. */
   dpr: [number, number];
+  /** DPR ceiling after device capability checks. */
+  maxDpr: number;
   /** Maximum particle/sparkle count. */
   particleCount: number;
   /** Whether post-processing is enabled. */
@@ -16,6 +18,8 @@ export interface QualityPreset {
   interactionEnabled: boolean;
   /** Whether idle floating animation is active. */
   idleAnimation: boolean;
+  /** Whether expensive scene effects should be avoided. */
+  conservativeEffects: boolean;
 }
 
 /** Crystal material configuration values (not Three.js instances). */
