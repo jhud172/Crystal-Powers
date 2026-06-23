@@ -1,0 +1,66 @@
+/* Crystal scene Three.js styles */
+
+/* Fallback styles for the non-WebGL crystal */
+.crystal-webgl-fallback {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crystal-webgl-fallback-core {
+  position: absolute;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-accent-strong) 40%, transparent),
+    color-mix(in srgb, var(--color-accent) 20%, transparent) 60%,
+    transparent 100%
+  );
+  filter: blur(4px);
+  animation: crystal-fallback-pulse 3s ease-in-out infinite;
+}
+
+.crystal-webgl-fallback-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--color-accent-strong) 20%, transparent);
+}
+
+.crystal-webgl-fallback-ring-a {
+  width: 8rem;
+  height: 8rem;
+  animation: crystal-fallback-orbit 8s linear infinite;
+}
+
+.crystal-webgl-fallback-ring-b {
+  width: 12rem;
+  height: 12rem;
+  animation: crystal-fallback-orbit 12s linear infinite reverse;
+}
+
+@keyframes crystal-fallback-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes crystal-fallback-orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Reduced motion overrides */
+@media (prefers-reduced-motion: reduce) {
+  .crystal-webgl-fallback-core {
+    animation: none;
+    opacity: 0.8;
+  }
+
+  .crystal-webgl-fallback-ring {
+    animation: none;
+  }
+}

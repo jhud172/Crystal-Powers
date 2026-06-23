@@ -1,4 +1,8 @@
 @import "./base/global.css";
+@import "./components/motion.css";
+@import "./components/effects.css";
+@import "./components/premium-cards.css";
+@import "./three/crystal-scene.css";
 @import "./themes/futuristic/theme.css";
 @import "./themes/classic/theme.css";
 @import "./themes/clean/theme.css";

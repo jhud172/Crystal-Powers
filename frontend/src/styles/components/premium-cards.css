@@ -1,0 +1,124 @@
+/* Premium card styles — SpotlightCard, PerspectiveCard */
+
+/* SpotlightCard */
+.spotlight-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid var(--panel-border);
+  background: var(--section-surface-strong);
+  box-shadow: var(--panel-shadow);
+  transition: border-color 280ms ease, box-shadow 300ms ease;
+}
+
+.spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at var(--spotlight-x, 50%) var(--spotlight-y, 50%),
+    color-mix(in srgb, var(--color-accent-strong) 14%, transparent),
+    transparent 45%
+  );
+  opacity: 0;
+  transition: opacity 320ms ease;
+  pointer-events: none;
+}
+
+.spotlight-card:hover::before,
+.spotlight-card:focus-within::before {
+  opacity: 1;
+}
+
+/* Keyboard focus fallback for SpotlightCard */
+.spotlight-card:focus-within::before {
+  --spotlight-x: 50%;
+  --spotlight-y: 50%;
+  opacity: 0.8;
+}
+
+/* Section heading styles */
+.section-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.section-heading--center {
+  align-items: center;
+  text-align: center;
+}
+
+.section-heading__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+.section-heading__supporting {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  max-width: 42rem;
+}
+
+/* PremiumLink styles */
+.premium-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: color 200ms ease, transform 200ms ease;
+  border-radius: 0.25rem;
+}
+
+.premium-link:focus-visible {
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: 3px;
+}
+
+.premium-link--primary {
+  color: var(--color-accent-strong);
+}
+
+.premium-link--primary:hover {
+  color: var(--color-text-primary);
+}
+
+.premium-link--secondary {
+  color: var(--color-text-secondary);
+}
+
+.premium-link--secondary:hover {
+  color: var(--color-text-primary);
+}
+
+.premium-link__arrow {
+  display: inline-block;
+  transition: transform 200ms ease;
+}
+
+.premium-link:hover .premium-link__arrow {
+  transform: translateX(3px);
+}
+
+/* Reduced motion overrides */
+@media (prefers-reduced-motion: reduce) {
+  .spotlight-card::before {
+    transition: none;
+  }
+
+  .premium-link__arrow {
+    transition: none;
+    transform: none !important;
+  }
+
+  .premium-link {
+    transition: none;
+  }
+}
