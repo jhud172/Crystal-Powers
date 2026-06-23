@@ -1,4 +1,4 @@
-import type { QualityPreset, CrystalMaterialConfig } from "../../types/three";
+import type { QualityPreset } from "../../types/three";
 import type { QualityLevel } from "../../types/experience";
 
 /** Quality presets for the crystal scene. */
@@ -54,20 +54,3 @@ export const qualityPresets: Record<QualityLevel, QualityPreset> = {
 export function getQualityPreset(level: QualityLevel): QualityPreset {
   return qualityPresets[level];
 }
-
-/** Default crystal material configuration values suitable for meshPhysicalMaterial. */
-export const defaultCrystalMaterial: CrystalMaterialConfig = {
-  color: "#ffffff",
-  emissive: "#0ea5e9",
-  emissiveIntensity: 0.22,
-  metalness: 0.04,
-  roughness: 0.02,
-  transmission: 0.72,
-  thickness: 1.75,
-  ior: 2.42,
-  opacity: 0.86,
-  clearcoat: 1,
-  clearcoatRoughness: 0.02,
-  envMapIntensity: 1.8,
-  reflectivity: 0.88,
-};
