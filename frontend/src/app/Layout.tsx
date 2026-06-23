@@ -1,6 +1,7 @@
-import { PropsWithChildren, useEffect, useMemo, useState } from "react";
+import { PropsWithChildren, useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { defaultTheme, isThemeId, navItems, ThemeId, themes } from "../data/site";
+import { initCursorAura, initScrollReveal, initTilt, ScrollRevealController } from "../lib/interactions";
 
 const themeCookieName = "crystal_theme";
 
@@ -30,6 +31,32 @@ export function Layout({ children }: PropsWithChildren) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const activeTheme = useMemo(() => themes.find((item) => item.id === theme) ?? themes[0], [theme]);
+
+  // Interaction systems — initialised once on mount, cleaned up on unmount.
+  const revealRef = useRef<ScrollRevealController | null>(null);
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const cursorCleanup = initCursorAura(reducedMotion);
+    const tiltCleanup = initTilt(reducedMotion);
+    revealRef.current = initScrollReveal(reducedMotion);
+
+    return () => {
+      cursorCleanup();
+      tiltCleanup();
+      revealRef.current?.destroy();
+      revealRef.current = null;
+    };
+  }, []);
+
+  // Refresh scroll reveal after route changes so newly mounted elements are observed.
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      revealRef.current?.refresh();
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [location.pathname]);
 
   useEffect(() => {
     document.body.dataset.theme = theme;

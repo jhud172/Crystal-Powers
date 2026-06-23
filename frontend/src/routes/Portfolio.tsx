@@ -15,7 +15,7 @@ export function Portfolio() {
       />
       <section className="project-band">
         {portfolioProjects.map((project) => (
-          <NavLink key={project.slug} to={`/portfolio/${project.slug}`} className="project-band-card">
+          <NavLink key={project.slug} to={`/portfolio/${project.slug}`} className="project-band-card" data-tilt data-tilt-max="4" data-tilt-scale="1.01">
             <img src={project.image} alt={`${project.title} preview`} className="project-band-image" />
             <div className="project-band-copy">
               <p className="section-tag">{project.meta}</p>

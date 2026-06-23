@@ -95,7 +95,7 @@ export function Home() {
       </section>
 
       <section className="showcase-grid">
-        <article className="showcase-card" data-reveal="up">
+        <article className="showcase-card" data-reveal="up" data-tilt>
           <div className="showcase-copy">
             <span className="eyebrow">System direction</span>
             <h2 className="showcase-title">Every page should feel like part of the same premium product.</h2>
@@ -109,7 +109,7 @@ export function Home() {
             <span className="surface-chip">Mobile-first polish</span>
           </div>
         </article>
-        <article className="showcase-card showcase-card-media" data-reveal="up">
+        <article className="showcase-card showcase-card-media" data-reveal="up" data-tilt data-tilt-max="3" data-tilt-scale="1.01">
           <img src="/images/project1.png" alt="Editorial project preview" className="showcase-image" />
           <div className="showcase-overlay-copy">
             <span className="section-tag">Featured work</span>
@@ -124,7 +124,7 @@ export function Home() {
           ["/images/project2.png", "Conversion surface", "Deliberate product storytelling", "Less clutter, better scan paths, and a clearer route toward the key action."],
           ["/images/project3.png", "Creator presence", "Portfolio pages with more weight", "Booking-ready layouts where the work still leads and the interface supports it."]
         ].map(([image, tag, title, body]) => (
-          <article key={title} className="project-band-card" data-reveal="up">
+          <article key={title} className="project-band-card" data-reveal="up" data-tilt data-tilt-max="4" data-tilt-scale="1.01">
             <img src={image} alt="" className="project-band-image" />
             <div className="project-band-copy">
               <p className="section-tag">{tag}</p>
