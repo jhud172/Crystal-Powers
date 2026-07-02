@@ -1008,19 +1008,30 @@
   .site-header-inner {
     max-width: calc(100vw - 1.5rem);
     gap: 0.62rem;
+    padding: 0.58rem;
   }
 
   .site-header-theme-shell .theme-picker {
-    min-width: 8.35rem;
+    min-width: 7.8rem;
+  }
+
+  .theme-picker-trigger {
+    min-height: 2.92rem;
+    padding-inline: 0.72rem;
   }
 
   .nav-link {
-    padding-inline: 0.62rem;
-    letter-spacing: 0.16em;
+    padding-inline: clamp(0.5rem, 0.66vw, 0.7rem);
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
   }
 
   .site-cta {
-    padding-inline: 0.92rem;
+    padding-inline: 0.78rem;
+  }
+
+  .primary-button.site-cta {
+    min-width: 7.95rem;
   }
 }
 
@@ -1031,15 +1042,157 @@
     border-radius: 1.55rem;
   }
 
+  .brand-link {
+    margin-right: auto;
+  }
+
   .site-nav {
     order: 5;
     flex-basis: 100%;
-    overflow-x: auto;
+    width: 100%;
+    overflow-x: visible;
     scrollbar-width: none;
+    justify-content: space-between;
+  }
+
+  .nav-link {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: 0.5rem;
   }
 
   .site-nav::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@media (max-width: 920px) {
+  .site-header-theme-shell,
+  .site-header-utility,
+  .site-nav {
+    display: none !important;
+  }
+
+  .site-header-mobile-utility {
+    display: flex !important;
+  }
+
+  .mobile-nav-panel {
+    display: block !important;
+  }
+
+  .site-header [data-nav-toggle].mobile-menu-button {
+    display: inline-flex !important;
+    position: relative;
+    z-index: 2;
+    align-items: center;
+    width: 3rem;
+    height: 3rem;
+    justify-content: center;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto;
+    border: 1px solid rgba(125, 211, 252, 0.24);
+    border-radius: 1rem;
+    padding: 0;
+    color: #e0f2fe;
+    background:
+      radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.2), transparent 34%),
+      linear-gradient(135deg, rgba(125, 211, 252, 0.1), rgba(124, 58, 237, 0.08)),
+      rgba(7, 11, 20, 0.78);
+    box-shadow:
+      0 14px 28px rgba(2, 6, 23, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease, background 220ms ease;
+  }
+
+  .site-header [data-nav-toggle].mobile-menu-button:hover {
+    transform: translateY(-1px);
+    border-color: rgba(125, 211, 252, 0.42);
+    box-shadow:
+      0 18px 34px rgba(2, 6, 23, 0.28),
+      0 0 24px rgba(125, 211, 252, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  }
+
+  .site-header [data-nav-toggle].mobile-menu-button .nav-toggle-label {
+    display: none;
+  }
+
+  .site-header [data-nav-toggle].mobile-menu-button .nav-toggle-icon {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 1.05rem;
+    height: 0.82rem;
+    color: #e0f2fe;
+  }
+
+  .site-header [data-nav-toggle].mobile-menu-button .nav-toggle-icon span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 0 12px rgba(125, 211, 252, 0.42);
+    transition: transform 220ms ease, opacity 180ms ease;
+  }
+
+  .site-header [data-nav-toggle].mobile-menu-button[aria-expanded="true"] .nav-toggle-icon span:first-child {
+    transform: translateY(0.3rem) rotate(45deg);
+  }
+
+  .site-header [data-nav-toggle].mobile-menu-button[aria-expanded="true"] .nav-toggle-icon span:nth-child(2) {
+    transform: translateY(-0.22rem) rotate(-45deg);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 920px) {
+  .site-header {
+    padding: 0.9rem 1rem 0;
+  }
+
+  .site-header-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(15rem, 18rem);
+    width: min(100%, 45rem);
+    max-width: calc(100vw - 2rem);
+    min-height: 0;
+    align-items: center;
+    gap: 0.72rem;
+    padding: 0.74rem;
+  }
+
+  .brand-link {
+    width: 100%;
+    padding: 0.26rem 0.34rem 0.26rem 0.26rem;
+  }
+
+  .brand-badge {
+    width: 3.2rem;
+    height: 3.2rem;
+  }
+
+  .brand-title {
+    font-size: 0.98rem;
+    letter-spacing: 0.13em;
+    white-space: nowrap;
+  }
+
+  .site-header-mobile-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 3.08rem;
+    align-items: center;
+    gap: 0.58rem;
+  }
+
+  .mobile-nav-panel {
+    max-width: min(45rem, calc(100vw - 2rem));
+  }
+
+  .site-header-mobile-actions .theme-picker {
+    min-width: 0;
+    width: 100%;
   }
 }
 
@@ -1105,69 +1258,7 @@
   .site-header [data-nav-toggle].mobile-menu-button {
     order: 2;
     grid-column: 2;
-    display: inline-flex !important;
-    position: relative;
-    z-index: 2;
-    align-items: center;
-    width: 3rem;
-    height: 3rem;
     margin-left: 0;
-    justify-content: center;
-    opacity: 1 !important;
-    visibility: visible !important;
-    pointer-events: auto;
-    border: 1px solid rgba(125, 211, 252, 0.24);
-    border-radius: 1rem;
-    padding: 0;
-    color: #e0f2fe;
-    background:
-      radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.2), transparent 34%),
-      linear-gradient(135deg, rgba(125, 211, 252, 0.1), rgba(124, 58, 237, 0.08)),
-      rgba(7, 11, 20, 0.78);
-    box-shadow:
-      0 14px 28px rgba(2, 6, 23, 0.24),
-      inset 0 1px 0 rgba(255, 255, 255, 0.12);
-    transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease, background 220ms ease;
-  }
-
-  .site-header [data-nav-toggle].mobile-menu-button:hover {
-    transform: translateY(-1px);
-    border-color: rgba(125, 211, 252, 0.42);
-    box-shadow:
-      0 18px 34px rgba(2, 6, 23, 0.28),
-      0 0 24px rgba(125, 211, 252, 0.14),
-      inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  }
-
-  .site-header [data-nav-toggle].mobile-menu-button .nav-toggle-label {
-    display: none;
-  }
-
-  .site-header [data-nav-toggle].mobile-menu-button .nav-toggle-icon {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    width: 1.05rem;
-    height: 0.82rem;
-    color: #e0f2fe;
-  }
-
-  .site-header [data-nav-toggle].mobile-menu-button .nav-toggle-icon span {
-    display: block;
-    width: 100%;
-    height: 2px;
-    border-radius: 999px;
-    background: currentColor;
-    box-shadow: 0 0 12px rgba(125, 211, 252, 0.42);
-    transition: transform 220ms ease, opacity 180ms ease;
-  }
-
-  .site-header [data-nav-toggle].mobile-menu-button[aria-expanded="true"] .nav-toggle-icon span:first-child {
-    transform: translateY(0.3rem) rotate(45deg);
-  }
-
-  .site-header [data-nav-toggle].mobile-menu-button[aria-expanded="true"] .nav-toggle-icon span:nth-child(2) {
-    transform: translateY(-0.22rem) rotate(-45deg);
   }
 
   .site-header-theme-shell,
