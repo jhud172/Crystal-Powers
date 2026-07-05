@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-label="">
+  <defs>
+    <radialGradient id="a" cx="63%" cy="30%" r="72%">
+      <stop offset="0" stop-color="#bfdbfe"/>
+      <stop offset=".38" stop-color="#e0f2fe"/>
+      <stop offset=".76" stop-color="#eff6ff"/>
+      <stop offset="1" stop-color="#dbeafe"/>
+    </radialGradient>
+    <pattern id="g" width="96" height="96" patternUnits="userSpaceOnUse">
+      <path d="M96 0H0v96" fill="none" stroke="#2563eb" stroke-opacity=".08" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#a)"/>
+  <rect width="1600" height="1000" fill="url(#g)"/>
+  <path d="M130 660C372 530 588 560 794 446c246-136 464-170 706-82v636H130z" fill="#ffffff" opacity=".54"/>
+  <rect x="224" y="184" width="508" height="304" rx="44" fill="#ffffff" opacity=".42" stroke="#60a5fa" stroke-opacity=".2"/>
+  <rect x="832" y="244" width="404" height="240" rx="38" fill="#dbeafe" opacity=".48" stroke="#38bdf8" stroke-opacity=".22"/>
+  <circle cx="1062" cy="356" r="190" fill="#38bdf8" opacity=".1"/>
+</svg>

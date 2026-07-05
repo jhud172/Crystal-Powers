@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-label="">
+  <defs>
+    <radialGradient id="a" cx="66%" cy="37%" r="54%">
+      <stop offset="0" stop-color="#67e8f9" stop-opacity=".52"/>
+      <stop offset=".35" stop-color="#2563eb" stop-opacity=".24"/>
+      <stop offset=".72" stop-color="#111827" stop-opacity=".7"/>
+      <stop offset="1" stop-color="#020617"/>
+    </radialGradient>
+    <linearGradient id="b" x1="0" x2="1" y1="0" y2="1">
+      <stop stop-color="#22d3ee" stop-opacity=".44"/>
+      <stop offset=".47" stop-color="#8b5cf6" stop-opacity=".25"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="g" width="84" height="84" patternUnits="userSpaceOnUse">
+      <path d="M84 0H0v84" fill="none" stroke="#67e8f9" stroke-opacity=".11" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#a)"/>
+  <rect width="1600" height="1000" fill="url(#g)" opacity=".65"/>
+  <path d="M-80 760C260 560 492 628 752 500c238-116 390-354 928-292v792H-80z" fill="#020617" opacity=".48"/>
+  <ellipse cx="950" cy="428" rx="390" ry="96" fill="none" stroke="#a5f3fc" stroke-opacity=".4" stroke-width="3"/>
+  <ellipse cx="950" cy="428" rx="520" ry="132" fill="none" stroke="#8b5cf6" stroke-opacity=".22" stroke-width="2"/>
+  <path d="M0 0h1600v1000H0z" fill="url(#b)" opacity=".76"/>
+</svg>

@@ -1,10 +1,12 @@
 import { NavLink, useParams } from "react-router-dom";
+import { useSiteTheme } from "../app/Layout";
 import { PageHero } from "../components/PageHero";
-import { getProject } from "../features/portfolio/portfolio";
+import { getPortfolioProjectImage, getProject } from "../features/portfolio/portfolio";
 import { NotFound } from "./NotFound";
 
 export function PortfolioProject() {
   const { slug } = useParams();
+  const { theme } = useSiteTheme();
   const project = getProject(slug);
 
   if (!project) {
@@ -19,7 +21,7 @@ export function PortfolioProject() {
         title={project.title}
         body={project.summary}
         actions={<><NavLink to="/portfolio" className="secondary-button">Back to portfolio</NavLink><NavLink to="/contact" className="primary-button">Start something similar</NavLink></>}
-        visual={<div className="floating-cluster"><article className="floating-panel floating-panel-display"><img src={project.image} alt={`${project.title} preview`} className="floating-panel-image" /></article></div>}
+        visual={<div className="floating-cluster"><article className="floating-panel floating-panel-display"><img src={getPortfolioProjectImage(project, theme)} alt={`${project.title} preview`} className="floating-panel-image themed-media" /></article></div>}
       />
       <section className="split-story-grid">
         <article className="story-panel story-panel-large" data-reveal="up">

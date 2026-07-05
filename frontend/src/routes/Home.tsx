@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { NavLink } from "react-router-dom";
+import { useSiteTheme } from "../app/Layout";
 
 const CrystalOpenerScene = lazy(() => import("../components/hero/CrystalOpenerScene").then((module) => ({ default: module.CrystalOpenerScene })));
 
@@ -15,11 +16,13 @@ function CrystalOpenerStaticFallback() {
 }
 
 export function Home() {
+  const { assets, theme } = useSiteTheme();
+
   return (
     <div className="page-stack page-stack-home">
       <section className="home-webgl-hero" aria-labelledby="home-hero-title">
         <div className="home-webgl-backdrop" aria-hidden="true">
-          <img src="/images/BackgroundSpaceImage.png" alt="" className="home-webgl-space" />
+          <img src={assets.homeBackdrop} alt="" className="home-webgl-space themed-media themed-media-backdrop" />
           <span className="home-webgl-aurora home-webgl-aurora-a" />
           <span className="home-webgl-aurora home-webgl-aurora-b" />
           <span className="home-webgl-grid" />
@@ -50,7 +53,7 @@ export function Home() {
 
           <div className="home-webgl-visual" data-reveal="left">
             <Suspense fallback={<CrystalOpenerStaticFallback />}>
-              <CrystalOpenerScene />
+              <CrystalOpenerScene theme={theme} />
             </Suspense>
           </div>
 
@@ -110,7 +113,7 @@ export function Home() {
           </div>
         </article>
         <article className="showcase-card showcase-card-media" data-reveal="up" data-tilt data-tilt-max="3" data-tilt-scale="1.01">
-          <img src="/images/project1.png" alt="Editorial project preview" className="showcase-image" />
+          <img src={assets.portfolioFeatured} alt="Editorial project preview" className="showcase-image themed-media" />
           <div className="showcase-overlay-copy">
             <span className="section-tag">Featured work</span>
             <h3>Work is framed like a launch asset, not a placeholder gallery.</h3>
@@ -125,7 +128,7 @@ export function Home() {
           ["/images/project3.png", "Creator presence", "Portfolio pages with more weight", "Booking-ready layouts where the work still leads and the interface supports it."]
         ].map(([image, tag, title, body]) => (
           <article key={title} className="project-band-card" data-reveal="up" data-tilt data-tilt-max="4" data-tilt-scale="1.01">
-            <img src={image} alt="" className="project-band-image" />
+            <img src={image} alt="" className="project-band-image themed-media" />
             <div className="project-band-copy">
               <p className="section-tag">{tag}</p>
               <h3 className="project-band-title">{title}</h3>

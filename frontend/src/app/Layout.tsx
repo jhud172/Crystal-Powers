@@ -1,9 +1,29 @@
-import { PropsWithChildren, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { defaultTheme, isThemeId, navItems, ThemeId, themes } from "../data/site";
+import { defaultTheme, getThemeAssets, isThemeId, navItems, ThemeAssets, ThemeId, themes } from "../data/site";
 import { initCursorAura, initScrollReveal, initTilt, ScrollRevealController } from "../lib/interactions";
 
 const themeCookieName = "crystal_theme";
+
+type SiteThemeContextValue = {
+  theme: ThemeId;
+  assets: ThemeAssets;
+};
+
+const SiteThemeContext = createContext<SiteThemeContextValue | null>(null);
+
+export function useSiteTheme() {
+  const context = useContext(SiteThemeContext);
+
+  if (!context) {
+    return {
+      theme: defaultTheme,
+      assets: getThemeAssets(defaultTheme)
+    };
+  }
+
+  return context;
+}
 
 function getCookieValue(name: string) {
   return document.cookie
@@ -29,8 +49,12 @@ export function Layout({ children }: PropsWithChildren) {
   });
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
+  const [isHeaderHidden, setIsHeaderHidden] = useState(false);
 
   const activeTheme = useMemo(() => themes.find((item) => item.id === theme) ?? themes[0], [theme]);
+  const activeAssets = useMemo(() => getThemeAssets(theme), [theme]);
+  const themeContextValue = useMemo(() => ({ theme, assets: activeAssets }), [activeAssets, theme]);
 
   // Interaction systems — initialised once on mount, cleaned up on unmount.
   const revealRef = useRef<ScrollRevealController | null>(null);
@@ -70,8 +94,78 @@ export function Layout({ children }: PropsWithChildren) {
     setIsThemeOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const scrolledThreshold = 72;
+    const hideThreshold = 180;
+    const directionThreshold = 10;
+    let lastScrollY = Math.max(window.scrollY, 0);
+    let rafId = 0;
+
+    const updateHeaderState = () => {
+      const currentScrollY = Math.max(window.scrollY, 0);
+      const delta = currentScrollY - lastScrollY;
+      const shouldBeScrolled = currentScrollY > scrolledThreshold;
+
+      setIsHeaderScrolled((wasScrolled) => (wasScrolled === shouldBeScrolled ? wasScrolled : shouldBeScrolled));
+
+      if (reducedMotion || currentScrollY < hideThreshold || delta < -directionThreshold) {
+        setIsHeaderHidden(false);
+      } else if (delta > directionThreshold) {
+        setIsHeaderHidden(true);
+      }
+
+      lastScrollY = currentScrollY;
+      rafId = 0;
+    };
+
+    const requestHeaderUpdate = () => {
+      if (rafId === 0) {
+        rafId = requestAnimationFrame(updateHeaderState);
+      }
+    };
+
+    updateHeaderState();
+    window.addEventListener("scroll", requestHeaderUpdate, { passive: true });
+    window.addEventListener("resize", requestHeaderUpdate);
+
+    return () => {
+      window.removeEventListener("scroll", requestHeaderUpdate);
+      window.removeEventListener("resize", requestHeaderUpdate);
+      if (rafId !== 0) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isMenuOpen || isThemeOpen) {
+      setIsHeaderHidden(false);
+    }
+  }, [isMenuOpen, isThemeOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMenuOpen(false);
+        setIsThemeOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const headerClassName = [
+    "site-header",
+    isHeaderScrolled ? "is-scrolled" : "",
+    isHeaderHidden && !isMenuOpen && !isThemeOpen ? "is-hidden" : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <>
+    <SiteThemeContext.Provider value={themeContextValue}>
       <div className="pointer-events-none absolute inset-0 -z-30 bg-ink" />
       <div className="site-grid-overlay" aria-hidden="true" />
       <div className="site-noise-overlay" aria-hidden="true" />
@@ -80,7 +174,7 @@ export function Layout({ children }: PropsWithChildren) {
       <div className="site-glow site-glow-side" />
       <div className="site-glow site-glow-bottom" />
 
-      <header className="site-header" data-header-ready="true">
+      <header className={headerClassName} data-header-ready="true">
         <div className="site-header-inner">
           <span className="site-header-orbit site-header-orbit-left" aria-hidden="true" />
           <span className="site-header-orbit site-header-orbit-right" aria-hidden="true" />
@@ -97,35 +191,38 @@ export function Layout({ children }: PropsWithChildren) {
             <span className="brand-mark-shell" aria-hidden="true">
               <span className="brand-badge">
                 <picture className="brand-badge-motion">
-                  <source srcSet="/animations/cp-logo-crystal-ufo-highres.webp" type="image/webp" />
-                  <img src="/animations/cp-logo-crystal-ufo-highres.gif" alt="" className="brand-badge-image" />
+                  <source srcSet={activeAssets.brandMotionWebp} type="image/webp" />
+                  <img src={activeAssets.brandMotionGif} alt="" className="brand-badge-image themed-media" />
                 </picture>
-                <img src="/images/cp-logo-crystal-ufo.png" alt="" className="brand-badge-image brand-badge-static" />
+                <img src={activeAssets.brandMark} alt="" className="brand-badge-image brand-badge-static themed-media" />
               </span>
             </span>
             <span className="brand-copy">
+              <span className="brand-kicker">Digital studio</span>
               <span className="brand-title-row">
                 <span className="brand-title">Crystal Powers</span>
               </span>
             </span>
           </NavLink>
 
-          <div className="site-header-theme-shell hidden md:flex">
-            <ThemePicker
-              activeTheme={activeTheme}
-              isOpen={isThemeOpen}
-              onOpenChange={setIsThemeOpen}
-              onThemeChange={setTheme}
-            />
-          </div>
+          <div className="site-header-command hidden md:flex">
+            <div className="site-header-theme-shell">
+              <ThemePicker
+                activeTheme={activeTheme}
+                isOpen={isThemeOpen}
+                onOpenChange={setIsThemeOpen}
+                onThemeChange={setTheme}
+              />
+            </div>
 
-          <nav className="site-nav hidden md:flex">
-            {navItems.map((item) => (
-              <NavLink key={item.href} to={item.href} className={({ isActive }) => `nav-link${isActive ? " nav-link-active" : ""}`}>
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
+            <nav className="site-nav" aria-label="Primary navigation">
+              {navItems.map((item) => (
+                <NavLink key={item.href} to={item.href} className={({ isActive }) => `nav-link${isActive ? " nav-link-active" : ""}`}>
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
 
           <div className="site-header-utility hidden md:flex">
             <NavLink to="/contact" className="primary-button site-cta">
@@ -230,7 +327,7 @@ export function Layout({ children }: PropsWithChildren) {
           </div>
         </div>
       </footer>
-    </>
+    </SiteThemeContext.Provider>
   );
 }
 

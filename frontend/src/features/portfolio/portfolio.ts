@@ -1,3 +1,7 @@
+import type { ThemeId } from "../../data/site";
+
+type ThemeImageMap = Partial<Record<ThemeId, string>>;
+
 export type PortfolioProject = {
   slug: string;
   title: string;
@@ -9,6 +13,7 @@ export type PortfolioProject = {
   whyItWorks: string;
   features: string[];
   image: string;
+  themeImages?: ThemeImageMap;
 };
 
 export const portfolioProjects: PortfolioProject[] = [
@@ -88,4 +93,8 @@ export const portfolioProjects: PortfolioProject[] = [
 
 export function getProject(slug: string | undefined) {
   return portfolioProjects.find((project) => project.slug === slug);
+}
+
+export function getPortfolioProjectImage(project: PortfolioProject, theme: ThemeId) {
+  return project.themeImages?.[theme] ?? project.image;
 }

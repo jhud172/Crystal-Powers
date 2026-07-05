@@ -1,7 +1,10 @@
 import { NavLink } from "react-router-dom";
+import { useSiteTheme } from "../app/Layout";
 import { PageHero } from "../components/PageHero";
 
 export function About() {
+  const { assets } = useSiteTheme();
+
   return (
     <div className="page-stack">
       <PageHero
@@ -10,7 +13,7 @@ export function About() {
         title="Built around clean architecture, stronger digital presentation, and a premium finish that still feels controlled."
         body="Crystal Powers operates like a focused implementation partner. The point is not to add noise. The point is to make the product, service, or launch surface feel sharper and more intentional from the first interaction."
         actions={<><NavLink to="/services" className="primary-button">See services</NavLink><NavLink to="/portfolio" className="secondary-button">Open portfolio</NavLink></>}
-        visual={<div className="about-orbit-shell"><div className="orbital-ring orbital-ring-large" /><div className="orbital-ring orbital-ring-small" /><article className="floating-panel floating-panel-display"><img src="/images/BackgroundSpaceImage.png" alt="Abstract studio backdrop" className="floating-panel-image" /></article></div>}
+        visual={<div className="about-orbit-shell"><div className="orbital-ring orbital-ring-large" /><div className="orbital-ring orbital-ring-small" /><article className="floating-panel floating-panel-display"><img src={assets.homeBackdrop} alt="Abstract studio backdrop" className="floating-panel-image themed-media" /></article></div>}
       />
       <section className="content-band three-up-grid">
         {[
