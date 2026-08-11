@@ -1,4 +1,5 @@
 import {
+  CSSProperties,
   KeyboardEvent as ReactKeyboardEvent,
   PointerEvent as ReactPointerEvent,
   useCallback,
@@ -12,7 +13,7 @@ import "../styles/pages/birthday/mission-vi.css";
 const releaseDate = new Date("2026-11-19T00:00:00Z").getTime();
 
 type IntroPhase = "active" | "leaving" | "hidden";
-type TakeoverPhase = "active" | "leaving" | "hidden";
+type TakeoverPhase = "generating" | "holding" | "confirmed" | "leaving" | "hidden";
 type Chapter = "opening" | "promise" | "countdown" | "finale";
 
 type Countdown = {
@@ -56,27 +57,37 @@ export default function BirthdayMission() {
   const [introPhase, setIntroPhase] = useState<IntroPhase>("active");
   const [takeoverPhase, setTakeoverPhase] = useState<TakeoverPhase>("hidden");
   const [unlocked, setUnlocked] = useState(false);
-  const [isHolding, setIsHolding] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [generationLabel, setGenerationLabel] = useState("Connecting to Dad's account");
+  const [finaliseSeconds, setFinaliseSeconds] = useState(3);
   const [activeChapter, setActiveChapter] = useState<Chapter>("opening");
   const [countdown, setCountdown] = useState<Countdown>(getCountdown);
   const [announcement, setAnnouncement] = useState("");
 
   const experienceRef = useRef<HTMLElement>(null);
-  const holdButtonRef = useRef<HTMLButtonElement>(null);
+  const dragControlRef = useRef<HTMLDivElement>(null);
+  const dragHandleRef = useRef<HTMLButtonElement>(null);
   const promiseRef = useRef<HTMLElement>(null);
   const confettiRef = useRef<HTMLDivElement>(null);
   const fireworksRef = useRef<HTMLDivElement>(null);
-  const holdFrameRef = useRef(0);
-  const holdStartedAtRef = useRef(0);
+  const dragProgressRef = useRef(0);
+  const sequenceActiveRef = useRef(false);
   const unlockedRef = useRef(false);
   const introTimersRef = useRef<number[]>([]);
   const missionTimersRef = useRef<number[]>([]);
 
-  const updateHoldProgress = useCallback((progress: number) => {
-    holdButtonRef.current?.style.setProperty(
-      "--birthday-hold-progress",
-      Math.min(1, Math.max(0, progress)).toFixed(3)
-    );
+  const updateDragProgress = useCallback((progress: number) => {
+    const nextProgress = Math.min(1, Math.max(0, progress));
+    dragProgressRef.current = nextProgress;
+    const control = dragControlRef.current;
+    const handle = dragHandleRef.current;
+    if (control && handle) {
+      const travel = Math.max(0, control.clientWidth - handle.offsetWidth - 12);
+      control.style.setProperty("--birthday-drag-progress", nextProgress.toFixed(3));
+      control.style.setProperty("--birthday-drag-x", `${(travel * nextProgress).toFixed(1)}px`);
+    }
+    dragHandleRef.current?.setAttribute("aria-valuenow", String(Math.round(nextProgress * 100)));
   }, []);
 
   const playIntro = useCallback(() => {
@@ -97,7 +108,7 @@ export default function BirthdayMission() {
         setIntroPhase("hidden");
         document.body.classList.remove("birthday-is-locked");
         document.documentElement.classList.add("birthday-entered");
-        holdButtonRef.current?.focus({ preventScroll: true });
+        dragHandleRef.current?.focus({ preventScroll: true });
       },
       reducedMotion ? 80 : 2120
     );
@@ -157,18 +168,16 @@ export default function BirthdayMission() {
 
     unlockedRef.current = true;
     setUnlocked(true);
-    window.cancelAnimationFrame(holdFrameRef.current);
-    holdFrameRef.current = 0;
-    updateHoldProgress(1);
-    holdButtonRef.current?.classList.remove("is-holding");
-    setIsHolding(false);
-    setAnnouncement("Mission unlocked. Your GTA VI birthday promise is ready.");
+    updateDragProgress(1);
+    setIsDragging(false);
+    setGenerationProgress(100);
+    setTakeoverPhase("confirmed");
+    setAnnouncement("Purchase confirmed. Grand Theft Auto VI has been purchased on your account.");
     navigator.vibrate?.([18, 42, 38]);
 
-    const holdTime = reducedMotion ? 180 : 1480;
-    const totalTime = reducedMotion ? 340 : 2010;
-    setTakeoverPhase("active");
-    addTimer(missionTimersRef.current, () => setTakeoverPhase("leaving"), holdTime);
+    const confirmationTime = reducedMotion ? 420 : 1900;
+    const totalTime = reducedMotion ? 620 : 2520;
+    addTimer(missionTimersRef.current, () => setTakeoverPhase("leaving"), confirmationTime);
     addTimer(missionTimersRef.current, () => setTakeoverPhase("hidden"), totalTime);
     addTimer(missionTimersRef.current, () => burstConfetti(), Math.max(0, totalTime - 460));
     addTimer(
@@ -176,71 +185,114 @@ export default function BirthdayMission() {
       () => promiseRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" }),
       totalTime
     );
-  }, [burstConfetti, reducedMotion, updateHoldProgress]);
+  }, [burstConfetti, reducedMotion, updateDragProgress]);
 
-  const cancelHold = useCallback(() => {
-    if (unlockedRef.current) {
+  const beginGeneration = useCallback(() => {
+    if (unlockedRef.current || sequenceActiveRef.current || takeoverPhase !== "hidden") {
       return;
     }
 
-    window.cancelAnimationFrame(holdFrameRef.current);
-    holdFrameRef.current = 0;
-    holdStartedAtRef.current = 0;
-    holdButtonRef.current?.classList.remove("is-holding");
-    setIsHolding(false);
-    updateHoldProgress(0);
-  }, [updateHoldProgress]);
+    sequenceActiveRef.current = true;
+    clearTimers(missionTimersRef.current);
+    updateDragProgress(1);
+    setIsDragging(false);
+    setGenerationProgress(8);
+    setGenerationLabel("Connecting to Dad's account");
+    setFinaliseSeconds(3);
+    setTakeoverPhase("generating");
+    setAnnouncement("Authorisation accepted. Generating your purchased birthday gift.");
+    navigator.vibrate?.([14, 28, 18]);
 
-  const startHold = useCallback(() => {
-    if (unlockedRef.current || holdFrameRef.current) {
+    const timings = reducedMotion
+      ? [80, 190, 310, 430, 540, 700, 860, 1020]
+      : [360, 1080, 1840, 2620, 3040, 4040, 5040, 6040];
+    const generationStages = [
+      [24, "Verifying the purchase"],
+      [51, "Securing the digital licence"],
+      [78, "Linking it to your account"],
+      [100, "Purchase record generated"]
+    ] as const;
+
+    generationStages.forEach(([progress, label], index) => {
+      addTimer(missionTimersRef.current, () => {
+        setGenerationProgress(progress);
+        setGenerationLabel(label);
+      }, timings[index]);
+    });
+    addTimer(missionTimersRef.current, () => {
+      setTakeoverPhase("holding");
+      setFinaliseSeconds(3);
+      setAnnouncement("Finalising the purchase on your account. Three seconds remaining.");
+    }, timings[4]);
+    addTimer(missionTimersRef.current, () => setFinaliseSeconds(2), timings[5]);
+    addTimer(missionTimersRef.current, () => setFinaliseSeconds(1), timings[6]);
+    addTimer(missionTimersRef.current, completeUnlock, timings[7]);
+  }, [completeUnlock, reducedMotion, takeoverPhase, updateDragProgress]);
+
+  const resetDrag = useCallback(() => {
+    if (!unlockedRef.current && !sequenceActiveRef.current && takeoverPhase === "hidden") {
+      setIsDragging(false);
+      updateDragProgress(0);
+    }
+  }, [takeoverPhase, updateDragProgress]);
+
+  const updateDragFromPointer = useCallback((clientX: number) => {
+    const control = dragControlRef.current;
+    const handle = dragHandleRef.current;
+    if (!control || !handle) {
       return;
     }
 
-    const holdDuration = reducedMotion ? 250 : 1250;
-    holdButtonRef.current?.classList.add("is-holding");
-    setIsHolding(true);
-    navigator.vibrate?.(12);
+    const bounds = control.getBoundingClientRect();
+    const travel = Math.max(1, bounds.width - handle.offsetWidth - 12);
+    const progress = (clientX - bounds.left - handle.offsetWidth / 2 - 6) / travel;
+    updateDragProgress(progress);
 
-    const advance = (timestamp: number) => {
-      if (!holdStartedAtRef.current) {
-        holdStartedAtRef.current = timestamp;
-      }
-
-      const progress = (timestamp - holdStartedAtRef.current) / holdDuration;
-      updateHoldProgress(progress);
-
-      if (progress >= 1) {
-        completeUnlock();
-        return;
-      }
-
-      holdFrameRef.current = window.requestAnimationFrame(advance);
-    };
-
-    holdFrameRef.current = window.requestAnimationFrame(advance);
-  }, [completeUnlock, reducedMotion, updateHoldProgress]);
+    if (progress >= 0.96) {
+      beginGeneration();
+    }
+  }, [beginGeneration, updateDragProgress]);
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (unlockedRef.current || takeoverPhase !== "hidden") {
+      return;
+    }
     event.preventDefault();
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
     } catch {
       // Pointer capture can be unavailable for synthetic or interrupted events.
     }
-    startHold();
+    setIsDragging(true);
+    navigator.vibrate?.(10);
+    updateDragFromPointer(event.clientX);
+  };
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (isDragging) {
+      event.preventDefault();
+      updateDragFromPointer(event.clientX);
+    }
   };
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
-    if (event.key !== "Enter" && event.key !== " ") {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      resetDrag();
       return;
     }
-    event.preventDefault();
-    startHold();
-  };
-
-  const handleKeyUp = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
-    if (event.key === "Enter" || event.key === " ") {
-      cancelHold();
+    if (event.key === "Enter" || event.key === " " || event.key === "End") {
+      event.preventDefault();
+      beginGeneration();
+      return;
+    }
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      const nextProgress = Math.min(1, dragProgressRef.current + 0.25);
+      updateDragProgress(nextProgress);
+      if (nextProgress >= 0.96) {
+        beginGeneration();
+      }
     }
   };
 
@@ -254,15 +306,18 @@ export default function BirthdayMission() {
   const handleReplay = () => {
     clearTimers(missionTimersRef.current);
     unlockedRef.current = false;
+    sequenceActiveRef.current = false;
     setUnlocked(false);
     setTakeoverPhase("hidden");
-    setIsHolding(false);
+    setIsDragging(false);
+    setGenerationProgress(0);
+    setGenerationLabel("Connecting to Dad's account");
+    setFinaliseSeconds(3);
     setAnnouncement("");
     setActiveChapter("opening");
     fireworksRef.current?.replaceChildren();
     confettiRef.current?.replaceChildren();
-    holdStartedAtRef.current = 0;
-    updateHoldProgress(0);
+    updateDragProgress(0);
     playIntro();
   };
 
@@ -283,7 +338,7 @@ export default function BirthdayMission() {
     html.lang = "en-GB";
     html.classList.add("birthday-route-active-root", "birthday-ready");
     body.classList.add("birthday-route-active");
-    description?.setAttribute("content", "A private birthday mission and a promise for the launch of Grand Theft Auto VI.");
+    description?.setAttribute("content", "A private birthday mission confirming Grand Theft Auto VI has been purchased for Dad.");
     viewport?.setAttribute("content", "width=device-width, initial-scale=1, viewport-fit=cover");
     themeColour?.setAttribute("content", "#09071c");
     robots.name = "robots";
@@ -294,7 +349,6 @@ export default function BirthdayMission() {
 
     return () => {
       window.cancelAnimationFrame(introFrame);
-      window.cancelAnimationFrame(holdFrameRef.current);
       clearTimers(introTimersRef.current);
       clearTimers(missionTimersRef.current);
       document.title = originalTitle;
@@ -319,6 +373,16 @@ export default function BirthdayMission() {
     const timer = window.setInterval(() => setCountdown(getCountdown()), 1000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const syncDragPosition = () => updateDragProgress(dragProgressRef.current);
+    const resizeFrame = window.requestAnimationFrame(syncDragPosition);
+    window.addEventListener("resize", syncDragPosition, { passive: true });
+    return () => {
+      window.cancelAnimationFrame(resizeFrame);
+      window.removeEventListener("resize", syncDragPosition);
+    };
+  }, [updateDragProgress]);
 
   useEffect(() => {
     const experience = experienceRef.current;
@@ -418,19 +482,45 @@ export default function BirthdayMission() {
       </div>
 
       <div
-        className={`birthday-unlock-takeover${takeoverPhase === "active" ? " is-active" : ""}${takeoverPhase === "leaving" ? " is-active is-leaving" : ""}`}
+        className={`birthday-unlock-takeover${takeoverPhase !== "hidden" ? " is-active" : ""}${takeoverPhase === "leaving" ? " is-leaving" : ""}`}
+        data-phase={takeoverPhase}
         aria-hidden={takeoverPhase === "hidden"}
+        aria-live="polite"
+        aria-atomic="true"
         hidden={takeoverPhase === "hidden"}
       >
         <div className="birthday-unlock-takeover__rings" aria-hidden="true"><i /><i /><i /></div>
         <div className="birthday-unlock-takeover__content">
-          <span>Mission accepted</span>
-          <strong>Gift<br /><em>unlocked.</em></strong>
-          <p>GTA VI <i /> One copy <i /> For Dad</p>
+          {takeoverPhase === "generating" && (
+            <>
+              <span>Purchase authorisation accepted</span>
+              <strong>Generating<br /><em>your gift.</em></strong>
+              <div className="birthday-generation" style={{ "--birthday-generation-progress": `${generationProgress}%` } as CSSProperties}>
+                <div className="birthday-generation__meta"><b>{generationLabel}</b><span>{generationProgress}%</span></div>
+                <div className="birthday-generation__track" aria-hidden="true"><i /></div>
+                <div className="birthday-generation__steps" aria-hidden="true"><i /><i /><i /><i /></div>
+              </div>
+            </>
+          )}
+          {takeoverPhase === "holding" && (
+            <>
+              <span>Creating the final purchase record</span>
+              <div className="birthday-finalise-orbit" aria-hidden="true"><i /><b>{finaliseSeconds}</b></div>
+              <strong className="birthday-unlock-takeover__finalising">Hold tight.<br /><em>Nearly yours.</em></strong>
+              <p>Finalising on your account <i /> {finaliseSeconds} second{finaliseSeconds === 1 ? "" : "s"}</p>
+            </>
+          )}
+          {(takeoverPhase === "confirmed" || takeoverPhase === "leaving") && (
+            <>
+              <span>Purchase complete</span>
+              <strong>Purchased<br /><em>on your account.</em></strong>
+              <p>GTA VI <i /> One copy <i /> For Dad</p>
+            </>
+          )}
         </div>
         <div className="birthday-unlock-takeover__ticker" aria-hidden="true">
-          <span>IOU verified / No expiry / Launch day / Dad only /</span>
-          <span>IOU verified / No expiry / Launch day / Dad only /</span>
+          <span>Purchase complete / Account linked / Release ready / Dad only /</span>
+          <span>Purchase complete / Account linked / Release ready / Dad only /</span>
         </div>
       </div>
 
@@ -439,11 +529,13 @@ export default function BirthdayMission() {
         ref={experienceRef}
         className={`birthday-experience${unlocked ? " is-unlocked" : ""}`}
         data-state={unlocked ? "unlocked" : "locked"}
+        data-active-chapter={activeChapter}
       >
+        <div className="birthday-scroll-progress" aria-hidden="true"><i /></div>
         <nav className="birthday-chapter-rail" aria-label="Birthday mission chapters">
           {([
             ["opening", "birthday-opening", "Opening"],
-            ["promise", "birthday-promise", "The promise"],
+            ["promise", "birthday-promise", "Purchase"],
             ["countdown", "birthday-countdown", "Countdown"],
             ["finale", "birthday-finale", "Birthday message"]
           ] as const).map(([chapter, target, label]) => (
@@ -462,48 +554,55 @@ export default function BirthdayMission() {
           <header className="birthday-masthead">
             <span className="birthday-masthead__mark" aria-hidden="true">VI</span>
             <p>For Dad <span /> Birthday transmission</p>
-            <span className="birthday-masthead__status"><i /> Gift secured</span>
+            <span className="birthday-masthead__status"><i /> Purchase secured</span>
           </header>
 
           <div className="birthday-hero__content">
             <p className="birthday-kicker">Your next big adventure is secured.</p>
             <h1 id="birthday-title"><span>Mission</span><em>VI</em></h1>
             <p className="birthday-hero__lead">
-              Happy Birthday, Dad. This is your official IOU for <strong>Grand Theft Auto VI.</strong>
+              Happy Birthday, Dad. <strong>Grand Theft Auto VI has been purchased directly on your account.</strong>
             </p>
 
             <div className="birthday-unlock">
-              <button
-                ref={holdButtonRef}
-                className="birthday-hold-button"
-                type="button"
-                aria-describedby="hold-help"
-                onPointerDown={handlePointerDown}
-                onPointerUp={cancelHold}
-                onPointerCancel={cancelHold}
-                onLostPointerCapture={cancelHold}
-                onKeyDown={handleKeyDown}
-                onKeyUp={handleKeyUp}
-                onBlur={cancelHold}
-                onContextMenu={(event) => event.preventDefault()}
+              <div
+                ref={dragControlRef}
+                className={`birthday-drag-control${isDragging ? " is-dragging" : ""}${unlocked ? " is-complete" : ""}`}
               >
-                <span className="birthday-hold-button__progress" aria-hidden="true" />
-                <span className="birthday-hold-button__icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24"><path d="M8 11V8a4 4 0 0 1 8 0v3M6.5 11.5h11v9h-11z" /></svg>
+                <span className="birthday-drag-control__fill" aria-hidden="true" />
+                <span className="birthday-drag-control__copy" aria-hidden="true">
+                  <strong>{unlocked ? "Purchase confirmed" : "Drag to reveal"}</strong>
+                  <small>{unlocked ? "Purchased on your account" : "Slide all the way to the end"}</small>
                 </span>
-                <span className="birthday-hold-button__copy">
-                  <strong>{unlocked ? "Mission unlocked" : "Hold to unlock"}</strong>
-                  <small>{unlocked ? "Your GTA VI promise is ready" : isHolding ? "Keep holding - almost there" : "Press and hold your birthday mission"}</small>
-                </span>
-                <span className="birthday-hold-button__chevron" aria-hidden="true" />
-              </button>
-              <p id="hold-help" className="birthday-unlock__help">Hold the button for a moment. Keyboard: hold Enter or Space.</p>
+                <span className="birthday-drag-control__finish" aria-hidden="true"><i /><i /><i /></span>
+                <button
+                  ref={dragHandleRef}
+                  className="birthday-drag-control__handle"
+                  type="button"
+                  role="slider"
+                  aria-label="Drag to reveal your purchased birthday gift"
+                  aria-describedby="drag-help"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={0}
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={resetDrag}
+                  onPointerCancel={resetDrag}
+                  onLostPointerCapture={resetDrag}
+                  onKeyDown={handleKeyDown}
+                  onContextMenu={(event) => event.preventDefault()}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 7 7-7 7M14 5l7 7-7 7" /></svg>
+                </button>
+              </div>
+              <p id="drag-help" className="birthday-unlock__help">Drag the arrow to the end. Keyboard: press Enter, Space or End.</p>
             </div>
           </div>
 
           <div className="birthday-hero__release"><span>Current official launch</span><strong>19.11.2026</strong></div>
-          <a className="birthday-scroll-cue" href="#birthday-promise" aria-label="Continue to the birthday promise">
-            <span>Open the promise</span>
+          <a className="birthday-scroll-cue" href="#birthday-promise" aria-label="Continue to the purchase confirmation">
+            <span>See the purchase</span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
           </a>
         </section>
@@ -517,20 +616,24 @@ export default function BirthdayMission() {
         >
           <div className="birthday-promise__glow" aria-hidden="true" />
           <div className="birthday-promise__layout">
-            <div className="birthday-promise__ticket-meta" aria-hidden="true"><span>Mission pass / 006</span><span>Non-expiring</span></div>
+            <div className="birthday-promise__ticket-meta" aria-hidden="true"><span>Purchase record / 006</span><span>Account linked</span></div>
             <div className="birthday-promise__number" aria-hidden="true"><span>0</span><span>6</span></div>
             <div className="birthday-promise__copy">
-              <p className="birthday-kicker birthday-kicker--dark">IOU verified <span aria-hidden="true">✓</span></p>
-              <h2 id="promise-title">One copy.<br /><em>All yours.</em></h2>
-              <p>When GTA VI releases, we will buy your copy in the best format for you - a download code or a direct purchase, whichever works best.</p>
+              <p className="birthday-kicker birthday-kicker--dark">Purchase confirmed <span aria-hidden="true">✓</span></p>
+              <h2 id="promise-title">Purchased.<br /><em>All yours.</em></h2>
+              <p>We have now bought your copy directly on your account. When GTA VI releases, it will be there waiting - already linked and ready for launch.</p>
             </div>
             <dl className="birthday-terms" aria-label="Your birthday gift details">
               <div><dt>The gift</dt><dd>Grand Theft Auto VI</dd></div>
-              <div><dt>How you receive it</dt><dd>Code or direct purchase</dd></div>
-              <div><dt>When</dt><dd>From launch day</dd></div>
-              <div><dt>Fine print</dt><dd>No chores. No expiry. Dad only.</dd></div>
+              <div><dt>Delivery</dt><dd>Purchased on your account</dd></div>
+              <div><dt>Status</dt><dd>Purchase complete</dd></div>
+              <div><dt>Available</dt><dd>Ready to play from launch</dd></div>
             </dl>
           </div>
+          <a className="birthday-chapter-transition" href="#birthday-countdown">
+            <span><small>Purchase complete</small><strong>Follow it to launch day</strong></span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+          </a>
         </section>
 
         <section id="birthday-countdown" className="birthday-countdown" data-birthday-chapter="countdown" aria-labelledby="countdown-title">
@@ -548,6 +651,10 @@ export default function BirthdayMission() {
           <p className="birthday-countdown__note">
             {countdown.launched ? "Launch day has arrived. Time to redeem the mission." : "Based on the current official release date: 19 November 2026."}
           </p>
+          <a className="birthday-chapter-transition birthday-chapter-transition--light" href="#birthday-finale">
+            <span><small>One final stop</small><strong>Open your birthday message</strong></span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+          </a>
         </section>
 
         <section id="birthday-finale" className="birthday-finale" data-birthday-chapter="finale" aria-labelledby="finale-title">
@@ -556,7 +663,7 @@ export default function BirthdayMission() {
           <div className="birthday-finale__content">
             <p className="birthday-kicker">A message from us</p>
             <h2 id="finale-title">Happy Birthday,<br /><em>Dad.</em></h2>
-            <p>We wanted to give you something worth waiting for. Your copy is promised, your mission is active, and the first drive is yours.</p>
+            <p>We wanted to give you something worth waiting for. Your copy is purchased, your mission is active, and the first drive is yours.</p>
             <div className="birthday-finale__actions">
               <button className="birthday-fireworks-button" type="button" onClick={handleFireworks}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v4M4.9 4.9l2.8 2.8M2 12h4m10 0h6M4.9 19.1l2.8-2.8M19.1 4.9l-2.8 2.8M12 12l2.7 8.3L12 18.7l-2.7 1.6z" /></svg>
