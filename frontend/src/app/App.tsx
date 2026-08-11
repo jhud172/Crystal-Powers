@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Layout } from "./Layout";
 import { About } from "../routes/About";
 import { Contact } from "../routes/Contact";
@@ -9,7 +10,19 @@ import { PortfolioProject } from "../routes/PortfolioProject";
 import { Services } from "../routes/Services";
 import { Support } from "../routes/Support";
 
+const BirthdayMission = lazy(() => import("../routes/BirthdayMission"));
+
 export default function App() {
+  const location = useLocation();
+
+  if (location.pathname.replace(/\/+$/, "") === "/birthday/mission-vi") {
+    return (
+      <Suspense fallback={<div className="birthday-route-loading" role="status">Preparing your birthday mission…</div>}>
+        <BirthdayMission />
+      </Suspense>
+    );
+  }
+
   return (
     <Layout>
       <Routes>
