@@ -8,9 +8,11 @@ import {
   useState
 } from "react";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
+import { PostBirthdayMission } from "./PostBirthdayMission";
 import "../styles/pages/birthday/mission-vi.css";
 
 const releaseDate = new Date("2026-11-19T00:00:00Z").getTime();
+export const postBirthdayStartsAt = new Date("2026-08-12T00:00:00+01:00").getTime();
 
 type IntroPhase = "active" | "leaving" | "hidden";
 type TakeoverPhase = "generating" | "holding" | "confirmed" | "leaving" | "hidden";
@@ -52,7 +54,27 @@ function clearTimers(timers: number[]) {
   timers.length = 0;
 }
 
+export function shouldShowPostBirthdayExperience(now = Date.now()) {
+  return now >= postBirthdayStartsAt;
+}
+
 export default function BirthdayMission() {
+  const [showPostBirthday, setShowPostBirthday] = useState(shouldShowPostBirthdayExperience);
+
+  useEffect(() => {
+    if (showPostBirthday) {
+      return;
+    }
+
+    const delayUntilCutover = Math.max(0, postBirthdayStartsAt - Date.now() + 50);
+    const cutoverTimer = window.setTimeout(() => setShowPostBirthday(true), delayUntilCutover);
+    return () => window.clearTimeout(cutoverTimer);
+  }, [showPostBirthday]);
+
+  return showPostBirthday ? <PostBirthdayMission /> : <LegacyBirthdayMission />;
+}
+
+function LegacyBirthdayMission() {
   const reducedMotion = usePrefersReducedMotion();
   const [introPhase, setIntroPhase] = useState<IntroPhase>("active");
   const [takeoverPhase, setTakeoverPhase] = useState<TakeoverPhase>("hidden");

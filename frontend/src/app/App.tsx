@@ -17,7 +17,7 @@ export default function App() {
 
   if (location.pathname.replace(/\/+$/, "") === "/birthday/mission-vi") {
     return (
-      <Suspense fallback={<div className="birthday-route-loading" role="status">Preparing your birthday mission…</div>}>
+      <Suspense fallback={<div className="birthday-route-loading" role="status">Loading Mission VI status…</div>}>
         <BirthdayMission />
       </Suspense>
     );
