@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 import "../styles/pages/birthday/post-birthday.css";
 
@@ -59,7 +59,7 @@ export function PostBirthdayMission() {
     });
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const html = document.documentElement;
     const body = document.body;
     const originalTitle = document.title;
@@ -67,9 +67,12 @@ export function PostBirthdayMission() {
     const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     const viewport = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
     const themeColour = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const existingColourScheme = document.querySelector<HTMLMetaElement>('meta[name="color-scheme"]');
+    const colourScheme = existingColourScheme ?? document.createElement("meta");
     const originalDescription = description?.content ?? "";
     const originalViewport = viewport?.content ?? "";
     const originalThemeColour = themeColour?.content ?? "";
+    const originalColourScheme = existingColourScheme?.content ?? "";
     const robots = document.createElement("meta");
 
     document.title = "Mission VI - The Wait Begins";
@@ -79,6 +82,11 @@ export function PostBirthdayMission() {
     description?.setAttribute("content", "Dad's Grand Theft Auto VI purchase is secured. The countdown to launch continues.");
     viewport?.setAttribute("content", "width=device-width, initial-scale=1, viewport-fit=cover");
     themeColour?.setAttribute("content", "#050809");
+    colourScheme.name = "color-scheme";
+    colourScheme.content = "only dark";
+    if (!existingColourScheme) {
+      document.head.appendChild(colourScheme);
+    }
     robots.name = "robots";
     robots.content = "noindex, nofollow, noarchive";
     document.head.appendChild(robots);
@@ -93,6 +101,11 @@ export function PostBirthdayMission() {
       description?.setAttribute("content", originalDescription);
       viewport?.setAttribute("content", originalViewport);
       themeColour?.setAttribute("content", originalThemeColour);
+      if (existingColourScheme) {
+        colourScheme.content = originalColourScheme;
+      } else {
+        colourScheme.remove();
+      }
       robots.remove();
     };
   }, []);

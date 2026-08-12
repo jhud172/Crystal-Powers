@@ -9,7 +9,8 @@ html.after-route-active-root {
     --after-safe: min(1180px, calc(100vw - 56px));
     --after-scroll: 0;
     --after-depth: 0px;
-    color-scheme: dark;
+    color-scheme: only dark;
+    background-color: #050809;
     scroll-behavior: smooth;
 }
 
@@ -36,6 +37,8 @@ body.after-route-active a {
 }
 
 body.after-route-active button {
+    appearance: none;
+    -webkit-appearance: none;
     font: inherit;
 }
 
