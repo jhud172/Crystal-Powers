@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout(
+        'Portfolio – Web Design Projects &amp; Case Studies',
+        'Browse Crystal Power''s portfolio of premium websites, landing pages, e-commerce builds, and digital case studies. See what a proper website design studio delivers.',
+        'portfolio',
+        'https://www.crystalpowers.co.uk/portfolio',
+        ~{portfolio/fragments/sections :: content},
+        ~{portfolio/fragments/sections :: scripts}
+      )}">
+</html>

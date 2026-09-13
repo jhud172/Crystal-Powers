@@ -1,6 +1,7 @@
+import { ModelStage } from "../features/experience/ModelStage";
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
-import { ContactFields, ContactFormState, initialContactForm } from "../features/contact/FormFields";
-import { PageHero } from "../components/PageHero";
+import { ContactFields, ContactFormState, ErrorText, initialContactForm } from "../features/contact/FormFields";
+import { useFormFeedback } from "../features/contact/useFormFeedback";
 import { additions, maintenanceOptions, packages } from "../features/services/services";
 
 type ApiResult = {
@@ -13,6 +14,7 @@ export function Contact() {
   const [form, setForm] = useState<ContactFormState>(initialContactForm);
   const [status, setStatus] = useState<ApiResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  useFormFeedback(status);
 
   const selectedPackage = useMemo(() => packages.find((item) => item.value === form.packageSelection), [form.packageSelection]);
   const selectedMaintenance = useMemo(() => maintenanceOptions.find((item) => item.value === form.maintenanceSelection), [form.maintenanceSelection]);
@@ -46,22 +48,14 @@ export function Contact() {
   }
 
   return (
-    <div className="page-stack">
-      <PageHero
-        eyebrow="Contact"
-        signal="Structured build intake"
-        title="A premium contact flow that behaves more like a guided build intake than a generic enquiry form."
-        body="Shape the package, additions, maintenance, and contact routing before sending a clearer first request."
-        actions={<><a href="#contact-builder" className="primary-button">Jump to the form</a><a href="/services" className="secondary-button">Review services first</a></>}
-        className="contact-scene"
-        visual={<div className="floating-cluster"><article className="floating-panel floating-panel-glass"><p className="floating-panel-kicker">Form logic</p><ul className="floating-list"><li>Live summary updates</li><li>Structured quote handoff</li><li>Clear scope selectors</li></ul></article></div>}
-      />
+    <div className="studio-contact studio-interior">
+      <header className="studio-page-heading studio-section studio-heading-with-art"><div className="studio-heading-copy"><p className="studio-eyebrow">CONTACT / A GOOD PLACE TO START</p><h1>What do you<br />have in mind?</h1><p className="studio-page-lead">A first idea, a business ready for something new, or an app you’ve been thinking about. Tell me a little about it.</p><div className="studio-actions"><a href="#contact-builder" className="studio-button">Start the conversation ↓</a><a href="/services" className="studio-text-link">Explore services ↗</a></div></div><ModelStage model="phone" title="Explore the mobile display" className="studio-heading-art" /></header>
       <section className="contact-builder" id="contact-builder">
         <aside className="contact-preview-column">
           <div className="contact-preview-intro">
-            <span className="eyebrow">Start a build</span>
-            <h1 className="services-hero-title">Shape the package, additions, and support level before the project brief is sent.</h1>
-            <p className="services-hero-body">Select the build direction, add the extras you actually need, then complete the contact details.</p>
+            <span className="studio-eyebrow">YOUR PROJECT</span>
+            <h2 className="services-hero-title">Let’s make<br />a beginning.</h2>
+            <p className="services-hero-body">You’ll speak directly with James. Not sure where your idea fits? Choose a tailored project scope and we can work through the details together.</p>
           </div>
           <div className="contact-preview-shell">
             <Preview label="Selected package" value={selectedPackage?.title ?? "Nothing selected yet"} meta={selectedPackage ? `${selectedPackage.price} - ${selectedPackage.note}` : "Choose a package from the form."} />
@@ -77,49 +71,52 @@ export function Contact() {
         </aside>
         <div className="services-form-shell contact-form-shell">
           <div className="services-form-intro contact-form-intro">
-            <p className="section-tag">Quote request</p>
-            <h2 className="mt-3 font-display text-3xl text-white">Build the request with the same structure used on the services page.</h2>
+            <p className="section-tag">LET’S TALK</p>
+            <h2 className="mt-3 font-display text-3xl text-white">A little about you.<br />A little about your idea.</h2>
           </div>
-          {status ? <div className={`premium-message form-status ${status.success ? "premium-message-success" : "premium-message-error"}`}>{status.message}</div> : null}
+          {status ? <div role={status.success ? "status" : "alert"} className={`premium-message form-status ${status.success ? "premium-message-success" : "premium-message-error"}`}>{status.message}</div> : null}
           <form className="contact-builder-form" onSubmit={submit} noValidate>
             <section className="contact-form-section services-form-span-two">
               <div className="contact-form-section-head">
                 <div>
                   <p className="section-tag">Contact details</p>
-                  <h3 className="contact-form-section-title">Add the person and reply route for the final handoff.</h3>
+                  <h3 className="contact-form-section-title">How can I reach you?</h3>
                 </div>
               </div>
               <div className="contact-form-section-grid">
-                <ContactFields form={form} errors={status?.fieldErrors ?? {}} onChange={updateForm} />
+                <ContactFields form={form} errors={status?.fieldErrors ?? {}} onChange={updateForm} includeScope={false} />
               </div>
             </section>
             <section className="contact-form-section services-form-span-two">
               <div className="contact-form-section-head">
                 <div>
                   <p className="section-tag">Build scope</p>
-                  <h3 className="contact-form-section-title">Select the package, additions, and maintenance path.</h3>
+                  <h3 className="contact-form-section-title">What kind of help do you need?</h3>
                 </div>
               </div>
               <div className="contact-select-stack">
                 <label className="field-label" htmlFor="packageSelection">Package</label>
-                <select id="packageSelection" name="packageSelection" className="field-input" value={form.packageSelection} onChange={updateForm}>
+                <select id="packageSelection" name="packageSelection" className="field-input" value={form.packageSelection} onChange={updateForm} aria-invalid={!!status?.fieldErrors?.packageSelection} aria-describedby="package-error" required>
                   <option value="">Select package</option>
                   {packages.map((item) => <option key={item.value} value={item.value}>{item.title}</option>)}
                 </select>
+                <ErrorText id="package-error" message={status?.fieldErrors?.packageSelection} />
                 <label className="field-label" htmlFor="selectedAdditions">Additions</label>
                 <select id="selectedAdditions" name="selectedAdditions" className="field-input" value={form.selectedAdditions} onChange={updateForm}>
                   <option value="">No additions selected</option>
                   {additions.map((item) => <option key={item.value} value={item.value}>{item.title}</option>)}
                 </select>
+                {form.selectedAdditions === "Other" && <><label htmlFor="otherAdditions" className="field-label">Custom additions</label><textarea id="otherAdditions" name="otherAdditions" className="field-input" value={form.otherAdditions} onChange={updateForm} rows={3} maxLength={1500} /><ErrorText message={status?.fieldErrors?.otherAdditions} /></>}
                 <label className="field-label" htmlFor="maintenanceSelection">Maintenance</label>
-                <select id="maintenanceSelection" name="maintenanceSelection" className="field-input" value={form.maintenanceSelection} onChange={updateForm}>
+                <select id="maintenanceSelection" name="maintenanceSelection" className="field-input" value={form.maintenanceSelection} onChange={updateForm} aria-invalid={!!status?.fieldErrors?.maintenanceSelection} aria-describedby="maintenance-error" required>
                   <option value="">Select maintenance</option>
                   {maintenanceOptions.map((item) => <option key={item.value} value={item.value}>{item.title}</option>)}
                 </select>
+                <ErrorText id="maintenance-error" message={status?.fieldErrors?.maintenanceSelection} />
               </div>
             </section>
             <div className="contact-form-submit services-form-span-two">
-              <p className="contact-form-submit-note">The completed request is sent through the same structured flow as the services builder so the quote starts with the chosen scope.</p>
+              <p className="contact-form-submit-note">Your details are used to respond to your enquiry. Sending this form doesn’t commit you to a project or payment.</p>
               <button type="submit" className="primary-button w-full sm:w-auto" disabled={isSubmitting}>{isSubmitting ? "Sending..." : "Send build request"}</button>
             </div>
           </form>

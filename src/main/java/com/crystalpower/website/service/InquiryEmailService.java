@@ -1,22 +1,13 @@
 package com.crystalpower.website.service;
 
 import com.crystalpower.website.dto.ContactForm;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.mail.MailAuthenticationException;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.HtmlUtils;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,65 +15,26 @@ import java.util.List;
 @Service
 public class InquiryEmailService {
 
-    private final JavaMailSender mailSender;
+    private final EmailTransport transport;
     private final String recipientAddress;
-    private final String fromAddress;
 
-    public InquiryEmailService(
-            ObjectProvider<JavaMailSender> mailSenderProvider,
-            @Value("${app.mail.to}") String recipientAddress,
-            @Value("${app.mail.from:}") String fromAddress) {
-        this.mailSender = mailSenderProvider.getIfAvailable();
+    public InquiryEmailService(EmailTransport transport, @Value("${app.mail.to}") String recipientAddress) {
+        this.transport = transport;
         this.recipientAddress = recipientAddress;
-        this.fromAddress = fromAddress;
     }
 
     public void sendInquiry(ContactForm form, MultipartFile[] referenceFiles, String sourceLabel) {
-        if (mailSender == null) {
-            throw new InquiryEmailException("Email sending is not configured yet. Add the SMTP environment variables before sending requests.");
-        }
-
-        if (!StringUtils.hasText(fromAddress)) {
-            throw new InquiryEmailException("Email sending is not configured yet. Set APP_MAIL_FROM or MAIL_USERNAME.");
-        }
-
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(
-                    message,
-                    true,
-                    StandardCharsets.UTF_8.name()
-            );
-
-            helper.setTo(recipientAddress);
-            helper.setFrom(fromAddress);
-
-            String replyToAddress = StringUtils.hasText(form.getEmail()) ? form.getEmail().trim() : fromAddress;
-            String replyToName = buildFullName(form);
-            if (StringUtils.hasText(replyToName)) {
-                helper.setReplyTo(replyToAddress, replyToName);
-            } else {
-                helper.setReplyTo(replyToAddress);
-            }
-
-            helper.setSubject(buildSubject(form, sourceLabel));
-            helper.setText(buildHtmlBody(form, sourceLabel, referenceFiles), true);
-
+            List<EmailTransport.Attachment> attachments = new ArrayList<>();
             for (MultipartFile file : getPopulatedFiles(referenceFiles)) {
-                String filename = StringUtils.hasText(file.getOriginalFilename())
-                        ? file.getOriginalFilename().trim()
-                        : "reference-upload";
-                helper.addAttachment(filename, new ByteArrayResource(file.getBytes()), file.getContentType());
+                attachments.add(new EmailTransport.Attachment(file.getOriginalFilename(), file.getContentType(), file.getBytes()));
             }
-
-            mailSender.send(message);
-        } catch (MailAuthenticationException exception) {
-            throw new InquiryEmailException("The SMTP credentials were rejected. Check the configured mail username and password.", exception);
-        } catch (MailException | MessagingException | IOException exception) {
-            throw new InquiryEmailException("The request could not be delivered by email right now.", exception);
+            transport.send(new EmailTransport.Message(recipientAddress, form.getEmail().trim(),
+                    buildSubject(form, sourceLabel).replaceAll("[\\r\\n]", " "), buildHtmlBody(form, sourceLabel, referenceFiles), attachments));
+        } catch (EmailTransport.DeliveryException | IOException exception) {
+            throw new InquiryEmailException("Your enquiry could not be delivered right now. Please try again later.", exception);
         }
     }
-
     private String buildSubject(ContactForm form, String sourceLabel) {
         String packageSelection = StringUtils.hasText(form.getPackageSelection())
                 ? form.getPackageSelection().trim()

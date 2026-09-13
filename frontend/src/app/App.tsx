@@ -11,6 +11,7 @@ import { Services } from "../routes/Services";
 import { Support } from "../routes/Support";
 
 const BirthdayMission = lazy(() => import("../routes/BirthdayMission"));
+const Admin = lazy(() => import("../routes/Admin"));
 
 export default function App() {
   const location = useLocation();
@@ -26,6 +27,7 @@ export default function App() {
   return (
     <Layout>
       <Routes>
+        <Route path="/admin/*" element={<Suspense fallback={<div className="studio-section" role="status">Opening the owner studio…</div>}><Admin /></Suspense>} />
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Navigate to="/" replace />} />
         <Route path="/about" element={<About />} />

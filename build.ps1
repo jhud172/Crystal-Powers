@@ -18,6 +18,7 @@ function Invoke-Step {
     Write-Host ""
     Write-Host "==> $Name" -ForegroundColor Cyan
     & $Command
+    if ($LASTEXITCODE -ne 0) { throw "$Name failed with exit code $LASTEXITCODE." }
 }
 
 if (-not (Test-Path -LiteralPath ".\gradlew.bat")) {
@@ -31,7 +32,7 @@ if (-not (Test-Path -LiteralPath ".\frontend\package.json")) {
 Invoke-Step "Installing frontend dependencies" {
     Push-Location ".\frontend"
     try {
-        npm install
+        npm ci
     } finally {
         Pop-Location
     }
@@ -67,9 +68,9 @@ Invoke-Step "Packaging Spring Boot jar" {
 
 if ($RunAfterBuild) {
     Invoke-Step "Starting Spring Boot app on port $Port" {
-        Remove-Item Env:\SKIP_FRONTEND_BUILD -ErrorAction SilentlyContinue
+        $env:SKIP_FRONTEND_BUILD = "true"
         $env:BOOTRUN_PORT = "$Port"
-        .\gradlew.bat bootRun
+        .\gradlew.bat bootRun --args="--spring.profiles.active=local"
     }
 } else {
     Write-Host ""

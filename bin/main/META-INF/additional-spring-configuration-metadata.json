@@ -1,0 +1,14 @@
+{
+  "properties": [
+    {
+      "name": "app.mail.to",
+      "type": "java.lang.String",
+      "description": "Recipient address for inquiry emails."
+    },
+    {
+      "name": "app.mail.from",
+      "type": "java.lang.String",
+      "description": "Optional sender address override for inquiry emails."
+    }
+  ]
+}

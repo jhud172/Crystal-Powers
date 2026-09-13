@@ -47,8 +47,8 @@ export type ScrollRevealController = {
  */
 export function initScrollReveal(prefersReducedMotion: boolean): ScrollRevealController {
   const noop: ScrollRevealController = {
-    refresh: () => {},
-    destroy: () => {},
+    refresh: revealAll,
+    destroy: () => document.body.classList.remove("reveal-ready"),
   };
 
   try {

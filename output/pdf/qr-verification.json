@@ -1,0 +1,43 @@
+{
+  "result": "QR_DECODE_AND_PDF_CHECKS_PASS",
+  "checks": [
+    {
+      "file": "crystal-powers-home-qr.png",
+      "decoded": "https://crystal-production.onrender.com/"
+    },
+    {
+      "file": "crystal-powers-business-card-back.png",
+      "decoded": "https://crystal-production.onrender.com/"
+    },
+    {
+      "printPdfDpi": 150,
+      "rotation": 0,
+      "decoded": "https://crystal-production.onrender.com/"
+    },
+    {
+      "printPdfDpi": 150,
+      "rotation": 90,
+      "decoded": "https://crystal-production.onrender.com/"
+    },
+    {
+      "printPdfDpi": 300,
+      "rotation": 0,
+      "decoded": "https://crystal-production.onrender.com/"
+    },
+    {
+      "printPdfDpi": 300,
+      "rotation": 90,
+      "decoded": "https://crystal-production.onrender.com/"
+    },
+    {
+      "printPdfDpi": 600,
+      "rotation": 0,
+      "decoded": "https://crystal-production.onrender.com/"
+    },
+    {
+      "printPdfDpi": 600,
+      "rotation": 90,
+      "decoded": "https://crystal-production.onrender.com/"
+    }
+  ]
+}

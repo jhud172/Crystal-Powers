@@ -1,30 +1,9 @@
 import { NavLink } from "react-router-dom";
-import { PageHero } from "../components/PageHero";
+import { ModelStage } from "../features/experience/ModelStage";
 
 export function Support() {
-  return (
-    <div className="page-stack">
-      <PageHero
-        eyebrow="Support"
-        signal="Aftercare and launch help"
-        title="Support that keeps the website stable, clear, and easier to improve after launch."
-        body="Use support when the project needs small fixes, content updates, guidance, or a cleaner next step after the site has gone live."
-        actions={<><NavLink to="/contact" className="primary-button">Request support</NavLink><NavLink to="/services" className="secondary-button">Review services</NavLink></>}
-        visual={<div className="floating-cluster"><article className="floating-panel floating-panel-glass"><p className="floating-panel-kicker">Support routes</p><ul className="floating-list"><li>Site edits and checks</li><li>Launch guidance</li><li>Maintenance planning</li></ul></article></div>}
-      />
-      <section className="content-band three-up-grid">
-        {[
-          ["Launch checks", "Final checks before a page or campaign goes live."],
-          ["Content edits", "Small text, image, and section changes after handover."],
-          ["Maintenance", "A clearer support route for websites that need ongoing attention."]
-        ].map(([title, copy]) => (
-          <article key={title} className="story-panel" data-reveal="up">
-            <p className="story-kicker">Support</p>
-            <h2 className="story-title-small">{title}</h2>
-            <p className="story-copy">{copy}</p>
-          </article>
-        ))}
-      </section>
-    </div>
-  );
+  return <div className="studio-support"><header className="studio-page-heading studio-section"><p className="studio-eyebrow">AFTER LAUNCH / HERE FOR WHAT’S NEXT</p><h1>Keep moving<br />forward.</h1><p className="studio-page-lead">Your website will grow with your business. I can help with the fixes, changes and next steps that keep it useful.</p><div className="studio-actions"><NavLink to="/contact" className="studio-button">Request support ↗</NavLink><NavLink to="/services" className="studio-text-link">View maintenance options ↗</NavLink></div></header>
+    <section className="studio-services studio-section"><p className="studio-eyebrow">CONTINUED CARE</p><div><h2>A familiar face.<br /><span className="studio-soft">A considered next step.</span></h2><div className="studio-service-list">{[["01", "Content & design updates", "New images, clearer copy, another service or a refreshed section. Keep your website in step with your business."], ["02", "Fixes & maintenance", "Help investigating an issue, checking connections or planning routine updates within your agreed support scope."], ["03", "New features & improvements", "When your needs change, we can discuss what to add, how it fits and what it will take to deliver."]].map(([number, title, copy]) => <article className="studio-service-row" key={number}><span className="studio-index">{number}</span><div><h3>{title}</h3><p>{copy}</p></div></article>)}</div></div></section>
+    <section className="studio-support-detail studio-section"><ModelStage model="monitor" title="A closer look" className="studio-device-stage" /><div><p className="studio-eyebrow">GETTING IN TOUCH</p><h2>Tell me what’s<br /><span className="studio-soft">happening.</span></h2><p>Include your website address, what you were trying to do and what happened. Screenshots and steps to reproduce an issue can help me understand it more quickly.</p><p>I’ll review the request with you and confirm the scope, timing and any cost before work begins. Response times depend on your agreed maintenance plan and availability.</p><NavLink to="/contact" className="studio-text-link">Start a support request ↗</NavLink></div></section>
+  </div>;
 }

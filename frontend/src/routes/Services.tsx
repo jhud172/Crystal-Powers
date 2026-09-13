@@ -1,8 +1,9 @@
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { ModelStage } from "../features/experience/ModelStage";
+import { ChangeEvent, FormEvent, useMemo, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { ContactFields, ContactFormState, ErrorText, initialContactForm } from "../features/contact/FormFields";
-import { PageHero } from "../components/PageHero";
 import { additions, maintenanceOptions, packages, SelectOption } from "../features/services/services";
+import { useFormFeedback } from "../features/contact/useFormFeedback";
 
 type ApiResult = {
   success: boolean;
@@ -17,6 +18,8 @@ export function Services() {
   const [files, setFiles] = useState<FileList | null>(null);
   const [status, setStatus] = useState<ApiResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+  useFormFeedback(status);
 
   const selectedPackage = useMemo(() => packages.find((item) => item.value === form.packageSelection), [form.packageSelection]);
   const selectedMaintenance = useMemo(() => maintenanceOptions.find((item) => item.value === form.maintenanceSelection), [form.maintenanceSelection]);
@@ -66,6 +69,7 @@ export function Services() {
         setSelectedAdditions([]);
         setOtherAddition("");
         setFiles(null);
+        if (fileInput.current) fileInput.current.value = "";
       }
     } catch {
       setStatus({ success: false, message: "The request could not be sent right now. Please try again shortly." });
@@ -75,24 +79,16 @@ export function Services() {
   }
 
   return (
-    <div className="page-stack services-page-stack">
-      <PageHero
-        eyebrow="Website packages"
-        signal="Structured quote builder"
-        title="Build the site around the package, additions, and support level that actually matches the workload."
-        body="Select one website package, choose any additions that sharpen the final delivery, then lock in a maintenance option before filling out the request details."
-        actions={<><a href="#main-packages-heading" className="primary-button">Choose a package</a><NavLink to="/contact" className="secondary-button">Send a custom brief</NavLink></>}
-        className="services-scene"
-        visual={<div className="floating-cluster services-hero-cluster"><article className="floating-panel floating-panel-glass services-hero-panel"><p className="services-panel-kicker">Required selections</p><ul className="services-panel-list"><li>Choose one package before moving to the summary.</li><li>Select one maintenance option so the ongoing support level is clear.</li><li>Additions stay optional and can be expanded only where they improve the build.</li></ul></article></div>}
-      />
+    <div className="studio-services-page studio-interior">
+      <header className="studio-page-heading studio-section studio-heading-with-art"><div className="studio-heading-copy"><p className="studio-eyebrow">SERVICES / BUILT AROUND YOUR AMBITION</p><h1>Something<br />uniquely yours.</h1><p className="studio-page-lead">Websites that make an impression. Apps that make things possible. Bespoke systems that make work simpler.</p><div className="studio-actions"><a href="#main-packages-heading" className="studio-button">Explore website packages ↓</a><NavLink to="/contact" className="studio-text-link">Discuss an app or bespoke build ↗</NavLink></div></div><ModelStage model="monitor" title="Explore the desktop display" className="studio-heading-art" /></header>
 
       <section className="pricing-shell" aria-labelledby="main-packages-heading">
         <div className="pricing-header services-section-header">
           <div>
             <p className="section-tag">Main packages</p>
-            <h2 id="main-packages-heading" className="mt-3 font-display text-3xl text-white sm:text-4xl">Choose the website build package</h2>
+            <h2 id="main-packages-heading" className="mt-3 font-display text-3xl text-white sm:text-4xl">Find your starting point.</h2>
           </div>
-          <p className="services-section-copy">Each package opens with the three core points that matter most. Select one before sending the final request.</p>
+          <p className="services-section-copy">Choose a package to shape your enquiry. We’ll confirm the final scope and cost together before work begins.</p>
         </div>
         <div className="pricing-grid services-choice-grid">
           {packages.map((option) => (
@@ -113,7 +109,7 @@ export function Services() {
         </div>
         <div className="addon-grid services-addon-grid">
           {additions.map((option) => (
-            <button key={option.value} type="button" className={`addon-select-card choice-card-button${selectedAdditions.includes(option.value) ? " is-selected" : ""}`} onClick={() => toggleAddition(option.value)}>
+            <button key={option.value} type="button" aria-pressed={selectedAdditions.includes(option.value)} className={`addon-select-card choice-card-button${selectedAdditions.includes(option.value) ? " is-selected" : ""}`} onClick={() => toggleAddition(option.value)}>
               <span className="addon-select-shell">
                 <span className="addon-select-title">{option.title}</span>
                 <span className="addon-select-copy">{option.description}</span>
@@ -152,7 +148,7 @@ export function Services() {
           <div className="pricing-header services-section-header services-summary-header">
             <div>
               <p className="section-tag">Selection preview</p>
-              <h2 className="mt-3 font-display text-3xl text-white">Review the package, additions, and support level before the final request.</h2>
+              <h2 className="mt-3 font-display text-3xl text-white">Your next chapter starts here.</h2>
             </div>
           </div>
           <div className="services-summary-grid">
@@ -167,17 +163,17 @@ export function Services() {
               </div>
             </aside>
             <form className="services-quote-form" onSubmit={submit} encType="multipart/form-data" noValidate>
-              {status ? <div className={`premium-message form-status ${status.success ? "premium-message-success" : "premium-message-error"}`}>{status.message}</div> : null}
+              {status ? <div role={status.success ? "status" : "alert"} className={`premium-message form-status ${status.success ? "premium-message-success" : "premium-message-error"}`}>{status.message}</div> : null}
               <ContactFields form={form} errors={status?.fieldErrors ?? {}} onChange={updateForm} />
               <div className="services-form-span-two">
                 <label htmlFor="referenceFiles" className="field-label">Photos / video upload</label>
                 <div className="services-file-picker">
-                  <input id="referenceFiles" name="referenceFiles" type="file" className="services-file-input" accept="image/*,video/*" multiple onChange={(event) => setFiles(event.target.files)} />
+                  <input ref={fileInput} id="referenceFiles" name="referenceFiles" type="file" className="services-file-input" accept="image/*,video/*" multiple onChange={(event) => setFiles(event.target.files)} aria-invalid={!!status?.fieldErrors?.referenceFiles} aria-describedby="uploads-error" />
                   <label htmlFor="referenceFiles" className="services-file-trigger">Choose files</label>
                   <p className="services-file-caption">{files?.length ? `${files.length} file${files.length === 1 ? "" : "s"} chosen` : "No files chosen"}</p>
                 </div>
                 <p className="services-upload-note">Accepted: images or short videos, up to five files and 15MB total across the whole request.</p>
-                <ErrorText message={status?.fieldErrors?.referenceFiles} />
+                <ErrorText id="uploads-error" message={status?.fieldErrors?.referenceFiles} />
               </div>
               <div className="services-form-span-two services-form-submit">
                 <p className="services-form-legal">Submitting sends the request with your selections, message, and any attached files that fit the upload limit.</p>

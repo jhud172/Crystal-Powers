@@ -1,0 +1,20 @@
+CRYSTAL POWERS - BUSINESS CARD
+
+Page 1: front. Page 2: back. Both are supplied upright.
+Finished size: 85 x 55 mm.
+Print PDF: 91 x 61 mm MediaBox, 85 x 55 mm TrimBox, 3 mm bleed on every side.
+Proof PDF: finished size, no bleed. Do not add it as extra print pages.
+Print at 100% scale. Ask the printer to honour the PDF TrimBox; crop marks are not drawn into the supplied bleed.
+
+The print PDF retains vector text, crystal mark and QR modules, with embedded fonts. Crystal artwork is raster, above 400 effective pixels per inch at its placed size. The PNG previews are 600 dpi. SVG versions retain editable text and embed the original artwork.
+
+Colour is RGB. The file is not certified PDF/X and does not embed a printer-specific CMYK profile. Ask the printer to convert using the profile for the chosen paper and press and to provide a proof.
+
+QR destination: https://crystal-production.onrender.com/
+This currently reaches the existing live Crystal Powers homepage. The local immersive rebuild is not deployed by creating these cards.
+QR: 23 mm including four-module quiet zone, Q error correction, black on white. Do not crop its white border or add a logo over its modules.
+Independent software decoding passed for the standalone QR, the back preview and the print PDF at 150/300/600 dpi in normal and rotated orientations. This is not a physical printed-card camera test.
+
+Details used: James / Founder & CEO. Email and phone were omitted because no preferred public details were supplied. Confirm the destination and name before ordering a print run, especially if using a custom domain.
+
+Reproducible source: assets/branding/build_business_card.py

@@ -6,7 +6,7 @@ Use for the homepage crystal scene or any future WebGL work.
 
 ## Rules
 
-- Preserve the real 3D crystal in `frontend/src/components/hero/CrystalOpenerScene.tsx`.
+- Preserve the original Blender collection and active real 3D stages in `frontend/src/features/experience/`. The earlier `components/hero/CrystalOpenerScene.tsx` is inactive legacy code.
 - React Three Fiber owns scene lifecycle.
 - Use Drei only where useful.
 - Lazy-load WebGL scenes with `React.lazy` and `Suspense`.
@@ -34,4 +34,3 @@ Use for the homepage crystal scene or any future WebGL work.
 ## Validation
 
 Run frontend build, inspect bundle sizes, test WebGL and fallback paths, check reduced motion, mobile, and console errors.
-

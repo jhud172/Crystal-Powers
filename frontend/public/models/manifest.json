@@ -1,0 +1,115 @@
+{
+  "source": "Original Crystal Powers Blender assets",
+  "models": {
+    "crystal": {
+      "bytes": 227840,
+      "meshes": 5,
+      "nodes": 7,
+      "animations": [
+        "CrystalTurn"
+      ]
+    },
+    "laptop": {
+      "bytes": 1322404,
+      "meshes": 104,
+      "nodes": 106,
+      "animations": [
+        "LaptopOpen"
+      ]
+    },
+    "monitor": {
+      "bytes": 62828,
+      "meshes": 5,
+      "nodes": 6,
+      "animations": []
+    },
+    "phone": {
+      "bytes": 91180,
+      "meshes": 7,
+      "nodes": 8,
+      "animations": []
+    }
+  },
+  "renders": {
+    "crystal-dark.webp": {
+      "width": 1600,
+      "height": 1000,
+      "bytes": 35110
+    },
+    "crystal-dark-800.webp": {
+      "width": 800,
+      "height": 500,
+      "bytes": 15082
+    },
+    "crystal-light.webp": {
+      "width": 1600,
+      "height": 1000,
+      "bytes": 26246
+    },
+    "crystal-light-800.webp": {
+      "width": 800,
+      "height": 500,
+      "bytes": 11284
+    },
+    "laptop-dark.webp": {
+      "width": 1600,
+      "height": 1120,
+      "bytes": 43400
+    },
+    "laptop-dark-800.webp": {
+      "width": 800,
+      "height": 560,
+      "bytes": 17386
+    },
+    "laptop-light.webp": {
+      "width": 1600,
+      "height": 1120,
+      "bytes": 37844
+    },
+    "laptop-light-800.webp": {
+      "width": 800,
+      "height": 560,
+      "bytes": 14864
+    },
+    "monitor-dark.webp": {
+      "width": 1600,
+      "height": 1120,
+      "bytes": 25668
+    },
+    "monitor-dark-800.webp": {
+      "width": 800,
+      "height": 560,
+      "bytes": 10352
+    },
+    "monitor-light.webp": {
+      "width": 1600,
+      "height": 1120,
+      "bytes": 19834
+    },
+    "monitor-light-800.webp": {
+      "width": 800,
+      "height": 560,
+      "bytes": 7896
+    },
+    "phone-dark.webp": {
+      "width": 1600,
+      "height": 1120,
+      "bytes": 15912
+    },
+    "phone-dark-800.webp": {
+      "width": 800,
+      "height": 560,
+      "bytes": 6118
+    },
+    "phone-light.webp": {
+      "width": 1600,
+      "height": 1120,
+      "bytes": 12298
+    },
+    "phone-light-800.webp": {
+      "width": 800,
+      "height": 560,
+      "bytes": 4574
+    }
+  }
+}

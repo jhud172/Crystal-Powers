@@ -1,0 +1,22 @@
+{
+  "homepage": "https://crystal-production.onrender.com/",
+  "name": "James",
+  "email": "",
+  "phone": "",
+  "trimMm": [
+    85,
+    55
+  ],
+  "bleedMm": 3,
+  "printPages": [
+    "front",
+    "back"
+  ],
+  "qrErrorCorrection": "Q",
+  "qrMatrixModules": 33,
+  "qrQuietZoneModules": 4,
+  "qrSizeMm": 23,
+  "previewDpi": 600,
+  "colourSpace": "RGB; printer to convert using their stock/profile",
+  "fonts": "Embedded Segoe UI / Segoe UI Bold; SVG text remains editable"
+}

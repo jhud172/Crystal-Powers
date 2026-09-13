@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.14'
+    id 'org.springframework.boot' version '3.5.16'
     id 'io.spring.dependency-management' version '1.1.5'
 }
 
@@ -17,14 +17,30 @@ repositories {
     mavenCentral()
 }
 
+// Security patches newer than the compatible Spring Boot BOM.
+ext['tomcat.version'] = '10.1.59'
+ext['jackson-bom.version'] = '2.21.5'
+ext['log4j2.version'] = '2.25.5'
+ext['postgresql.version'] = '42.7.12'
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+    implementation 'com.eatthepath:java-otp:1.0.0'
+    implementation 'commons-codec:commons-codec'
+    implementation 'com.twelvemonkeys.imageio:imageio-webp:3.15.0'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.h2database:h2'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
@@ -64,4 +80,35 @@ tasks.named('bootRun') {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.register('postgresTest', Test) {
+    description = 'Run integration tests against the explicitly named disposable local PostgreSQL database.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform()
+    def testUrl = providers.environmentVariable('PG_TEST_DATABASE_URL').orElse('')
+    doFirst {
+        if (!(testUrl.get() ==~ /jdbc:postgresql:\/\/127\.0\.0\.1:55432\/crystal_rebuild_test[a-z0-9_]*/)) {
+            throw new GradleException('PG_TEST_DATABASE_URL must name a disposable crystal_rebuild_test database on 127.0.0.1:55432.')
+        }
+        systemProperty 'spring.datasource.url', testUrl.get()
+        systemProperty 'spring.datasource.username', providers.environmentVariable('PG_TEST_DATABASE_USERNAME').get()
+        systemProperty 'spring.datasource.password', providers.environmentVariable('PG_TEST_DATABASE_PASSWORD').get()
+    }
+}
+
+tasks.register('runtimeDependencyInventory') {
+    description = 'Write resolved runtime versions for advisory checks.'
+    group = 'verification'
+    doLast {
+        def dependencies = configurations.runtimeClasspath.incoming.resolutionResult.allComponents.findAll {
+            it.id instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier
+        }.collect { [name: "${it.moduleVersion.group}:${it.moduleVersion.name}", version: it.moduleVersion.version] }.sort { it.name }
+        def output = file('.codex-runtime/qa/runtime-dependencies.json')
+        output.parentFile.mkdirs()
+        output.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(dependencies))
+        println "Resolved ${dependencies.size()} runtime dependencies."
+    }
 }

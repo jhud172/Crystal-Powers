@@ -1,53 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { useSiteTheme } from "../app/Layout";
-import { PageHero } from "../components/PageHero";
+import { ModelStage } from "../features/experience/ModelStage";
 
 export function About() {
-  const { assets } = useSiteTheme();
-
-  return (
-    <div className="page-stack">
-      <PageHero
-        eyebrow="About the studio"
-        signal="Structure-first execution"
-        title="Built around clean architecture, stronger digital presentation, and a premium finish that still feels controlled."
-        body="Crystal Powers operates like a focused implementation partner. The point is not to add noise. The point is to make the product, service, or launch surface feel sharper and more intentional from the first interaction."
-        actions={<><NavLink to="/services" className="primary-button">See services</NavLink><NavLink to="/portfolio" className="secondary-button">Open portfolio</NavLink></>}
-        visual={<div className="about-orbit-shell"><div className="orbital-ring orbital-ring-large" /><div className="orbital-ring orbital-ring-small" /><article className="floating-panel floating-panel-display"><img src={assets.homeBackdrop} alt="Abstract studio backdrop" className="floating-panel-image themed-media" /></article></div>}
-      />
-      <section className="content-band three-up-grid">
-        {[
-          ["Philosophy", "Fewer moving parts, higher trust", "Templates, styles, scripts, routes, and controller logic each keep one job so the system stays maintainable under real change."],
-          ["Delivery", "Production-first implementation", "Changes are wired into the actual application path instead of being left as detached mockups or half-integrated experiments."],
-          ["Experience", "Premium by control, not excess", "Typography, atmosphere, motion, and spacing do the work. The page should feel expensive before it feels loud."]
-        ].map(([kicker, title, copy]) => (
-          <article key={title} className="story-panel" data-reveal="up">
-            <p className="story-kicker">{kicker}</p>
-            <h2 className="story-title-small">{title}</h2>
-            <p className="story-copy">{copy}</p>
-          </article>
-        ))}
-      </section>
-      <section className="split-story-grid">
-        <article className="story-panel story-panel-large" data-reveal="up">
-          <span className="eyebrow">What that means in practice</span>
-          <div className="story-line-list">
-            {["Shared base layout instead of duplicated page shells.", "Dedicated JavaScript modules loaded only where they are needed.", "Dedicated CSS surfaces extended centrally so the whole site moves together.", "Routing and page structure kept aligned so older links and shared flows remain dependable."].map((copy, index) => (
-              <div className="story-line-item" key={copy}>
-                <span className="story-line-index">{String(index + 1).padStart(2, "0")}</span>
-                <p>{copy}</p>
-              </div>
-            ))}
-          </div>
-        </article>
-        <article className="story-panel story-panel-highlight" data-reveal="up">
-          <span className="eyebrow">Current studio profile</span>
-          <h2 className="story-title">Crystal Powers is positioned around premium websites, launch systems, and digital surfaces that need to feel more established.</h2>
-          <p className="story-copy">
-            The studio is not trying to be everything. The current focus is sharper public presentation, cleaner conversion flow, and implementation support that carries the design properly into the live app.
-          </p>
-        </article>
-      </section>
-    </div>
-  );
+  return <div className="studio-about">
+    <header className="studio-page-heading studio-section"><p className="studio-eyebrow">THE STUDIO / INDEPENDENT BY DESIGN</p><h1>Good work<br />starts with care.</h1><p className="studio-page-lead">A clear idea. A thoughtful approach. Someone who cares about the details as much as you do.</p></header>
+    <section className="studio-founder studio-section"><div><p className="studio-eyebrow">JAMES / FOUNDER & CEO</p><h2>The person<br /><span className="studio-soft">behind the pixels.</span></h2><p>I’m James, the founder of Crystal Powers. I design and develop websites, apps and bespoke digital systems for businesses and individuals who want something that feels their own.</p><p>Today, Crystal Powers is a one-person studio. You work directly with me from the first conversation through design, development and handover. That means a consistent point of contact and personal attention throughout your project.</p><NavLink to="/contact" className="studio-text-link">Let’s get acquainted ↗</NavLink></div><ModelStage model="crystal" className="studio-founder-art" title="Explore the studio signature" /></section>
+    <section className="studio-introduction studio-section"><p className="studio-eyebrow">THE WAY I WORK</p><div><h2>Thought through.<br /><span className="studio-soft">From every angle.</span></h2><div className="studio-service-list">{[["01", "Your business comes first.", "We start with the people you serve, the work you do and what your project needs to achieve. The design follows that understanding."], ["02", "The details belong together.", "Content, layout, interaction and development are part of the same experience. I consider how they work together on every screen."], ["03", "Built for the next chapter.", "A project should be straightforward to use and maintain. I aim for a clear handover and a sensible path for changes after launch."]].map(([number, title, body]) => <article className="studio-service-row" key={number}><span className="studio-index">{number}</span><div><h3>{title}</h3><p>{body}</p></div></article>)}</div></div></section>
+    <section className="studio-final studio-section"><p className="studio-eyebrow">LET’S BUILD SOMETHING THAT FITS</p><h2>Your idea.<br /><span>My full attention.</span></h2><NavLink to="/contact" className="studio-button">Tell me what you’re thinking ↗</NavLink></section>
+  </div>;
 }

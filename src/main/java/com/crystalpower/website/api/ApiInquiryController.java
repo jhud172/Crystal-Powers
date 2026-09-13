@@ -23,25 +23,30 @@ public class ApiInquiryController {
 
     private final InquiryEmailService inquiryEmailService;
     private final UploadValidationService uploadValidationService;
+    private final com.crystalpower.website.security.AttemptLimiter limiter;
 
     public ApiInquiryController(
             InquiryEmailService inquiryEmailService,
-            UploadValidationService uploadValidationService) {
+            UploadValidationService uploadValidationService, com.crystalpower.website.security.AttemptLimiter limiter) {
         this.inquiryEmailService = inquiryEmailService;
         this.uploadValidationService = uploadValidationService;
+        this.limiter = limiter;
     }
 
     @PostMapping("/api/contact")
     public ResponseEntity<ApiFormResponse> submitContact(
             @Valid @ModelAttribute ContactForm contactForm,
-            BindingResult bindingResult) {
+            BindingResult bindingResult, jakarta.servlet.http.HttpServletRequest request) {
 
         if (bindingResult.hasErrors()) {
             return validationResponse(bindingResult);
         }
 
         try {
+            limit(request, contactForm);
             inquiryEmailService.sendInquiry(contactForm, null, "Contact page");
+        } catch (org.springframework.web.server.ResponseStatusException exception) {
+            return errorResponse("Too many enquiries. Please wait before trying again.", HttpStatus.TOO_MANY_REQUESTS);
         } catch (InquiryEmailService.InquiryEmailException exception) {
             return errorResponse(exception.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
         }
@@ -53,7 +58,7 @@ public class ApiInquiryController {
     public ResponseEntity<ApiFormResponse> submitServicesQuote(
             @Valid @ModelAttribute ContactForm contactForm,
             BindingResult bindingResult,
-            @RequestParam(name = "referenceFiles", required = false) MultipartFile[] referenceFiles) {
+            @RequestParam(name = "referenceFiles", required = false) MultipartFile[] referenceFiles, jakarta.servlet.http.HttpServletRequest request) {
 
         String uploadErrorMessage = uploadValidationService.validateReferenceFiles(referenceFiles);
 
@@ -68,12 +73,21 @@ public class ApiInquiryController {
         }
 
         try {
+            limit(request, contactForm);
             inquiryEmailService.sendInquiry(contactForm, referenceFiles, "Services page");
+        } catch (org.springframework.web.server.ResponseStatusException exception) {
+            return errorResponse("Too many enquiries. Please wait before trying again.", HttpStatus.TOO_MANY_REQUESTS);
         } catch (InquiryEmailService.InquiryEmailException exception) {
             return errorResponse(exception.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
         }
 
         return ResponseEntity.ok(ApiFormResponse.success("Thanks. Your build request has been sent and the quote details are now in the inbox."));
+    }
+
+    private void limit(jakarta.servlet.http.HttpServletRequest request, ContactForm form) {
+        limiter.check("inquiry-ip:" + request.getRemoteAddr(), 15, 3600);
+        limiter.check("inquiry-email:" + org.apache.commons.codec.digest.DigestUtils.sha256Hex(form.getEmail().trim().toLowerCase(java.util.Locale.ROOT)), 5, 3600);
+        limiter.check("inquiry-daily", 60, 86400);
     }
 
     private ResponseEntity<ApiFormResponse> validationResponse(BindingResult bindingResult) {

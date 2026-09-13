@@ -13,3 +13,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .DS_Store
+
+.codex-runtime
+.codex-temp
+assets
+docs
+bin
+*.log
+*.blend
+*.blend1

@@ -1,376 +1,94 @@
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { defaultTheme, getThemeAssets, isThemeId, navItems, ThemeAssets, ThemeId, themes } from "../data/site";
-import { initCursorAura, initScrollReveal, initTilt, ScrollRevealController } from "../lib/interactions";
+import { NavLink, useLocation, useNavigationType } from "react-router-dom";
+import { defaultTheme, getThemeAssets, isThemeId, navItems, ThemeAssets, ThemeId } from "../data/site";
+import { initScrollReveal } from "../lib/interactions";
+import { ExperienceProvider } from "../features/experience/ExperienceContext";
+import { RouteMetadata } from "./RouteMetadata";
 
-const themeCookieName = "crystal_theme";
-
-type SiteThemeContextValue = {
-  theme: ThemeId;
-  assets: ThemeAssets;
-};
-
+type SiteThemeContextValue = { theme: ThemeId; assets: ThemeAssets };
 const SiteThemeContext = createContext<SiteThemeContextValue | null>(null);
-
 export function useSiteTheme() {
-  const context = useContext(SiteThemeContext);
-
-  if (!context) {
-    return {
-      theme: defaultTheme,
-      assets: getThemeAssets(defaultTheme)
-    };
-  }
-
-  return context;
+  return useContext(SiteThemeContext) ?? { theme: defaultTheme, assets: getThemeAssets(defaultTheme) };
 }
 
-function getCookieValue(name: string) {
-  return document.cookie
-    .split(";")
-    .map((entry) => entry.trim())
-    .find((entry) => entry.startsWith(`${name}=`))
-    ?.split("=")[1];
+function initialTheme(): ThemeId {
+  if (typeof document === "undefined") return defaultTheme;
+  const value = document.cookie.split(";").map((item) => item.trim()).find((item) => item.startsWith("crystal_theme="))?.slice(14);
+  try { const decoded = decodeURIComponent(value ?? ""); return isThemeId(decoded) ? decoded : defaultTheme; }
+  catch { return defaultTheme; }
 }
 
-function persistTheme(theme: ThemeId) {
-  document.cookie = `${themeCookieName}=${encodeURIComponent(theme)}; Max-Age=31536000; Path=/; SameSite=Lax`;
+export function CrystalMark() {
+  return <svg viewBox="0 0 40 48" fill="none" aria-hidden="true"><path d="M20 2 35 13v22L20 46 5 35V13L20 2Z" stroke="currentColor" strokeWidth="1.4" /><path d="m20 2 7 15-7 29-7-29 7-15ZM5 13l8 4 14 0 8-4M5 35l15-9 15 9" stroke="currentColor" strokeWidth="1" /></svg>;
 }
 
 export function Layout({ children }: PropsWithChildren) {
   const location = useLocation();
-  const [theme, setTheme] = useState<ThemeId>(() => {
-    if (typeof document === "undefined") {
-      return defaultTheme;
-    }
-
-    const cookieTheme = decodeURIComponent(getCookieValue(themeCookieName) ?? "");
-    return isThemeId(cookieTheme) ? cookieTheme : defaultTheme;
-  });
-  const [isThemeOpen, setIsThemeOpen] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
-  const [isHeaderHidden, setIsHeaderHidden] = useState(false);
-
-  const activeTheme = useMemo(() => themes.find((item) => item.id === theme) ?? themes[0], [theme]);
-  const activeAssets = useMemo(() => getThemeAssets(theme), [theme]);
-  const themeContextValue = useMemo(() => ({ theme, assets: activeAssets }), [activeAssets, theme]);
-
-  // Interaction systems — initialised once on mount, cleaned up on unmount.
-  const revealRef = useRef<ScrollRevealController | null>(null);
-
-  useEffect(() => {
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    const cursorCleanup = initCursorAura(reducedMotion);
-    const tiltCleanup = initTilt(reducedMotion);
-    revealRef.current = initScrollReveal(reducedMotion);
-
-    return () => {
-      cursorCleanup();
-      tiltCleanup();
-      revealRef.current?.destroy();
-      revealRef.current = null;
-    };
-  }, []);
-
-  // Refresh scroll reveal after route changes so newly mounted elements are observed.
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => {
-      revealRef.current?.refresh();
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [location.pathname]);
+  const navigationType = useNavigationType();
+  const [theme, setTheme] = useState<ThemeId>(initialTheme);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const appearanceButton = useRef<HTMLButtonElement>(null);
+  const main = useRef<HTMLElement>(null);
+  const firstRoute = useRef(true);
+  const light = ["clean", "fresh", "summer-vibes"].includes(theme);
+  const value = useMemo(() => ({ theme, assets: getThemeAssets(theme) }), [theme]);
 
   useEffect(() => {
     document.body.dataset.theme = theme;
     document.body.classList.add("theme-ready");
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", activeTheme.color);
-    persistTheme(theme);
-  }, [activeTheme.color, theme]);
-
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", light ? "#f2f0eb" : "#0b1018");
+    document.cookie = `crystal_theme=${encodeURIComponent(theme)}; Max-Age=31536000; Path=/; SameSite=Lax`;
+  }, [theme, light]);
   useEffect(() => {
-    setIsMenuOpen(false);
-    setIsThemeOpen(false);
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reveal = initScrollReveal(media.matches);
+    const refreshMotion = () => { reveal.destroy(); reveal = initScrollReveal(media.matches); };
+    media.addEventListener("change", refreshMotion);
+    return () => { reveal.destroy(); media.removeEventListener("change", refreshMotion); };
   }, [location.pathname]);
-
   useEffect(() => {
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const scrolledThreshold = 72;
-    const hideThreshold = 180;
-    const directionThreshold = 10;
-    let lastScrollY = Math.max(window.scrollY, 0);
-    let rafId = 0;
-
-    const updateHeaderState = () => {
-      const currentScrollY = Math.max(window.scrollY, 0);
-      const delta = currentScrollY - lastScrollY;
-      const shouldBeScrolled = currentScrollY > scrolledThreshold;
-
-      setIsHeaderScrolled((wasScrolled) => (wasScrolled === shouldBeScrolled ? wasScrolled : shouldBeScrolled));
-
-      if (reducedMotion || currentScrollY < hideThreshold || delta < -directionThreshold) {
-        setIsHeaderHidden(false);
-      } else if (delta > directionThreshold) {
-        setIsHeaderHidden(true);
-      }
-
-      lastScrollY = currentScrollY;
-      rafId = 0;
-    };
-
-    const requestHeaderUpdate = () => {
-      if (rafId === 0) {
-        rafId = requestAnimationFrame(updateHeaderState);
-      }
-    };
-
-    updateHeaderState();
-    window.addEventListener("scroll", requestHeaderUpdate, { passive: true });
-    window.addEventListener("resize", requestHeaderUpdate);
-
-    return () => {
-      window.removeEventListener("scroll", requestHeaderUpdate);
-      window.removeEventListener("resize", requestHeaderUpdate);
-      if (rafId !== 0) {
-        cancelAnimationFrame(rafId);
-      }
-    };
-  }, []);
-
+    setMenuOpen(false); setAppearanceOpen(false);
+    if (firstRoute.current) { firstRoute.current = false; return; }
+    if (navigationType !== "POP") window.scrollTo({ top: 0, behavior: "instant" });
+    main.current?.focus({ preventScroll: true });
+  }, [location.pathname, navigationType]);
   useEffect(() => {
-    if (isMenuOpen || isThemeOpen) {
-      setIsHeaderHidden(false);
+    function escape(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      if (menuOpen) { setMenuOpen(false); menuButton.current?.focus(); }
+      if (appearanceOpen) { setAppearanceOpen(false); appearanceButton.current?.focus(); }
     }
-  }, [isMenuOpen, isThemeOpen]);
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, [menuOpen, appearanceOpen]);
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsMenuOpen(false);
-        setIsThemeOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  const headerClassName = [
-    "site-header",
-    isHeaderScrolled ? "is-scrolled" : "",
-    isHeaderHidden && !isMenuOpen && !isThemeOpen ? "is-hidden" : ""
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  return (
-    <SiteThemeContext.Provider value={themeContextValue}>
-      <div className="pointer-events-none absolute inset-0 -z-30 bg-ink" />
-      <div className="site-grid-overlay" aria-hidden="true" />
-      <div className="site-noise-overlay" aria-hidden="true" />
-      <div className="site-cursor-aura" aria-hidden="true" />
-      <div className="site-glow site-glow-top" />
-      <div className="site-glow site-glow-side" />
-      <div className="site-glow site-glow-bottom" />
-
-      <header className={headerClassName} data-header-ready="true">
-        <div className="site-header-inner">
-          <span className="site-header-orbit site-header-orbit-left" aria-hidden="true" />
-          <span className="site-header-orbit site-header-orbit-right" aria-hidden="true" />
-          <div className="site-header-ufo" aria-hidden="true">
-            <span className="site-header-ufo-ring" />
-            <span className="site-header-ufo-ring" />
-            <span className="site-header-ufo-ring" />
-            <span className="site-header-ufo-ring" />
-            <span className="site-header-ufo-ring" />
-            <span className="site-header-ufo-pool" />
+  return <SiteThemeContext.Provider value={value}><ExperienceProvider>
+    <RouteMetadata />
+    <div className="studio-shell" data-appearance={light ? "light" : "dark"}>
+      <a className="studio-skip" href="#main-content">Skip to content</a>
+      <header className="studio-header">
+        <NavLink to="/" className="studio-brand" aria-label="Crystal Powers home"><CrystalMark /><span>CRYSTAL<br />POWERS</span></NavLink>
+        <nav className="studio-desktop-nav" aria-label="Primary navigation"><NavLink to="/portfolio">Work</NavLink><NavLink to="/services">Services</NavLink><NavLink to="/about">Studio</NavLink><NavLink to="/support">Support</NavLink></nav>
+        <div className="studio-header-actions">
+          <div className="studio-appearance">
+            <button ref={appearanceButton} type="button" className="studio-icon-button" aria-label="Choose appearance" aria-expanded={appearanceOpen} aria-controls="appearance-panel" onClick={() => setAppearanceOpen((open) => !open)}><span aria-hidden="true">{light ? "◐" : "◑"}</span></button>
+            {appearanceOpen && <div id="appearance-panel" className="studio-appearance-panel">
+              <p>Make yourself at home.</p>
+              {([{ id: "futuristic", label: "Dark" }, { id: "clean", label: "Light" }, { id: "classic", label: "Warm dark" }, { id: "fresh", label: "Fresh light" }, { id: "summer-vibes", label: "Warm light" }] as const).map((option) => <button type="button" key={option.id} aria-pressed={theme === option.id} onClick={() => { setTheme(option.id); setAppearanceOpen(false); appearanceButton.current?.focus(); }}>{option.label}<span aria-hidden="true">{theme === option.id ? "●" : "○"}</span></button>)}
+            </div>}
           </div>
-
-          <NavLink to="/" className="brand-link">
-            <span className="brand-mark-shell" aria-hidden="true">
-              <span className="brand-badge">
-                <picture className="brand-badge-motion">
-                  <source srcSet={activeAssets.brandMotionWebp} type="image/webp" />
-                  <img src={activeAssets.brandMotionGif} alt="" className="brand-badge-image themed-media" />
-                </picture>
-                <img src={activeAssets.brandMark} alt="" className="brand-badge-image brand-badge-static themed-media" />
-              </span>
-            </span>
-            <span className="brand-copy">
-              <span className="brand-kicker">Digital studio</span>
-              <span className="brand-title-row">
-                <span className="brand-title">Crystal Powers</span>
-              </span>
-            </span>
-          </NavLink>
-
-          <div className="site-header-command hidden md:flex">
-            <div className="site-header-theme-shell">
-              <ThemePicker
-                activeTheme={activeTheme}
-                isOpen={isThemeOpen}
-                onOpenChange={setIsThemeOpen}
-                onThemeChange={setTheme}
-              />
-            </div>
-
-            <nav className="site-nav" aria-label="Primary navigation">
-              {navItems.map((item) => (
-                <NavLink key={item.href} to={item.href} className={({ isActive }) => `nav-link${isActive ? " nav-link-active" : ""}`}>
-                  {item.label}
-                </NavLink>
-              ))}
-            </nav>
-          </div>
-
-          <div className="site-header-utility hidden md:flex">
-            <NavLink to="/contact" className="primary-button site-cta">
-              <span className="site-cta-label">Start a build</span>
-              <span className="site-cta-meta">Book intro</span>
-            </NavLink>
-          </div>
-
-          <div className="site-header-mobile-utility md:hidden">
-            <div className="site-header-mobile-actions">
-              <ThemePicker
-                activeTheme={activeTheme}
-                isOpen={isThemeOpen}
-                onOpenChange={setIsThemeOpen}
-                onThemeChange={setTheme}
-              />
-              <button
-                type="button"
-                data-nav-toggle
-                aria-controls="mobile-nav-panel"
-                aria-expanded={isMenuOpen}
-                className="nav-toggle mobile-menu-button"
-                onClick={() => setIsMenuOpen((value) => !value)}
-              >
-                <span className="nav-toggle-label">Menu</span>
-                <span className="nav-toggle-icon" aria-hidden="true">
-                  <span />
-                  <span />
-                </span>
-              </button>
-            </div>
-          </div>
+          <NavLink to="/contact" className="studio-header-contact">Let’s talk <span aria-hidden="true">↗</span></NavLink>
+          <button ref={menuButton} type="button" className="studio-menu-button" aria-expanded={menuOpen} aria-controls="studio-mobile-menu" onClick={() => setMenuOpen((open) => !open)}>{menuOpen ? "Close" : "Menu"} <span aria-hidden="true">{menuOpen ? "×" : "+"}</span></button>
         </div>
-
-        <nav
-          id="mobile-nav-panel"
-          className="mobile-nav-panel md:hidden"
-          data-open={isMenuOpen}
-          aria-hidden={!isMenuOpen}
-          aria-label="Mobile navigation"
-        >
-          <div className="mobile-nav-panel-inner">
-            {navItems.map((item) => (
-              <NavLink key={item.href} to={item.href} className={({ isActive }) => `nav-link mobile-nav-link${isActive ? " nav-link-active" : ""}`}>
-                {item.label}
-              </NavLink>
-            ))}
-            <div className="mobile-nav-cta-shell">
-              <NavLink to="/contact" className="primary-button site-cta site-cta-mobile">
-                <span className="site-cta-label">Start a build</span>
-                <span className="site-cta-meta">Book intro</span>
-              </NavLink>
-            </div>
-          </div>
-        </nav>
+        {menuOpen && <nav id="studio-mobile-menu" className="studio-mobile-menu" aria-label="Mobile navigation">{navItems.map((item, index) => <NavLink key={item.href} to={item.href}><span className="studio-index">0{index + 1}</span>{item.label}<span aria-hidden="true">↗</span></NavLink>)}</nav>}
       </header>
-
-      <main className="react-page-main">{children}</main>
-
-      <footer className="site-footer">
-        <div className="site-footer-transition" aria-hidden="true">
-          <span className="site-footer-transition-line" />
-          <span className="site-footer-transition-orbit site-footer-transition-orbit-left" />
-          <span className="site-footer-transition-orbit site-footer-transition-orbit-right" />
-          <span className="site-footer-transition-core" />
-        </div>
-        <div className="site-footer-panel">
-          <div className="site-footer-grid">
-            <div className="footer-brand">
-              <span className="eyebrow">Studio profile</span>
-              <h2 className="footer-title">Customer-facing digital builds with a cinematic first impression and a cleaner route to action.</h2>
-              <p className="footer-copy">
-                Crystal Powers focuses on premium websites, launch systems, app-facing experiences, and the supporting surfaces that make the business feel more established from the first screen.
-              </p>
-            </div>
-            <div className="footer-column">
-              <p className="footer-heading">Explore</p>
-              <div className="footer-links">
-                {navItems.map((item) => (
-                  <NavLink key={item.href} to={item.href} className="footer-link">
-                    {item.label}
-                  </NavLink>
-                ))}
-              </div>
-            </div>
-            <div className="footer-column">
-              <p className="footer-heading">Build focus</p>
-              <ul className="footer-list">
-                <li>Premium websites and launch surfaces</li>
-                <li>Product-style presentation for real services</li>
-                <li>Interactive marketing and portfolio experiences</li>
-                <li>Clearer conversion paths without feature bloat</li>
-              </ul>
-            </div>
-          </div>
-          <div className="site-footer-meta">
-            <p>&copy; 2026 Crystal Powers. Built for polished launches, cleaner product presentation, and better first impressions.</p>
-            <div className="site-footer-meta-links">
-              <NavLink to="/about" className="footer-link">About</NavLink>
-              <NavLink to="/contact" className="footer-link">Contact</NavLink>
-            </div>
-          </div>
-        </div>
+      <main ref={main} tabIndex={-1} id="main-content" className="studio-main">{children}</main>
+      <footer className="studio-footer">
+        <div className="studio-footer-top"><NavLink to="/" className="studio-brand"><CrystalMark /><span>CRYSTAL<br />POWERS</span></NavLink><p>Independent thinking.<br />Exceptional digital experiences.</p><NavLink to="/contact" className="studio-text-link">Start a conversation <span aria-hidden="true">↗</span></NavLink></div>
+        <div className="studio-footer-bottom"><p>© {new Date().getFullYear()} Crystal Powers</p><p>Founded and developed by James.</p><nav aria-label="Footer navigation"><NavLink to="/portfolio">Work</NavLink><NavLink to="/about">Studio</NavLink><NavLink to="/contact">Contact</NavLink></nav></div>
       </footer>
-    </SiteThemeContext.Provider>
-  );
-}
-
-type ThemePickerProps = {
-  activeTheme: { id: ThemeId; label: string };
-  isOpen: boolean;
-  onOpenChange: (isOpen: boolean) => void;
-  onThemeChange: (theme: ThemeId) => void;
-};
-
-function ThemePicker({ activeTheme, isOpen, onOpenChange, onThemeChange }: ThemePickerProps) {
-  return (
-    <div className="theme-picker" data-theme-picker="true" data-theme-open={isOpen} data-theme-state={isOpen ? "open" : "closed"} data-active-theme={activeTheme.id}>
-      <button
-        type="button"
-        className="theme-picker-trigger"
-        aria-expanded={isOpen}
-        aria-haspopup="true"
-        aria-label="Choose a site theme"
-        onClick={() => onOpenChange(!isOpen)}
-      >
-        <span className="theme-picker-copy">
-          <span className="theme-picker-label">Theme</span>
-          <span className="theme-picker-value">{activeTheme.label}</span>
-        </span>
-        <span className="theme-picker-chevron" aria-hidden="true" />
-      </button>
-      <div className="theme-picker-menu" hidden={!isOpen}>
-        {themes.map((theme) => (
-          <button
-            key={theme.id}
-            type="button"
-            className="theme-picker-option"
-            data-theme-active={String(theme.id === activeTheme.id)}
-            onClick={() => {
-              onThemeChange(theme.id);
-              onOpenChange(false);
-            }}
-          >
-            {theme.label}
-          </button>
-        ))}
-      </div>
     </div>
-  );
+  </ExperienceProvider></SiteThemeContext.Provider>;
 }

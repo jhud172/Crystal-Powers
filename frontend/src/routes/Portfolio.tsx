@@ -1,33 +1,19 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { useSiteTheme } from "../app/Layout";
-import { PageHero } from "../components/PageHero";
-import { getPortfolioProjectImage, portfolioProjects } from "../features/portfolio/portfolio";
+import { categoryLabel, imageUrl, ProjectContent, usePublishedProjects } from "../features/portfolio/projectApi";
 
 export function Portfolio() {
-  const { assets, theme } = useSiteTheme();
-
-  return (
-    <div className="page-stack">
-      <PageHero
-        eyebrow="Portfolio"
-        signal="Selected digital surfaces"
-        title="Work framed around clearer presentation, stronger hierarchy, and more confident first impressions."
-        body="These project views show the type of direction Crystal Powers brings to websites, launch pages, portfolios, storefronts, and structured service surfaces."
-        actions={<><NavLink to="/services" className="primary-button">Plan a build</NavLink><NavLink to="/contact" className="secondary-button">Send a brief</NavLink></>}
-        visual={<div className="floating-cluster"><article className="floating-panel floating-panel-display"><img src={assets.portfolioFeatured} alt="Featured portfolio preview" className="floating-panel-image themed-media" /></article></div>}
-      />
-      <section className="project-band">
-        {portfolioProjects.map((project) => (
-          <NavLink key={project.slug} to={`/portfolio/${project.slug}`} className="project-band-card" data-tilt data-tilt-max="4" data-tilt-scale="1.01">
-            <img src={getPortfolioProjectImage(project, theme)} alt={`${project.title} preview`} className="project-band-image themed-media" />
-            <div className="project-band-copy">
-              <p className="section-tag">{project.meta}</p>
-              <h2 className="project-band-title">{project.title}</h2>
-              <p className="project-band-body">{project.summary}</p>
-            </div>
-          </NavLink>
-        ))}
-      </section>
-    </div>
-  );
+  const { projects, loading, error, refresh } = usePublishedProjects();
+  const [filter, setFilter] = useState<ProjectContent["category"] | "ALL">("ALL");
+  const shown = projects.filter(project => filter === "ALL" || project.content.category === filter);
+  return <div className="studio-portfolio">
+    <header className="studio-page-heading studio-section"><p className="studio-eyebrow">THE WORK / CRYSTAL POWERS</p><h1>Ideas, made real.</h1><p className="studio-page-lead">A closer look at the websites, apps and systems I’ve designed and developed. Each one with a purpose. Each one its own.</p></header>
+    <section className="studio-section studio-project-list" aria-label="Projects">
+      <div className="studio-device-tabs" role="group" aria-label="Filter projects">{(["ALL", "WEBSITE", "APP", "SYSTEM"] as const).map(category => <button type="button" key={category} onClick={() => setFilter(category)} aria-pressed={category === filter}>{category === "ALL" ? "All work" : categoryLabel[category]}</button>)}</div>
+      {loading ? <p className="studio-empty" role="status">Loading the work…</p> : error ? <div className="studio-empty" role="status"><h2>The showcase is taking a moment.</h2><p>Please try again, or get in touch to discuss your project.</p><button className="studio-button" onClick={refresh}>Try again</button></div> : shown.length === 0 ? <div className="studio-empty"><h2>{projects.length ? "More to come." : "The next chapter is taking shape."}</h2><p>{projects.length ? "There are no published projects in this category yet." : "New projects will appear here as they’re ready to share. In the meantime, let’s talk about what you have in mind."}</p><NavLink className="studio-text-link" to="/contact">Start a conversation ↗</NavLink></div> : shown.map((project, index) => <article className="studio-project-entry" key={project.id}>
+        <NavLink className="studio-project-image-link" to={`/portfolio/${project.slug}`} aria-label={`Explore ${project.content.title}`}>{project.content.coverMediaId && <img src={imageUrl(project.content.coverMediaId)} alt={project.content.coverAlt} loading={index === 0 ? "eager" : "lazy"} />}<span>Explore project <span aria-hidden="true">↗</span></span></NavLink>
+        <div className="studio-project-entry-copy"><p className="studio-eyebrow">{String(index + 1).padStart(2, "0")} / {categoryLabel[project.content.category]}</p><div><h2><NavLink to={`/portfolio/${project.slug}`}>{project.content.title}</NavLink></h2><p>{project.content.summary}</p></div><NavLink className="studio-text-link" to={`/portfolio/${project.slug}`}>View project ↗</NavLink></div>
+      </article>)}
+    </section>
+  </div>;
 }

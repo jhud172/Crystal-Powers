@@ -1,43 +1,19 @@
-# Project Status
+# Project status — 13 September 2026
 
-## Overview
+Crystal Powers is an immersive portfolio and enquiry website with an owner publishing studio. The rebuild is on `James/immersive-rebuild`, based on verified upstream `6bfba8d`; it has not been pushed or deployed.
 
-Crystal Powers now uses a clean React + Spring Boot architecture.
+## Implemented
 
-- React/Vite/Tailwind is the only public frontend.
-- Spring Boot provides JSON APIs and serves the production React build.
-- Legacy Thymeleaf routing has been replaced by the React SPA. Inactive source templates still exist under `src/main/resources/templates/` and should be treated as deferred cleanup, not active public UI.
+- React 19 / TypeScript / Vite frontend, Spring Boot 3.5.16 backend.
+- Complete public design across home, work, case studies, services, studio, support, contact and errors; existing birthday route and legacy redirects retained.
+- Original Blender crystal, laptop, monitor and phone, editable scenes, light/dark Cycles images, cinematic films and real interactive GLBs. Five appearance preferences, keyboard controls, reduced motion, static fallbacks and one active canvas.
+- `/admin` owner setup, password plus mandatory authenticator MFA, single-use recovery, session renewal, account security and password reset.
+- Private drafts, immutable revisions, restoration, preview, screenshot uploads, publication, unpublication, featured ordering and recoverable archive. Older unverified sample projects remain private.
+- PostgreSQL/Flyway production data, protected private Supabase media, HTTPS Resend integration and preserved enquiry validation/upload contracts.
+- Server-generated public metadata, sitemap, noindex for private routes, CSRF/session protection, throttling and sanitised images.
 
-## Current Architecture
+## Validation and launch
 
-- Frontend source: `frontend/`
-- Backend source: `src/main/java/com/crystalpower/website/`
-- API controllers: `src/main/java/com/crystalpower/website/api/`
-- Web forwarding/redirects: `src/main/java/com/crystalpower/website/web/`
-- Backend services: `src/main/java/com/crystalpower/website/service/`
-- Documentation: `docs/`
+Read `REBUILD_QA.md` for completed checks and limits, `OWNER_STUDIO.md` for publishing, and `DEPLOYMENT.md` for account configuration and recovery. Local mail is intentionally disabled. Real Supabase storage, delivered email, public owner enrolment, DNS and live deployment still require James's accounts and approval.
 
-## Active Public Routes
-
-- `/`
-- `/about`
-- `/services`
-- `/portfolio`
-- `/portfolio/:slug`
-- `/support`
-- `/contact`
-
-## Active API Endpoints
-
-- `POST /api/contact`
-- `POST /api/services`
-
-The services endpoint supports image/video uploads with file count, content type, and total size validation.
-
-## Cleanup Status
-
-- Old root npm/Tailwind build removed.
-- Old Thymeleaf UI removed from active routing; inactive template files remain in source for audit/deferred cleanup.
-- Duplicate Spring static frontend assets removed.
-- Project notes moved under `docs/`.
-- Gradle remains the production build orchestrator.
+The existing Render service in My Workspace uses Starter and auto-deploys main. The new blueprint requests free hosting with automatic deployment disabled; it has not changed that service. Do not merge or push main before resolving this launch boundary.

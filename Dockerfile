@@ -20,8 +20,11 @@ RUN chmod +x ./gradlew && ./gradlew --no-daemon bootJar
 
 FROM eclipse-temurin:17-jre-jammy AS runtime
 WORKDIR /app
+RUN groupadd --system crystal && useradd --system --gid crystal --home /app crystal
 
 COPY --from=app-build /app/build/libs/*.jar /app/app.jar
+USER crystal
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=60.0 -XX:+ExitOnOutOfMemoryError -Djava.awt.headless=true"
 
 EXPOSE 10000
 

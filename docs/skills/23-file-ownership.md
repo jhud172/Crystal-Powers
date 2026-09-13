@@ -16,7 +16,11 @@ Use before adding, moving, or editing files.
 - Shared types: `frontend/src/types/`.
 - Shared data: `frontend/src/data/`.
 - Styles: `frontend/src/styles/`.
-- Three.js hero: `frontend/src/components/hero/CrystalOpenerScene.tsx`.
+- Active 3D stages, rendering and motion lifecycle: `frontend/src/features/experience/`.
+- Original Blender source recipes/scenes: `assets/blender/`; web outputs: `frontend/public/models/` and `frontend/public/renders/`.
+- Owner editor and authentication UI: `frontend/src/features/admin/`.
+- Project/publication data: `frontend/src/features/portfolio/projectApi.ts` and backend `repository/` / `service/`.
+- Owner security: backend `security/`; schema: `src/main/resources/db/migration/` and `src/main/java/db/migration/`.
 - Backend controllers: `src/main/java/com/crystalpower/website/api/` and `web/`.
 - Backend DTOs: `src/main/java/com/crystalpower/website/dto/`.
 - Backend services/validation/email: `src/main/java/com/crystalpower/website/service/`.
@@ -38,4 +42,3 @@ Use before adding, moving, or editing files.
 ## Validation
 
 Check imports, ownership boundaries, and whether a suitable existing file already exists before adding a new one.
-
