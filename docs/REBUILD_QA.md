@@ -1,5 +1,7 @@
 # Immersive rebuild verification
 
+Latest continuation: [9 October release verification](RELEASE_VERIFICATION_2026_10_09.md) records the current test rerun, packaged boot and unresolved hosted gates. The September evidence below is historical.
+
 Date: 13 September 2026. Scope: local implementation on `James/immersive-rebuild`, based on upstream `6bfba8d`. No public deployment or production credentials were used.
 
 ## Automated and package checks
