@@ -14,7 +14,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -28,6 +31,17 @@ class CrystalPowerApplicationTests {
 
     @Test
     void contextLoads() {
+    }
+
+    @Test
+    void publicPageAllowsEmbeddedModelTexturesWithoutRemoteConnectionsOrInlineScripts() throws Exception {
+        mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Security-Policy", allOf(
+                        containsString("connect-src 'self' blob:;"),
+                        containsString("script-src 'self';"),
+                        containsString("object-src 'none';"),
+                        containsString("frame-ancestors 'none';"))));
     }
 
     @Test
