@@ -4,6 +4,8 @@
 target/
 .codex-temp/
 .codex-runtime/
+__pycache__/
+*.blend1
 node_modules/
 frontend/dist/
 *.tsbuildinfo

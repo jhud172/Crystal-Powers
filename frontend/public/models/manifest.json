@@ -7,7 +7,10 @@
       "nodes": 7,
       "animations": [
         "CrystalTurn"
-      ]
+      ],
+      "clipDurations": {
+        "CrystalTurn": 20.041666666666668
+      }
     },
     "laptop": {
       "bytes": 1322404,
@@ -15,19 +18,37 @@
       "nodes": 106,
       "animations": [
         "LaptopOpen"
-      ]
+      ],
+      "clipDurations": {
+        "LaptopOpen": 3.75
+      }
     },
     "monitor": {
       "bytes": 62828,
       "meshes": 5,
       "nodes": 6,
-      "animations": []
+      "animations": [],
+      "clipDurations": {}
     },
     "phone": {
       "bytes": 91180,
       "meshes": 7,
       "nodes": 8,
-      "animations": []
+      "animations": [],
+      "clipDurations": {}
+    },
+    "observatory": {
+      "bytes": 289116,
+      "meshes": 26,
+      "nodes": 44,
+      "animations": [
+        "CrystalOpen",
+        "CrystalClose"
+      ],
+      "clipDurations": {
+        "CrystalOpen": 1.4166666666666667,
+        "CrystalClose": 1.4166666666666667
+      }
     }
   },
   "renders": {
@@ -110,6 +131,46 @@
       "width": 800,
       "height": 560,
       "bytes": 4574
+    },
+    "observatory-dark.webp": {
+      "width": 1600,
+      "height": 1000,
+      "bytes": 33622
+    },
+    "observatory-dark-800.webp": {
+      "width": 800,
+      "height": 500,
+      "bytes": 13972
+    },
+    "observatory-dark-open.webp": {
+      "width": 1600,
+      "height": 1000,
+      "bytes": 37730
+    },
+    "observatory-dark-open-800.webp": {
+      "width": 800,
+      "height": 500,
+      "bytes": 17224
+    },
+    "observatory-light.webp": {
+      "width": 1600,
+      "height": 1000,
+      "bytes": 26948
+    },
+    "observatory-light-800.webp": {
+      "width": 800,
+      "height": 500,
+      "bytes": 11324
+    },
+    "observatory-light-open.webp": {
+      "width": 1600,
+      "height": 1000,
+      "bytes": 28106
+    },
+    "observatory-light-open-800.webp": {
+      "width": 800,
+      "height": 500,
+      "bytes": 12024
     }
   }
 }

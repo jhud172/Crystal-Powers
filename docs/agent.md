@@ -1,195 +1,34 @@
-# Agent — Crystal Powers
+# Agent reference — Crystal Powers
 
-This file is the primary reference for any AI coding agent working on this repository. Read it fully before making any change.
+Updated: 9 October 2026. Read `AGENTS.md`, `docs/skills/README.md` and mandatory/task-specific skills before changes. The working 2.0 checklist is `CRYSTAL_POWERS_2_0_AUDIT.md`; current progress and verification limits are in `CRYSTAL_POWERS_2_0_PROGRESS.md`. June content/memory/audit notes are historical.
 
----
+## Current application
 
-## Project Identity
+React/Vite/TypeScript owns public routes and the owner interface. Spring Boot owns inquiry validation/uploads/email, protected owner/project/media APIs, publication, metadata, security, SPA hosting and legacy redirects. Active public styling imports `studio-base.css`, `studio.css`, `admin.css`, `studio-interiors.css` and `studio-tokens.css`. Earlier page CSS and `CrystalOpenerScene.tsx` are not the live experience.
 
-**Name:** Crystal Powers  
-**Type:** Premium web studio — public-facing marketing and portfolio website  
-**Stack:** React 19 + Vite 6 + TypeScript 5 (frontend) / Spring Boot 3 + Gradle (backend)  
-**Purpose:** Customer-facing site for a digital studio that builds polished websites, client portals, automation flows, and launch surfaces.
+Active WebGL is under `frontend/src/features/experience/`; original models/renders live under `assets/blender/` and `frontend/public/models/` / `renders/`. One stage is active at a time. Scenes load only after activation, pause offscreen/when hidden and retain rendered fallback. The Reduce effects preference removes film/WebGL and decorative motion. The system motion preference remains independent and is always respected.
 
----
+Shared navigation is Work / Services / Studio / Support / Contact. The brand link returns Home. Existing route URLs, `/home`, special birthday route, `.html` redirects, cookie IDs and all five theme IDs are retained. `Layout.tsx` owns the shared appearance/effects controls, route focus, header and footer. The birthday route bypasses it.
 
-## Repository Layout
+Project data and publication use `features/portfolio/projectApi.ts`, backend DTO/service/repository packages and guarded media routes. Owner components are in `features/admin/`; credentials, CSRF, MFA, revisions and draft/public separation must be preserved. Private media must never be exposed through an anonymous draft preview.
 
-```
-Crystal-Powers/
-├── frontend/          React + Vite + TypeScript + Tailwind — public UI source
-│   ├── src/
-│   │   ├── app/           App shell, Layout, routing
-│   │   ├── components/    Shared visual components (PageHero, CrystalOpenerScene)
-│   │   ├── data/          Nav items, theme definitions
-│   │   ├── features/      Feature data: contact, portfolio, services
-│   │   ├── hooks/         Shared React hooks
-│   │   ├── lib/           Pure utility modules
-│   │   │   └── interactions/  scrollReveal, cursorAura, tilt
-│   │   ├── routes/        One file per public page
-│   │   └── styles/        CSS: base, components, pages, themes
-│   ├── public/            Static images, favicon, animations, manifest
-│   ├── index.html
-│   ├── package.json
-│   ├── tailwind.config.ts
-│   └── vite.config.ts
-├── src/               Spring Boot backend (Java)
-│   └── main/java/com/crystalpower/website/
-│       ├── api/       REST controllers (/api/contact, /api/services)
-│       ├── service/   Email delivery, upload validation
-│       └── web/       SPA forwarding, legacy HTML redirects
-├── docs/              All project documentation
-├── build.gradle       Full build — runs npm build, packages jar
-├── build.ps1          One-command local build script
-└── Dockerfile         Production container
-```
+## Change rules
 
----
+- Use British English and Crystal Powers in public copy. Do not invent project evidence, clients, metrics, portraits or commercial policies.
+- Preserve backend contracts/security, upload limits, delivery handling, SPA/legacy routing, theme persistence and generated-asset boundaries. Checklist contract changes require server/client implementation and relevant compatibility/security tests together.
+- No new dependency installation without James’s explicit authority. The 9 October request authorises restoring the existing frontend lockfile with `npm ci`; it is not blanket approval for new packages or major upgrades.
+- Keep CSS under `frontend/src/styles/`. Use semantic tokens and maintain visible focus/reduced motion. Keep essential content available if effects fail.
+- Use strict types. Run the installed TypeScript compiler through `npm run build`; do not dismiss compiler failures as false positives. No frontend lint or test script currently exists.
+- Avoid React state for per-frame pointer/animation values. Clean up listeners, timers, observers, films, canvas resources and animation actions.
+- Inspect imports before removing legacy files. Do not modify `.github/agents/`.
+- Never print/commit secrets or publish synthetic QA owner/project data. Existing live Render deployment tracks `main`; merging/pushing there may deploy. Read `DEPLOYMENT.md` before any provider action.
 
-## Critical Rules — Read Before Acting
+## Verification
 
-### Never touch
-- Backend API controllers, routes, validation logic, email delivery, or file upload handling.
-- Spring Boot configuration files (`application.properties`, `application-prod.properties`).
-- The Gradle build configuration unless the task specifically involves it.
-- The Three.js crystal scene (`CrystalOpenerScene.tsx`) unless a small compatibility change is required.
-- Contact form field components (`features/contact/FormFields.tsx`) or form submission behaviour.
-- SPA fallback and legacy redirect controllers.
-- Files inside `.github/agents/` — these are off-limits.
+Frontend: `npm --prefix frontend run build` (type check and Vite production build). Backend: set `SKIP_FRONTEND_BUILD=1`, then `.\gradlew.bat test`. Do not run `build.ps1` just for verification: it installs dependencies.
 
-### Always check before adding dependencies
-- Run the `runtime-tools-gh-advisory-database` security check for any new npm or Maven package.
-- Use existing libraries rather than adding new ones where possible.
-- Do not add GSAP, Motion/Framer Motion, Lenis, or any animation library unless a task explicitly authorises it.
+The 9 October frontend build passes; the Three vendor chunk remains oversized. Backend tests currently fail before execution because Java cannot establish a loopback selector connection; treat them as unavailable, not passed. `npm audit` reports eight existing build-tool findings. See progress documentation for exact evidence and skipped checks. Responsive browser checks are not physical-device frame-rate certification; local mocked delivery is not real provider receipt.
 
-### CSS rules
-- All CSS lives in `frontend/src/styles/`. Never put style blocks inside `.tsx` or `.ts` files.
-- New component classes belong in `global.css` under `@layer components`.
-- New page-specific styles belong in the matching file under `styles/pages/`.
-- Preserve the `body.reveal-ready` gate on scroll reveal hidden states.
-- Do not remove or weaken the `@media (prefers-reduced-motion: reduce)` block.
+## Development-only visual drafts
 
-### TypeScript rules
-- The global `tsc` in this environment finds no `node_modules/` and reports "Cannot find module" errors that do not affect the Vite build. `tsc -b` exits 0 regardless. This is a known environment limitation — do not try to fix it.
-- Real TypeScript errors introduced by new code will cause `vite build` to fail (exit code 2). Fix those.
-- Use explicit types. Do not use `any` unless bridging a third-party gap.
-
-### React rules
-- Do not add React state for per-frame updates (pointer positions, animation frames). Use refs or plain variables.
-- Interaction systems (`scrollReveal`, `cursorAura`, `tilt`) are plain TypeScript — do not convert them to React hooks or components.
-- Route-level code is in `routes/`. Shared visual components are in `components/`. Do not mix.
-
----
-
-## Build Commands
-
-```bash
-# Install frontend dependencies (required once after clone)
-cd frontend && npm install
-
-# Build the frontend only
-cd frontend && npm run build
-
-# Run backend tests only
-./gradlew test         # Linux/macOS
-.\gradlew.bat test     # Windows
-
-# Full production build (frontend + backend + jar)
-.\build.ps1            # Windows
-```
-
-### Build is healthy when
-- `npm run build` exits 0 and prints `✓ built in X.XXs`.
-- `./gradlew test` prints `BUILD SUCCESSFUL`.
-- Pre-existing `tsc -b` "Cannot find module" errors are still present but do not block the build.
-
----
-
-## Architecture Decisions
-
-| Decision | Rationale |
-|----------|-----------|
-| Interaction systems as plain TS, not React hooks | Avoid per-frame React re-renders; enables cleanup without component lifecycle coupling |
-| `body.reveal-ready` CSS gate | Ensures content is visible if JS fails to load — the hidden state is only active after JS has successfully initialised |
-| Single `IntersectionObserver` per session | More efficient than one observer per element; route refresh handled by calling `refresh()` |
-| CSS variables for cursor position on `:root` | Both `body::after` gradient and `.site-cursor-aura` consume the same variables without JS-side duplication |
-| Tilt via inline `style.transform` | Inline styles outrank all CSS rules, allowing tilt to override the reveal-state transform cleanly without specificity fights |
-| `MutationObserver` in `initTilt` | Automatically picks up newly mounted `[data-tilt]` elements after route changes without re-running `initTilt` |
-
----
-
-## Theme System
-
-Five themes: `futuristic` (default), `classic`, `clean`, `fresh`, `summer-vibes`.
-
-- Theme ID stored in the `crystal_theme` cookie (1-year TTL).
-- Applied as `body[data-theme]` and `body.theme-ready` by `Layout.tsx`.
-- CSS variables overridden per theme in `styles/themes/*/theme.css`.
-- A 420 ms transition block in `global.css` smooths theme switches.
-- `ThemePicker` component lives inside `Layout.tsx`.
-
----
-
-## Interaction Systems Summary
-
-| System | File | Trigger | Guard |
-|--------|------|---------|-------|
-| Scroll reveal | `lib/interactions/scrollReveal.ts` | `IntersectionObserver` | `body.reveal-ready`; reduced-motion fallback |
-| Cursor aura | `lib/interactions/cursorAura.ts` | `pointermove` on `document` | Fine pointer + hover only; rAF batched |
-| Pointer tilt | `lib/interactions/tilt.ts` | `pointermove` on element | Fine pointer only; `[data-tilt]` attribute |
-
-All three are initialised in `Layout.tsx` on mount and cleaned up on unmount. Route changes trigger `revealRef.current.refresh()` via a second `useEffect` on `location.pathname`.
-
----
-
-## Public Routes
-
-| Path | Component | Notes |
-|------|-----------|-------|
-| `/` | `routes/Home.tsx` | Three.js crystal scene, lazy-loaded |
-| `/about` | `routes/About.tsx` | Story panels, orbit visual |
-| `/services` | `routes/Services.tsx` | Full quote form, pricing cards, addon grid |
-| `/portfolio` | `routes/Portfolio.tsx` | Project band grid |
-| `/portfolio/:slug` | `routes/PortfolioProject.tsx` | Individual project detail |
-| `/support` | `routes/Support.tsx` | Support tier panels |
-| `/contact` | `routes/Contact.tsx` | Structured contact + build scope form |
-| `*` | `routes/NotFound.tsx` | 404 page |
-
----
-
-## API Endpoints
-
-| Endpoint | Method | Handler | Purpose |
-|----------|--------|---------|---------|
-| `/api/contact` | POST | `ApiInquiryController` | Structured contact enquiry |
-| `/api/services` | POST | `ApiInquiryController` | Quote request with optional file uploads |
-
-Both return `{ success, message, fieldErrors }`.
-
----
-
-## Known Pre-existing Issues (Do Not Fix Unless Tasked)
-
-1. `tsc -b` reports "Cannot find module" for all packages — environment limitation, not a real error.
-2. `vendor-three` chunk is 889 kB (gzip 239 kB) — Three.js is large; pre-existing.
-3. All five Google Fonts loaded unconditionally — pre-existing.
-4. `@MockBean` deprecation warning in Spring Boot tests — pre-existing.
-5. Multiple duplicate `@media (max-width: 767px)` blocks in `global.css` — pre-existing.
-
----
-
-## File Ownership Quick Reference
-
-| What you want to change | File |
-|-------------------------|------|
-| Navigation items | `src/data/site.ts` |
-| Theme definitions | `src/data/site.ts` + `styles/themes/*/theme.css` |
-| Design tokens (CSS variables) | `styles/base/global.css` |
-| Shared component classes | `styles/base/global.css` under `@layer components` |
-| Scroll reveal selectors | `lib/interactions/scrollReveal.ts` — `REVEAL_SELECTORS` |
-| Tilt defaults | `lib/interactions/tilt.ts` — `DEFAULT_MAX_DEG`, `DEFAULT_SCALE` |
-| Pricing packages | `features/services/services.ts` |
-| Portfolio projects | `features/portfolio/portfolio.ts` |
-| Header / footer markup | `app/Layout.tsx` |
-| Hero (homepage) | `routes/Home.tsx` + `components/hero/CrystalOpenerScene.tsx` |
-| Hero (interior pages) | `components/PageHero.tsx` |
+`frontend/design/observatory.html` previews Homepage, Services builder and Case study using shared tokens and existing pricing data. It is not a public route or a completed production redesign. Restart Vite on port 5175 and open `/design/observatory.html` to review it. Case-study artwork is an original studio demonstration, not published client content.

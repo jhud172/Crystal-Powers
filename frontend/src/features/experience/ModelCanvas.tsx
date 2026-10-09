@@ -4,8 +4,15 @@ import { Suspense, useEffect, useMemo, useRef } from "react";
 import { BackSide, CanvasTexture, Group, Object3D, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, SRGBColorSpace, LoopOnce } from "three";
 import type { OrbitControls as OrbitControlsType } from "three-stdlib";
 import type { ModelKind } from "./ModelStage";
+import { modelAnimationNames, selectAnimationName } from "./animationContract";
 
-type Props = { model: ModelKind; image?: string; light: boolean; angle: number; reset: number; playing: boolean; onInteraction: () => void; onFailure: () => void; onReady: () => void; onFinished: () => void };
+type Props = { model: ModelKind; image?: string; clip?: "CrystalOpen" | "CrystalClose"; pose?: "open" | "closed"; light: boolean; angle: number; reset: number; playing: boolean; onInteraction: () => void; onFailure: () => void; onReady: () => void; onFinished: () => void };
+
+/** A rejected cached fetch must be evicted before an explicit retry. */
+export function clearModelCache(model: ModelKind, image?: string) {
+  useGLTF.clear(`/models/${model}.glb`);
+  if (image) useTexture.clear(image);
+}
 
 function CanvasHealth({ onFailure }: Pick<Props, "onFailure">) {
   const { gl } = useThree();
@@ -49,7 +56,7 @@ function ScreenTexture({ image, object }: { image: string; object: Group }) {
   return null;
 }
 
-function ObjectModel({ model, image, angle, playing, reset, onReady, onFinished }: Pick<Props, "model" | "image" | "angle" | "playing" | "reset" | "onReady" | "onFinished">) {
+function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angle, playing, reset, onReady, onFinished }: Pick<Props, "model" | "image" | "clip" | "pose" | "angle" | "playing" | "reset" | "onReady" | "onFinished">) {
   // Original GLBs are uncompressed: do not initialise external Draco or WASM Meshopt decoders.
   const gltf = useGLTF(`/models/${model}.glb`, false, false);
   const object = useMemo(() => {
@@ -63,8 +70,8 @@ function ObjectModel({ model, image, angle, playing, reset, onReady, onFinished 
             material.thickness = 1.2;
             material.ior = 1.46;
             material.envMapIntensity = 0.55;
-            material.transmission = 0.94;
-            material.roughness = 0.07;
+            material.transmission = model === "observatory" ? 0.3 : 0.94;
+            material.roughness = model === "observatory" ? 0.12 : 0.07;
             material.clearcoat = 0.18;
             material.dispersion = 0.08;
           }
@@ -72,25 +79,28 @@ function ObjectModel({ model, image, angle, playing, reset, onReady, onFinished 
       }
     });
     return clone;
-  }, [gltf.scene]);
+  }, [gltf.scene, model]);
   const { actions, mixer } = useAnimations(gltf.animations, object);
+  const action = model === "observatory" ? actions[selectAnimationName(gltf.animations.map(item => item.name), clip)] : model === "crystal" || model === "laptop"
+    ? actions[selectAnimationName(gltf.animations.map(clip => clip.name), modelAnimationNames[model], true)]
+    : undefined;
   const group = useRef<Group>(null);
   const hasPlayed = useRef(false);
   const { invalidate } = useThree();
-  useEffect(() => { onReady(); }, [onReady]);
+  const announcedReady = useRef(false);
   useEffect(() => {
-    const finished = () => { if (model === "laptop") onFinished(); };
+    const finished = () => { if (model === "laptop" || model === "observatory") onFinished(); };
     mixer.addEventListener("finished", finished); return () => mixer.removeEventListener("finished", finished);
   }, [mixer, model, onFinished]);
   useEffect(() => {
+    if (model === "observatory") return;
     hasPlayed.current = false;
-    const action = Object.values(actions).find(Boolean);
     if (action) { action.reset().play(); action.time = model === "laptop" ? action.getClip().duration : 0; mixer.update(0); action.paused = true; }
     invalidate();
-  }, [reset, model, actions, mixer, invalidate]);
+  }, [reset, model, action, mixer, invalidate]);
 
   useEffect(() => {
-    const action = Object.values(actions).find(Boolean);
+    if (model === "observatory") return;
     if (!action) return;
     if (model === "laptop") { action.setLoop(LoopOnce, 1); action.clampWhenFinished = true; }
     if (playing) {
@@ -107,7 +117,22 @@ function ObjectModel({ model, image, angle, playing, reset, onReady, onFinished 
       action.paused = true;
     }
     invalidate();
-  }, [actions, playing, model, invalidate, mixer]);
+  }, [action, playing, model, invalidate, mixer]);
+
+  useEffect(() => {
+    if (model !== "observatory" || !action) return;
+    mixer.stopAllAction();
+    action.reset().setLoop(LoopOnce, 1);
+    action.clampWhenFinished = true;
+    action.play();
+    if (!playing) {
+      action.time = (clip === "CrystalOpen" ? pose === "open" : pose === "closed") ? action.getClip().duration : 0;
+      mixer.update(0);
+      action.paused = true;
+    }
+    invalidate();
+    return () => { action.stop(); };
+  }, [model, action, clip, pose, playing, reset, mixer, invalidate]);
 
   useEffect(() => () => {
     mixer.stopAllAction();
@@ -117,12 +142,13 @@ function ObjectModel({ model, image, angle, playing, reset, onReady, onFinished 
   }, [object, mixer]);
 
   useFrame(() => {
+    if (!announcedReady.current) { announcedReady.current = true; onReady(); }
     if (group.current) group.current.rotation.y = angle;
     if (playing) invalidate();
   });
-  return <group ref={group} position={[0, model === "crystal" ? -1.5 : -1.1, 0]}>
+  return <group ref={group} position={[0, model === "observatory" ? -2.15 : model === "crystal" ? -1.5 : -1.1, 0]}>
     {model === "crystal" ? <CrystalTree object={object} /> : <primitive object={object} dispose={null} />}
-    {image && model !== "crystal" && <ScreenTexture image={image} object={object} />}
+    {image && model !== "crystal" && model !== "observatory" && <ScreenTexture image={image} object={object} />}
   </group>;
 }
 
@@ -148,12 +174,12 @@ function StudioScene(props: Props) {
       <Lightformer form="rect" intensity={2} position={[4, 3, 2]} scale={[1, 4, 1]} rotation-y={-Math.PI / 2} color={props.light ? "#fff2df" : "#b5a5f5"} />
     </Environment>
     <ObjectModel key={props.model} {...props} />
-    <OrbitControls ref={controls} enablePan={false} enableZoom={false} minPolarAngle={Math.PI / 5} maxPolarAngle={Math.PI / 1.8} onStart={props.onInteraction} />
+    <OrbitControls ref={controls} enabled={props.model !== "observatory" || !props.playing} enablePan={false} enableZoom={false} minPolarAngle={Math.PI / 5} maxPolarAngle={Math.PI / 1.8} onStart={props.onInteraction} />
   </>;
 }
 
 export default function ModelCanvas(props: Props) {
-  return <Canvas dpr={[1, 1.5]} frameloop={props.playing ? "always" : "demand"} camera={{ position: [3.6, 2.5, 7.5], fov: 34 }} gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}>
+  return <Canvas dpr={[1, 1.5]} frameloop={props.playing ? "always" : "demand"} camera={props.model === "observatory" ? { position: [3.6, 2.55, 9], fov: 30 } : { position: [3.6, 2.5, 7.5], fov: 34 }} gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}>
     <CanvasHealth onFailure={props.onFailure} />
     <Suspense fallback={null}><StudioScene {...props} /></Suspense>
   </Canvas>;

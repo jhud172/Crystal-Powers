@@ -1,3 +1,5 @@
+> Current working reference (9 October 2026): `CRYSTAL_POWERS_2_0_AUDIT.md` and `CRYSTAL_POWERS_2_0_PROGRESS.md`. The older content/state below is historical; use active route source for current copy and behaviour.
+
 # Advanced Experience Audit — Crystal Powers
 
 **Audit date:** 2026-06-22  

@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { ModelKind, ModelStage } from "../features/experience/ModelStage";
+import { ModelStage } from "../features/experience/ModelStage";
 import { FeaturedProjects } from "../features/portfolio/FeaturedProjects";
+import { CrystalOpening } from "../features/experience/CrystalOpening";
 
 export function Home() {
-  const [device, setDevice] = useState<ModelKind>("laptop");
+  const [device, setDevice] = useState<"laptop" | "monitor" | "phone">("laptop");
   return <div className="studio-home">
     <section className="studio-hero" aria-labelledby="hero-title">
-      <ModelStage model="crystal" title="Explore the crystal" className="studio-hero-art" />
       <div className="studio-hero-copy">
         <p className="studio-eyebrow"><span className="studio-dot" /> INDEPENDENT DIGITAL STUDIO</p>
         <h1 id="hero-title">Crystal<br />Powers<span className="studio-accent">.</span></h1>
@@ -15,6 +15,7 @@ export function Home() {
         <p className="studio-hero-description">Websites, apps and digital experiences.<br />Thoughtfully designed. Personally developed.</p>
         <div className="studio-actions"><NavLink className="studio-button" to="/portfolio">Explore the work <span aria-hidden="true">↗</span></NavLink><NavLink className="studio-text-link" to="/contact">Start a project <span aria-hidden="true">↗</span></NavLink></div>
       </div>
+      <CrystalOpening />
       <div className="studio-hero-caption"><span>DESIGN WITH DEPTH</span><a href="#studio-introduction">Scroll to discover <span aria-hidden="true">↓</span></a></div>
     </section>
     <section id="studio-introduction" className="studio-introduction studio-section">

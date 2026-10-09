@@ -115,7 +115,7 @@ Make the new experience visibly different through composition, not just new colo
 - [ ] **DS-02 / P1 / M:** Design shared buttons, links, field states, selection tiles, disclosures, badges, tabs, loading panels, errors and success panels. Specify default/hover/focus/selected/disabled states.
 - [ ] **DS-03 / P1 / M:** Build responsive composition rules for 320, 390, 768, 1024, 1440 and 1920 px. Use fluid spacing without letting long pages become empty stages.
 - [ ] **DS-04 / P1 / M:** Produce a representative homepage, Services builder and case-study visual draft before implementing every page. Confirm that the same system works for content-heavy screens.
-- [ ] **DS-05 / P1 / S:** Add a presentation-level “Reduce effects” preference alongside system reduced motion. It must actually suppress decorative motion and expensive rendering; persist only a harmless preference.
+- [x] **DS-05 / P1 / S:** Add a presentation-level “Reduce effects” preference alongside system reduced motion. It must actually suppress decorative motion and expensive rendering; persist only a harmless preference.
 - [ ] **DS-06 / P1 / M:** Rebuild the shell: consistent “Work / Services / Studio / Support / Contact” labels, active states, mobile menu, appearance chooser and visible project entry.
 - [ ] **DS-07 / P1 / S:** Design footer navigation and useful trust information; add links to new informational pages only when their content exists.
 
@@ -412,7 +412,7 @@ Paths: editable scenes/recipes in `assets/blender/`; GLBs in `frontend/public/mo
 - [ ] **ASSET-02 / P1 / M:** Validate GLB transforms, normals, scale, pivots, named clips and self-contained buffers; preserve `Screen` / `role=project-screen` / physical aspect metadata.
 - [ ] **ASSET-03 / P1 / M:** Consolidate laptop geometry/materials; create desktop/mobile quality variants where measurements justify them.
 - [ ] **ASSET-04 / P1 / M:** Export mobile/desktop WebP posters, reserve dimensions and generate matching fallback views. Avoid requiring large PNGs for routine page paint.
-- [ ] **ASSET-05 / P1 / M:** Extend asset manifest/validation for opening clip names, screen aspect ratios, model sizes and fallback availability.
+- [x] **ASSET-05 / P1 / M:** Extend asset manifest/validation for opening clip names, screen aspect ratios, model sizes and fallback availability. Verified 9 October against all five exported models and all closed/open responsive posters; live-opening acceptance remains under 3D-02/03/04/05.
 
 ### 7.3 Motion specification
 
@@ -594,5 +594,7 @@ Not tested in this session: full keyboard/screen-reader audit, measured contrast
 | Date | Task IDs / page | What changed | Verification evidence | Open issues / next task |
 | --- | --- | --- | --- | --- |
 | 2026-10-01 | Audit and plan | Created this page-by-page 2.0 checklist | Source and bounded local-browser evidence above | Begin Phase A, then shared shell and authored opening prototype |
+| 2026-10-09 | DS-01–04 foundation/drafts; DS-05; DS-06 navigation; HOME-03 fallback | Added semantic palettes, three development-only interactive compositions, effects preference/canvas disposal, consistent navigation/mobile CTA and truthful showcase states | Frontend build and local browser evidence; 320–1920 px; see `CRYSTAL_POWERS_2_0_PROGRESS.md` | Visual direction/page acceptance open; real project content required; Gradle fails before tests; dependency audit findings remain |
+| 2026-10-09 | 3D-01/02/05 and ASSET-01/05 preparation | Original segmented Observatory source/export and named clip contracts; bounded loading, first-frame readiness and recoverable failed fetches; authorised Blender installation | Exact-name/legacy/malformed contracts and actual GLBs checked; crystal/laptop browser play/close; synthetic failed/slow model fallback and successful retry | Complete opening/live-mask, matching still/live lighting and visual acceptance remain open; progress/evidence in `CRYSTAL_POWERS_2_0_PROGRESS.md` |
 
-Append a row here at the end of each implementation phase; include viewport/device and actual command results. The first practical next step is DS-01 through DS-04: settle the new visual system using the homepage, service builder and case-study compositions, then produce the crystal-opening asset against that direction.
+Append a row here at the end of each implementation phase; include viewport/device and actual command results. The 9 October continuation has produced the first DS-01 through DS-04 drafts (see `CRYSTAL_POWERS_2_0_PROGRESS.md`). The next practical step is to review that direction and continue the original asset prototype: settle the new visual system using the homepage, service builder and case-study compositions, then produce the crystal-opening asset against that direction.

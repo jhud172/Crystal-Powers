@@ -1,3 +1,5 @@
+> Current working reference (9 October 2026): `CRYSTAL_POWERS_2_0_AUDIT.md` and `CRYSTAL_POWERS_2_0_PROGRESS.md`. The older content/state below is historical; use active route source for current copy and behaviour.
+
 # Memory — Crystal Powers
 
 This file records key decisions, implementation history, current project state, and important facts that must be preserved across work sessions. Update it when a significant decision is made or a system changes.

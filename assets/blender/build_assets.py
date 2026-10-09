@@ -295,12 +295,13 @@ def build(kind, appearance, args):
     print(f"CRYSTAL_ASSET_READY {kind} {appearance}", flush=True)
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--asset", choices=["all", "crystal", "laptop", "monitor", "phone"], default="all")
-parser.add_argument("--render", action="store_true")
-parser.add_argument("--width", type=int, default=1440)
-parser.add_argument("--samples", type=int, default=64)
-args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
-for kind in (["crystal", "laptop", "monitor", "phone"] if args.asset == "all" else [args.asset]):
-    for appearance in ("dark", "light"):
-        build(kind, appearance, args)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--asset", choices=["all", "crystal", "laptop", "monitor", "phone"], default="all")
+    parser.add_argument("--render", action="store_true")
+    parser.add_argument("--width", type=int, default=1440)
+    parser.add_argument("--samples", type=int, default=64)
+    args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
+    for kind in (["crystal", "laptop", "monitor", "phone"] if args.asset == "all" else [args.asset]):
+        for appearance in ("dark", "light"):
+            build(kind, appearance, args)

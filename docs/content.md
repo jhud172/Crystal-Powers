@@ -1,3 +1,5 @@
+> Current working reference (9 October 2026): `CRYSTAL_POWERS_2_0_AUDIT.md` and `CRYSTAL_POWERS_2_0_PROGRESS.md`. The older content/state below is historical; use active route source for current copy and behaviour.
+
 # Content — Crystal Powers
 
 This document records all website copy, messaging, page structure, brand voice, and content strategy. It is the single source of truth for what is written and how it should sound.

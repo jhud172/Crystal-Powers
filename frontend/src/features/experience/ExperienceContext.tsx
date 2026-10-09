@@ -1,12 +1,13 @@
-import { createContext, PropsWithChildren, useContext, useMemo, useState } from "react";
+import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from "react";
 
-type ExperienceState = { activeStage: string | null; activate: (id: string | null) => void };
+type ExperienceState = { activeStage: string | null; activate: (id: string | null) => void; reduceEffects: boolean };
 const Context = createContext<ExperienceState | null>(null);
 
 /** One interactive stage at a time keeps GPU use bounded across long pages. */
-export function ExperienceProvider({ children }: PropsWithChildren) {
+export function ExperienceProvider({ children, reduceEffects = false }: PropsWithChildren<{ reduceEffects?: boolean }>) {
   const [activeStage, activate] = useState<string | null>(null);
-  const value = useMemo(() => ({ activeStage, activate }), [activeStage]);
+  useEffect(() => { if (reduceEffects) activate(null); }, [reduceEffects]);
+  const value = useMemo(() => ({ activeStage, activate, reduceEffects }), [activeStage, reduceEffects]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 

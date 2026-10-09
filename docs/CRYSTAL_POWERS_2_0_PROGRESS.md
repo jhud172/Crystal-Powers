@@ -1,0 +1,89 @@
+# Crystal Powers 2.0 completion progress
+
+Date: 9 October 2026. Working branch: `James/crystal-powers-2-completion`, based on `origin/James/immersive-rebuild` at `c66e3d0`. The 1 October audit in `CRYSTAL_POWERS_2_0_AUDIT.md` is the working checklist. The older June audit is historical.
+
+## Current milestone and implementation brief
+
+Objective: deliver the first reviewable visual foundation and representative homepage, Services builder and case-study drafts, then improve the shared shell and effects preference. Visitors gain consistent navigation, a visible mobile project entry, distinct appearances and a lighter static experience.
+
+Affected production routes: every route using `Layout`, including the public pages and owner shell. The special birthday route remains independent. Public route URLs, enquiry payloads, prices, project DTOs and backend code have not changed. No schema or provider configuration changed.
+
+Ownership: semantic tokens under `styles/base/studio-tokens.css`; shared shell under `app/Layout.tsx`; effects preference under `hooks/useEffectsPreference.ts`; active canvas lifecycle under `features/experience/`; public work fallback under `features/portfolio/`. Drafts are in `features/design/` with a separate `frontend/design/observatory.html` development entry and `styles/design/observatory.css`. The production route table never imports the draft entry.
+
+Accessibility/mobile impact: consistent Work / Services / Studio / Support / Contact labels, Escape and focus return, 44 px minimum mobile controls, system reduced-motion behaviour retained, explicit Reduce effects preference, stronger control borders and a 320 px scrollbar-width correction. Only the harmless boolean `crystal_reduce_effects` is stored locally. React context shares the effects setting with all stages; frame updates remain outside React state. Existing element refs continue to return keyboard focus after disclosure/viewer closure.
+
+Performance impact: Reduce effects removes the lazy canvas and film entirely and keeps the existing rendered view; one active stage remains the invariant. Draft assets are excluded from production imports. Rollback: revert this milestone’s source/styles together; no data migration or irreversible action is involved.
+
+Completion criteria for this milestone: reviewable drafts, verified navigation/preferences/fallback states, successful frontend type check/build, focused responsive and contrast evidence, and truthful documentation of unavailable checks. This does **not** constitute acceptance of the whole 2.0 release or approval of the visual direction by James.
+
+## Delivered work
+
+| Task | Implemented | Remaining acceptance / dependency |
+| --- | --- | --- |
+| DS-01 | Semantic colour, spacing, font, focus, geometry, elevation and motion tokens; five complete DOM palettes | Full scene material/poster palettes remain 3D work; see F15 / 3D-03 |
+| DS-02 | Shared button/focus/disabled states, appearance/effects controls and stronger form borders; representative builder selection/error states | Complete production disclosures, loading/success, tabs and owner-editor states still require review |
+| DS-03 | Shared responsive header and draft compositions checked at all six audit widths; corrected studio body minimum width | Full page visual acceptance, 200% zoom and physical devices remain open |
+| DS-04 | Interactive development drafts for Homepage, Services builder and Case study | James’s visual review remains open; these are not the redesigned production pages |
+| DS-05 | Reduce effects control, harmless preference persistence, CSS motion suppression, film removal and live-canvas disposal | OS preference remains respected; no physical-device certification claimed |
+| DS-06 | Shared navigation labels, visible compact project CTA, five appearances, mutually exclusive disclosures, Escape/focus return | Full shared-shell design acceptance remains open |
+| HOME-03 | Loading, empty and error/retry homepage showcase fallbacks | Actual permission-cleared featured projects still require owner content and publishing |
+| BASE-01 | Updated working handover/agent guidance and pointers from historical notes | Reconcile approved public copy after each completed page; do not treat old copy tables as live content |
+
+The builder draft imports existing package, addition and maintenance data. It validates a package before advancing, retains selections between steps, supports multi-selection and reset, and makes no submission. The aftercare “discuss later” value is deliberately not added until FLOW-01/FLOW-04 define and verify the contract. The case-study draft is clearly labelled original studio demonstration artwork; no client, testimonial or outcome is invented.
+
+## Verification record
+
+- `npm ci`: restored existing locked dependencies with James’s explicit authorisation; no manifest or lockfile change. It reported 8 audit findings (6 high, 2 moderate). The full report is in ignored `.codex-runtime/qa/npm-audit.json`. Findings concern the existing Tailwind/build dependency chain and source-map tooling; a major migration must not be applied through `npm audit fix --force` without a deliberate plan.
+- Baseline `npm run build`: passed (Vite 6.4.3, 636 modules). Main JS 65.44 kB / 18.24 kB gzip; CSS 42.71 kB / 8.70 kB gzip. Existing Three vendor chunk 1,007.36 kB / 276.30 kB gzip.
+- Browser checks: all three drafts at 320, 390, 768, 1024, 1440 and 1920 px had no document overflow or broken loaded images. Desktop and 390 px mobile screenshots cover all three compositions. All five appearance palettes were sampled; this is not a full every-state visual certification.
+- Production-shell browser checks: Home, Studio, Services, Portfolio, Support, Contact and 404 had no document overflow at all six widths after the 320 px correction. Owner sign-in/recovery shell checks at 320 px also had no overflow; authenticated owner flows were not exercised.
+- Keyboard/interactions: mobile menu labels match desktop; Escape closes disclosures and returns focus. Reduce effects persisted after reload, removed all films/launch controls and revealed content immediately. An activated crystal reached ready with one canvas; switching Reduce effects on disposed it and left zero active stages/canvases/films.
+- Contrast: measured rendered token pairs in all five appearances. Main text >=12.59:1; muted text on raised surfaces >=5.32:1; focus on raised surfaces >=5.32:1; error tokens >=5.75:1. Field-border tokens exceed 3:1 after correcting Summer vibes. These are targeted token measurements, not a WCAG conformance claim.
+- Showcase empty/error/retry: verified against a temporary **synthetic** local HTTP server serving only `/api/projects`. Empty projects displayed the intentional fallback, HTTP 503 displayed retry/contact, and Retry recovered when the response returned to `[]`. The fixture server was stopped; no project or owner database was created or changed.
+- Special route: `/birthday/mission-vi` loaded the post-birthday page and its mission navigation. No birthday-source/CSS changes; complete game/audio regression remains open.
+- Backend regression attempts: `gradlew test`, `--no-daemon`, IPv4 preference and installed Java 17 all failed **before tests executed** with `Unable to establish loopback connection`. The diagnostic trace points to the Java NIO selector/pipe connection. No operating-system networking/security changes were made. Backend tests are not passed.
+- Browser warnings: existing `THREE.Clock` deprecation and shader precision warnings appeared during the ready crystal test. No new scene failure was observed. Vite/API errors while no backend was available are environment failures, not evidence that production data APIs pass.
+- Skipped: actual email delivery, authenticated editor/security/publishing, PostgreSQL/Docker/deployment, full contrast/screen-reader/200% zoom review, system-preference emulation and physical-phone frame rate. The existing dependency findings remain a release concern.
+
+Evidence: ignored `.codex-runtime/qa/responsive-checks.json`, `observatory-*-desktop.jpg`, `observatory-*-mobile.jpg`, `frontend-final.log`, `npm-audit.json`. Final build: passed, Vite 6.4.3, 637 modules; main JS 67.35 kB / 18.68 kB gzip, CSS 47.58 kB / 9.78 kB gzip; Three/ModelCanvas chunks unchanged. The final film-cleanup confirmation build passed (7.09 seconds for Vite); its output is retained in `frontend-final.log`. `git diff --check` passed.
+
+## Next completion stages
+
+### Opening preparation milestone — 9 October
+
+The viewer now chooses `CrystalTurn` and `LaptopOpen` by name, retains an explicitly enabled legacy single-clip fallback, and refuses ambiguous unnamed multi-clip selection. A repeatable Node check covers reversed clip order, legacy names, missing/ambiguous clips, current GLBs and the new opening export. `CrystalOpen` / `CrystalClose` use strict name selection, including rejection of a close-only export when opening is requested. At the preparation checkpoint, the new model was not yet mounted by the public page; integration progress follows below.
+
+Loading now preserves artwork, allows cancellation and has a 12-second visible-page/visible-stage timeout. Readiness is announced on the first rendered frame rather than before a frame exists. Failure removes the canvas; explicit Retry evicts failed GLB/screen fetch caches. Retry completions are invalidated on model/image/activation changes and unmount. Activation refreshes visibility immediately, correcting a reload/observer race found in the slow-load test. Offscreen/tab-hidden stages clear readiness and pause animation; they do not consume the visible-loading timer.
+
+Browser evidence: both existing named animations reached ready with one canvas, played/paused and returned focus on close; Escape removed the crystal canvas. A synthetic malformed GLB showed the fallback with zero canvases, and Retry recovered after restoration. A synthetic delayed local buffer request passed the 12-second timeout and subsequent Retry reached ready. The original crystal's SHA-256 was unchanged before/after both fixtures (`6EE2932D8051BF380167D625B79D934BF5526776634B67AB29ACB6C043348BE1`); the temporary local fixture server stopped. Screenshots are `viewer-failure.jpg`, `viewer-timeout.jpg` and `viewer-recovered.jpg` in ignored QA evidence. No deployed asset was changed.
+
+James explicitly authorised installing Blender when the earlier runtime was absent. Official 5.2.2 LTS x64 portable package SHA-256 `3849d17a682cba006075aaa3f3597ecb5c9c30ec31035b2e092c53e40679b535` matched Blender's published checksum. It is installed under `%LOCALAPPDATA%/Programs/Blender/blender-5.2.2-windows-x64/`; executable version confirmed. No frontend dependency was added. This computer has Intel Iris Xe, so the earlier RTX 3070 Ti note is historical; rendering currently uses CPU.
+
+Original `build_observatory.py` exports a 289,116-byte segmented crystal/frame, eight facets, sixteen pivots, 26 meshes and two 24-channel named clips. Both exported clips end at 1.4167 seconds. Editable rest/open scenes exist for dark/light photography. Four 1600×1000 Cycles posters and eight responsive WebPs were generated: desktop posters are 26,948–37,730 bytes; mobile posters 11,324–17,224 bytes. The existing models/posters were preserved byte-for-byte.
+
+`prepare_web_assets.py` passed all five models, named/timed opening clips, normals, pivots, embedded buffers, device screen metadata and four fallback states, then regenerated the manifest. ASSET-05 is checked on this evidence. `verify-animation-contract.mjs` passed against all three animated exports. The draft's two still states had loaded WebP artwork, 44 px controls and no overflow at 320/390/768/1024/1440/1920 px; all five appearances loaded appropriate light/dark posters at 390 px. Evidence: `observatory-manifest.log`, `observatory-render.log`, `opening-responsive.json`, `opening-preview-desktop.jpg`, `opening-preview-mobile.jpg`.
+
+Frontend build passed (638 modules): main JS 68.03 kB / 18.95 kB gzip; CSS 47.62 kB / 9.79 kB gzip; ModelCanvas 46.64 kB / 15.27 kB gzip; Three vendor unchanged at 1,007.36 kB / 276.30 kB gzip, with its existing chunk warning. Backend tests were not repeated for this frontend/asset-only increment; the earlier Java loopback failure remains unresolved. Full live-opening choreography, matched still/live lighting, system-preference emulation and physical-device acceptance remain open.
+
+3D-01 / 3D-02 / 3D-05 and ASSET-01 have implementation progress. Keep their complete acceptance unchecked until the new opening, matching still/live views and cancellation paths are verified. Poster art remains a first prototype requiring visual refinement, including the photographic horizon and camera clearance around the expanded frame.
+
+### Homepage opening integration — 9 October
+
+`CrystalOpening.tsx` now replaces the original homepage crystal stage. The offer and project links precede the optional artwork in DOM/tab order and remain usable throughout. Desktop uses a two-column composition; mobile presents copy/CTAs first and optional art afterwards. The opening has rest/loading/opening/open/closing states, named non-looping Blender actions, first-frame readiness, a 12-second warm-up limit, a 4-second animation watchdog, skip/cancel/replay/close controls and keyboard rotation/Escape. Another active stage, page hiding, offscreen movement or reduced effects settles motion. Reduced motion/effects opens the rendered state immediately, with no canvas. R3F owns physical transforms; CSS owns a 300 ms faceted DOM reveal, disabled under reduced motion. No scrolling or navigation is triggered by opening.
+
+Live framing now uses the Blender camera's converted position and 30° vertical field of view; material tuning avoids the especially dark initial transmission result. Full exposure/lighting/poster matching is **not** accepted. The current reveal offers truthful Work/Studio links; the intended project-window composition and complete visual art direction still require work.
+
+Verified on the actual 390 px viewport: opening reached `open`, ready and one canvas; Replay restarted `opening`; Skip left `open`, zero canvases and focus on Replay; Reduce effects opened the still state with zero canvases; `CrystalClose` returned to rest with zero canvases and focus on Open. An invalid synthetic Observatory export produced an announced static fallback with zero canvases; the model was restored with unchanged SHA-256 `FD1894D175CAB2E5FDD16D79927CC7B7762B888052A0108888D9C79CDD3986C6`, and Retry reached `open`, ready and one canvas. Escape cancellation then returned to `closed`, zero canvases and focus on Open. Capture of a full-page screenshot temporarily moved the stage offscreen, demonstrating canvas removal; the screenshot is visual context, not proof of uninterrupted animation.
+
+Responsive evidence checks the actual `window.innerWidth` against each requested 320/390/768/1024/1440/1920 width, with no overflow and loaded posters. Hero CTAs were within the tested 900 px viewport. An earlier viewport attempt targeted another tab and was discarded; only `opening-live-responsive.json` is valid integrated-page evidence. Screenshots include `opening-live-mobile-rest.jpg`, `opening-live-mobile-static.jpg` and the final full-page live view. Frontend build and named-clip checks pass; latest output is `frontend-live-opening.log`. Three vendor remains unchanged and oversized. Existing backend/dependency/live-provider/physical-device gates remain open.
+
+Final integration build: 639 modules, Vite 5.75 seconds; main JS 73.23 kB / 20.23 kB gzip, CSS 49.88 kB / 10.19 kB gzip, ModelCanvas 47.26 kB / 15.43 kB gzip. The added main code is DOM opening state/controls and lifecycle handling; Three remains lazy and unchanged. Focus return uses `preventScroll` to preserve the visitor's position. No package/lockfile changes. Final backend QA (`gradlew test --no-daemon`, `SKIP_FRONTEND_BUILD=1`) exited 1 before tests with `Unable to establish loopback connection`; evidence is `backend-live-opening.log`. The suite is not passed.
+
+HOME-01/02/08 and 3D-01/02/04/05 have concrete integration progress, but retain unchecked complete acceptance until the full visual, masking, failure/timeout, rapid navigation and system-preference checks pass. Next: refine poster/live matching and the project-window reveal, then continue the production enquiry journey.
+
+1. Review the three design compositions with James; continue the authorised art direction without fabricating project content. Develop the original segmented crystal/frame and explicit open/close animation contracts (3D-01 through 3D-05), including poster/live matching.
+2. Define the enquiry intent/required-field matrix (FLOW-01), shared non-sensitive selection state and reset rules (FLOW-03), then implement Services/Contact/Support contracts and production builder together. Preserve old enquiry payloads and mail/upload limits.
+3. Populate cleared projects through the protected owner workflow; finish portfolio/case-study media, Studio and owner editing acceptance. Privacy/support wording requires actual operating details.
+4. Resolve build-tool audit findings and the local Gradle failure before release QA. Keep physical-phone, real provider receipt, live publishing and deployment checks separate from local evidence.
+
+Nothing has been pushed, merged into `main`, published, emailed or deployed. The original checkout’s untracked `clipmind/` remains untouched. Keep the managed worktree attached; it contains the continuation work. The dev preview can be restarted with `npm --prefix frontend run dev -- --host 127.0.0.1 --port 5175` and opened at `/design/observatory.html`.

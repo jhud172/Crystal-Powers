@@ -2,6 +2,8 @@
 @import "./pages/studio.css";
 @import "./pages/admin.css";
 @import "./pages/studio-interiors.css";
+@import "./base/studio-tokens.css";
+@import "./pages/opening.css";
 
 html { scroll-behavior: smooth; }
 body { margin: 0; min-width: 320px; background: #0b1018; }

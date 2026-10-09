@@ -25,3 +25,7 @@
 Spring serves the compiled React application in production and preserves legacy redirects and extensionless SPA fallback. Vite on port 5173 proxies API requests to Spring on port 8080 during development. Gradle copies `frontend/dist` to generated static resources; do not edit those generated files.
 
 There is no root npm package: use `npm --prefix frontend ...`. The README documents local startup and build commands. Inactive Thymeleaf templates, earlier CSS and `components/hero/CrystalOpenerScene.tsx` remain legacy source, not the active website. Do not edit them expecting public changes.
+
+## 2.0 foundation continuation — 9 October 2026
+
+`frontend/src/styles/base/studio-tokens.css` supplies semantic DOM palettes for all five themes and shared control/focus tokens. `hooks/useEffectsPreference.ts` persists only the Reduce effects boolean; `ExperienceProvider` shares it with the active stages. `frontend/design/observatory.html` is a separate development-only design entry for three representative compositions; it is not imported by the public route table or emitted by the normal production build. See `CRYSTAL_POWERS_2_0_PROGRESS.md` for current QA boundaries and next work.

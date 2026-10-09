@@ -1,18 +1,17 @@
 export const navItems = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
+  { label: "Work", href: "/portfolio" },
   { label: "Services", href: "/services" },
-  { label: "Portfolio", href: "/portfolio" },
+  { label: "Studio", href: "/about" },
   { label: "Support", href: "/support" },
   { label: "Contact", href: "/contact" }
 ] as const;
 
 export const themes = [
-  { id: "futuristic", label: "Futuristic", color: "#060816" },
-  { id: "classic", label: "Classic", color: "#11100d" },
-  { id: "clean", label: "Clean", color: "#eef4fa" },
-  { id: "fresh", label: "Fresh", color: "#f3fff9" },
-  { id: "summer-vibes", label: "Summer vibes", color: "#fff7ef" }
+  { id: "futuristic", label: "Futuristic", color: "#090e19" },
+  { id: "classic", label: "Classic", color: "#17120f" },
+  { id: "clean", label: "Clean", color: "#f3f6fb" },
+  { id: "fresh", label: "Fresh", color: "#f0f8f3" },
+  { id: "summer-vibes", label: "Summer vibes", color: "#fff6ec" }
 ] as const;
 
 export type ThemeId = (typeof themes)[number]["id"];
