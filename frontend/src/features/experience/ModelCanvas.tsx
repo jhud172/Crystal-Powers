@@ -1,12 +1,14 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer, MeshTransmissionMaterial, OrbitControls, useAnimations, useGLTF, useTexture } from "@react-three/drei";
-import { Suspense, useEffect, useMemo, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef, type RefObject } from "react";
 import { BackSide, CanvasTexture, Group, Object3D, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, SRGBColorSpace, LoopOnce } from "three";
 import type { OrbitControls as OrbitControlsType } from "three-stdlib";
 import type { ModelKind } from "./ModelStage";
 import { modelAnimationNames, selectAnimationName } from "./animationContract";
 
-type Props = { model: ModelKind; image?: string; clip?: "CrystalOpen" | "CrystalClose"; pose?: "open" | "closed"; light: boolean; angle: number; reset: number; playing: boolean; onInteraction: () => void; onFailure: () => void; onReady: () => void; onFinished: () => void };
+export type CrystalInteraction = { yaw: number; pitch: number; hoverX: number; hoverY: number; invalidate?: () => void };
+
+type Props = { interaction?: RefObject<CrystalInteraction>; model: ModelKind; image?: string; clip?: "CrystalOpen" | "CrystalClose"; pose?: "open" | "closed"; light: boolean; angle: number; reset: number; playing: boolean; onInteraction: () => void; onFailure: () => void; onReady: () => void; onFinished: () => void };
 
 /** A rejected cached fetch must be evicted before an explicit retry. */
 export function clearModelCache(model: ModelKind, image?: string) {
@@ -56,7 +58,7 @@ function ScreenTexture({ image, object }: { image: string; object: Group }) {
   return null;
 }
 
-function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angle, playing, reset, onReady, onFinished }: Pick<Props, "model" | "image" | "clip" | "pose" | "angle" | "playing" | "reset" | "onReady" | "onFinished">) {
+function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angle, playing, reset, onReady, onFinished, interaction }: Pick<Props, "model" | "image" | "clip" | "pose" | "angle" | "playing" | "reset" | "onReady" | "onFinished" | "interaction">) {
   // Original GLBs are uncompressed: do not initialise external Draco or WASM Meshopt decoders.
   const gltf = useGLTF(`/models/${model}.glb`, false, false);
   const object = useMemo(() => {
@@ -141,15 +143,30 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
     });
   }, [object, mixer]);
 
-  useFrame(() => {
+  useEffect(() => {
+    if (!interaction) return;
+    const motion = interaction.current;
+    motion.invalidate = invalidate;
+    return () => { motion.invalidate = undefined; };
+  }, [interaction, invalidate]);
+
+  useFrame((_, delta) => {
     if (!announcedReady.current) { announcedReady.current = true; onReady(); }
-    if (group.current) group.current.rotation.y = angle;
+    if (group.current && interaction) {
+      const motion = interaction.current;
+      const yaw = motion.yaw + motion.hoverX;
+      const pitch = motion.pitch + motion.hoverY;
+      const blend = 1 - Math.exp(-10 * Math.min(delta, 0.1));
+      group.current.rotation.y += (yaw - group.current.rotation.y) * blend;
+      group.current.rotation.x += (pitch - group.current.rotation.x) * blend;
+      if (Math.abs(yaw - group.current.rotation.y) + Math.abs(pitch - group.current.rotation.x) > 0.0001) invalidate();
+    } else if (group.current) group.current.rotation.y = angle;
     if (playing) invalidate();
   });
-  return <group ref={group} position={[0, model === "observatory" ? -2.15 : model === "crystal" ? -1.5 : -1.1, 0]}>
+  return <group ref={group}><group position={[0, model === "observatory" ? -2.15 : model === "crystal" ? -1.5 : -1.1, 0]}>
     {model === "crystal" ? <CrystalTree object={object} /> : <primitive object={object} dispose={null} />}
     {image && model !== "crystal" && model !== "observatory" && <ScreenTexture image={image} object={object} />}
-  </group>;
+  </group></group>;
 }
 
 function CrystalTree({ object }: { object: Object3D }) {
@@ -174,7 +191,7 @@ function StudioScene(props: Props) {
       <Lightformer form="rect" intensity={2} position={[4, 3, 2]} scale={[1, 4, 1]} rotation-y={-Math.PI / 2} color={props.light ? "#fff2df" : "#b5a5f5"} />
     </Environment>
     <ObjectModel key={props.model} {...props} />
-    <OrbitControls ref={controls} enabled={props.model !== "observatory" || !props.playing} enablePan={false} enableZoom={false} minPolarAngle={Math.PI / 5} maxPolarAngle={Math.PI / 1.8} onStart={props.onInteraction} />
+    {!props.interaction && <OrbitControls ref={controls} enabled={props.model !== "observatory" || !props.playing} enablePan={false} enableZoom={false} minPolarAngle={Math.PI / 5} maxPolarAngle={Math.PI / 1.8} onStart={props.onInteraction} />}
   </>;
 }
 
