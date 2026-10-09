@@ -38,16 +38,16 @@
       "clipDurations": {}
     },
     "observatory": {
-      "bytes": 289116,
-      "meshes": 26,
-      "nodes": 44,
+      "bytes": 423864,
+      "meshes": 52,
+      "nodes": 75,
       "animations": [
         "CrystalOpen",
         "CrystalClose"
       ],
       "clipDurations": {
-        "CrystalOpen": 1.4166666666666667,
-        "CrystalClose": 1.4166666666666667
+        "CrystalOpen": 2.4166666666666665,
+        "CrystalClose": 2.4166666666666665
       }
     }
   },
@@ -135,42 +135,42 @@
     "observatory-dark.webp": {
       "width": 1600,
       "height": 1000,
-      "bytes": 33622
+      "bytes": 50060
     },
     "observatory-dark-800.webp": {
       "width": 800,
       "height": 500,
-      "bytes": 13972
+      "bytes": 21574
     },
     "observatory-dark-open.webp": {
       "width": 1600,
       "height": 1000,
-      "bytes": 37730
+      "bytes": 56714
     },
     "observatory-dark-open-800.webp": {
       "width": 800,
       "height": 500,
-      "bytes": 17224
+      "bytes": 24292
     },
     "observatory-light.webp": {
       "width": 1600,
       "height": 1000,
-      "bytes": 26948
+      "bytes": 36658
     },
     "observatory-light-800.webp": {
       "width": 800,
       "height": 500,
-      "bytes": 11324
+      "bytes": 15454
     },
     "observatory-light-open.webp": {
       "width": 1600,
       "height": 1000,
-      "bytes": 28106
+      "bytes": 41082
     },
     "observatory-light-open-800.webp": {
       "width": 800,
       "height": 500,
-      "bytes": 12024
+      "bytes": 16682
     }
   }
 }

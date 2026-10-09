@@ -1,6 +1,24 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { modelAnimationNames, openingAnimationNames, selectAnimationName } from '../src/features/experience/animationContract.ts';
+import { advanceCrystalMotion } from '../src/features/experience/crystalMotion.ts';
+
+// Mid-gesture reversal must preserve pose, stay bounded and finish at either refresh rate.
+for (const fps of [10, 30, 60, 120]) {
+  let state = { time: 0, speed: 0, finished: false };
+  const step = direction => { state = advanceCrystalMotion(state.time, state.speed, direction, 2.375, 1 / fps); };
+  for (let i = 0; i < fps; i++) step(1);
+  const previous = state.time;
+  step(-1);
+  assert.ok(Math.abs(state.time - previous) <= 1 / fps, 'Reversal must not jump to a clip endpoint');
+  for (let i = 0; i < fps * 3; i++) step(-1);
+  assert.equal(state.time, 0);
+  assert.equal(state.finished, true);
+  for (let i = 0; i < fps * 3; i++) step(1);
+  assert.equal(state.time, 2.375);
+  assert.equal(state.finished, true);
+}
+assert.ok(advanceCrystalMotion(1, 1, 1, 2.375, 30).time <= 1.1, 'Resume after suspension must cap the frame delta');
 
 // Order changes must never cause the close action to run when opening was requested.
 assert.equal(selectAnimationName(['CrystalClose', 'CrystalOpen'], openingAnimationNames.open), 'CrystalOpen');

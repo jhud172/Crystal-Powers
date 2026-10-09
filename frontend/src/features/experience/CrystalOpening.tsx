@@ -29,7 +29,8 @@ export function CrystalOpening() {
   const generation = useRef(0);
   const latestStage = useRef(activeStage);
   latestStage.current = activeStage;
-  const interaction = useRef<CrystalInteraction>({ yaw: 0, pitch: 0, hoverX: 0, hoverY: 0 });
+  const interaction = useRef<CrystalInteraction>({ yaw: 0, pitch: 0, hoverX: 0, hoverY: 0, palette: 0, pulse: 0 });
+  const [palette, setPalette] = useState(0);
   const drag = useRef<{ id: number; x: number; y: number; yaw: number; pitch: number; moved: boolean } | null>(null);
   const [phase, setPhase] = useState<Phase>("closed");
   const [ready, setReady] = useState(false);
@@ -85,7 +86,7 @@ export function CrystalOpening() {
     // A stalled animation must never gate content indefinitely.
     const timer = window.setTimeout(() => { settle(); activate(null); }, 4000);
     return () => window.clearTimeout(timer);
-  }, [active, moving, settle, activate]);
+  }, [active, moving, phase, settle, activate]);
 
   function open() {
     generation.current += 1;
@@ -99,6 +100,7 @@ export function CrystalOpening() {
   }
   function dismiss() {
     generation.current += 1;
+    Object.assign(interaction.current, { yaw: 0, pitch: 0, hoverX: 0, hoverY: 0, pulse: 0 });
     activate(null); setPhase("closed"); setReady(false);
     requestAnimationFrame(() => launch.current?.focus({ preventScroll: true }));
   }
@@ -114,8 +116,9 @@ export function CrystalOpening() {
     } catch { if (request === generation.current) fail(); }
   }
   function toggle() {
-    if (moving || phase === "loading") return;
-    if (revealed && active && ready && !failed && !reduced) setPhase("closing");
+    if (phase === "loading") return;
+    if ((revealed || phase === "opening") && active && ready && !failed && !reduced) setPhase("closing");
+    else if (phase === "closing") setPhase("opening");
     else if (revealed) dismiss();
     else open();
   }
@@ -125,9 +128,10 @@ export function CrystalOpening() {
 
   const poster = `/renders/observatory-${light ? "light" : "dark"}${revealed ? "-open" : ""}`;
   return <div ref={host} className="crystal-opening" data-phase={phase} data-ready={ready} data-reduced={reduced}>
-    <div className="opening-surface" role="button" tabIndex={0} aria-pressed={revealed} aria-label="Interactive crystal. Click or press Enter to open or close. Drag to rotate; arrow keys also rotate. Escape returns to rest." onKeyDown={event => {
+    <div className="opening-caption"><span>AURORA / 02</span>{revealed ? <NavLink to="/portfolio">Explore the work ↗</NavLink> : <span>Turn a little. Discover more.</span>}</div>
+    <div className="opening-surface" role="button" tabIndex={0} aria-pressed={revealed || phase === "opening"} aria-label="Interactive crystal. Click or press Enter to open or close. Drag to rotate; arrow keys also rotate. Escape returns to rest." onKeyDown={event => {
       if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); dismiss(); }
-      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggle(); }
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); if (!event.repeat) toggle(); }
       if (!reduced && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
         event.preventDefault();
         const motion = interaction.current;
@@ -167,17 +171,19 @@ export function CrystalOpening() {
     }} onPointerCancel={() => { drag.current = null; }} onLostPointerCapture={() => { drag.current = null; }} onPointerLeave={() => {
       interaction.current.hoverX = 0; interaction.current.hoverY = 0; interaction.current.invalidate?.();
     }}>
-    <picture className="opening-poster"><source type="image/webp" srcSet={`${poster}-800.webp 800w, ${poster}.webp 1600w`} sizes="(max-width: 1000px) 100vw, 50vw" /><img src={`${poster}.png`} alt={revealed ? "Separate crystal facets around a luminous core in an unlocked titanium frame" : "A faceted optical crystal within a precision titanium frame"} width="1600" height="1000" fetchPriority="high" draggable={false} /></picture>
+    <picture className="opening-poster"><source type="image/webp" srcSet={`${poster}-800.webp?v=aurora-02 800w, ${poster}.webp?v=aurora-02 1600w`} sizes="(max-width: 1000px) 100vw, 50vw" /><img src={`${poster}.png?v=aurora-02`} alt={revealed ? "Jewel-coloured crystal petals unfolding around a luminous heart and fine gold orbits" : "A sculpted prismatic crystal with mineral textures, gold inlays and suspended jewel fragments"} width="1600" height="1000" fetchPriority="high" draggable={false} /></picture>
     {active && visible && pageVisible && !failed && <div className="opening-canvas" ><OpeningBoundary key={boundaryVersion} fail={fail}><Suspense fallback={null}><Canvas model="observatory" light={light} clip={phase === "closing" ? "CrystalClose" : "CrystalOpen"} pose={revealed ? "open" : "closed"} angle={0} interaction={interaction} reset={attempt} playing={ready && moving} onReady={onReady} onFinished={finish} onFailure={fail} onInteraction={settle} /></Suspense></OpeningBoundary></div>}
     </div>
     <div className="opening-controls">
-      {phase === "closed" ? <button ref={launch} type="button" onClick={open}>Open crystal <span aria-hidden="true">◇</span></button> : <>
-        <p role="status">{failed ? "3D is unavailable. Explore the rendered experience." : phase === "loading" ? "Preparing the crystal…" : moving ? (phase === "closing" ? "Returning to rest…" : "Opening a new perspective…") : reduced ? "Still experience · motion reduced" : "Click to close · drag to rotate"}</p>
-        {(phase === "loading" || moving) && <button type="button" onClick={() => { generation.current += 1; setPhase("open"); activate(null); requestAnimationFrame(() => launch.current?.focus({ preventScroll: true })); }}>Skip animation</button>}
-        {revealed && <button ref={launch} type="button" onClick={() => failed ? void retry() : open()}>{failed ? "Retry 3D" : "Replay opening"}</button>}
-        <button type="button" onClick={() => { if (moving || phase === "loading") dismiss(); else toggle(); }}>{phase === "loading" ? "Cancel" : "Close experience"}</button>
-      </>}
+      <p role="status">{failed ? "3D is unavailable. Explore the rendered experience." : phase === "loading" ? "Preparing the crystal…" : reduced ? "Still experience · motion reduced" : moving ? "Click again to reverse · drag to explore" : revealed ? "Click to close · drag to rotate" : "Click to unfold · drag to rotate"}</p>
+      <div className="opening-actions">
+        <button ref={launch} type="button" onClick={() => phase === "loading" ? dismiss() : toggle()}>{phase === "loading" ? "Cancel" : revealed || phase === "opening" ? "Close crystal" : "Unfold crystal"} <span aria-hidden="true">◇</span></button>
+        {failed ? <button type="button" onClick={() => void retry()}>Retry 3D</button> : !reduced && <>
+          <button type="button" disabled={!ready} onClick={() => { interaction.current.pulse = 1; interaction.current.invalidate?.(); }}>Pulse light</button>
+          <button type="button" disabled={!ready} onClick={() => { Object.assign(interaction.current, { yaw: 0, pitch: 0, hoverX: 0, hoverY: 0 }); interaction.current.invalidate?.(); }}>Reset view</button>
+        </>}
+      </div>
+      {!reduced && !failed && <div className="opening-palettes" role="group" aria-label="Crystal colours">{["Aurora", "Ember", "Tide"].map((name, index) => <button key={name} type="button" aria-pressed={palette === index} disabled={!ready} onClick={() => { setPalette(index); interaction.current.palette = index; interaction.current.invalidate?.(); }}><span className={`opening-swatch opening-swatch-${index}`} aria-hidden="true" />{name}</button>)}</div>}
     </div>
-    {revealed && <div className="opening-reveal"><p className="studio-eyebrow">DESIGN WITH A DIFFERENT PERSPECTIVE</p><NavLink className="studio-text-link" to="/portfolio">Explore the work ↗</NavLink><NavLink className="studio-text-link" to="/about">Meet the studio ↗</NavLink></div>}
   </div>;
 }

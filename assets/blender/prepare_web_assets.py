@@ -35,9 +35,13 @@ for name in ("crystal", "laptop", "monitor", "phone", "observatory"):
         assert all(accessor["count"] > 1 and accessor["max"][0] > accessor["min"][0] for accessor in inputs), f"Static clip: {clip['name']}"
         durations[clip["name"]] = max(accessor["max"][0] for accessor in inputs)
     if name == "observatory":
-        assert sum(node.get("extras", {}).get("role") == "crystal-facet" for node in gltf["nodes"]) == 8
-        assert sum(node.get("extras", {}).get("role") == "opening-pivot" for node in gltf["nodes"]) == 16
-        assert all(1.2 <= duration <= 1.6 for duration in durations.values()), "Opening timing outside storyboard range"
+        assert sum(node.get("extras", {}).get("role") == "crystal-facet" for node in gltf["nodes"]) == 12
+        assert sum(node.get("extras", {}).get("role") == "opening-pivot" for node in gltf["nodes"]) == 22
+        assert all(2.3 <= duration <= 2.5 for duration in durations.values()), "Opening timing outside Aurora storyboard range"
+        assert any(node.get("extras", {}).get("role") == "luminous-core" for node in gltf["nodes"])
+        assert len([material for material in gltf["materials"] if material.get("name", "").startswith("Prism_") and "baseColorTexture" in material.get("pbrMetallicRoughness", {})]) == 6, "Six textured mineral colours required"
+        assert all("baseColorFactor" in material["pbrMetallicRoughness"] for material in gltf["materials"] if material.get("name", "").startswith("Prism_")), "Export must preserve authored pigment as well as grain"
+        assert gltf.get("images") and all("bufferView" in image for image in gltf["images"]), "Mineral texture must be packed into the model"
         assert all(all(gltf["nodes"][channel["target"]["node"]].get("extras", {}).get("role") == "opening-pivot" for channel in clip["channels"]) for clip in gltf["animations"]), "Opening animation targets must be named pivots"
     assert len(raw) <= 5 * 1024 * 1024, f"Mobile model budget exceeded: {name}"
     assert not any("uri" in buffer for buffer in gltf.get("buffers", [])), "GLB must be self-contained"
