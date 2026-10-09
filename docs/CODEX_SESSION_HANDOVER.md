@@ -1,10 +1,18 @@
 # Codex session handover — Crystal Powers 2.0 continuation
 
-Date: 9 October 2026. Branch: `James/crystal-powers-2-completion`, based on `origin/James/immersive-rebuild` at `c66e3d0`. Worktree: `C:\Users\James Hudson\.codex\worktrees\crystal-powers-2-completion\Crystal-Production`. Application commit `9fcb327` is pushed to that remote branch and fast-forwarded into the original checkout's local main, preserving untracked `clipmind/`. Remote main remains at `6bfba8d` pending production configuration verification.
+Date: 9 October 2026. Branch: `James/crystal-powers-2-completion`, based on `origin/James/immersive-rebuild` at `c66e3d0`. Worktree: `C:\Users\James Hudson\.codex\worktrees\crystal-powers-2-completion\Crystal-Production`. The tested release, including verification runner `022c885`, is pushed to remote main and the completion branch; documentation preparation reached `4bfce30`. The original checkout preserves unrelated untracked `clipmind/`. Render still serves old commit `6bfba8d` while production configuration is completed.
 
 The latest audit/checklist was found on the immersive-rebuild branch and is now included in local main. Use `CRYSTAL_POWERS_2_0_AUDIT.md` and `CRYSTAL_POWERS_2_0_PROGRESS.md` to continue. The active homepage opening belongs to `features/experience/CrystalOpening.tsx`; do not modify the old crystal expecting the rebuilt homepage to change.
 
 ## Current changes
+
+### Latest provider setup — 9 October
+
+James signed in to Supabase, Resend and Cloudflare and explicitly approved storing the Supabase service-role key and a domain-restricted Resend sending key in the existing Crystal Powers Render service, plus email-verification DNS changes. Supabase project `huhweqykbumewoewlvxl` is on the free plan in Ireland. Created private `project-media` storage with a 5 MB limit, JPEG-only uploads and zero policies; the public-bucket switch is off. The table editor showed no existing tables. Saved the TLS session-pooler JDBC URL, database username and Supabase origin in Render with **Save only**, and saved the existing service-role key without logging or committing it.
+
+Resend domain `crystal-powers.com` is verified in Ireland. Added only its required DKIM TXT and two DNS-only CNAME records (`rsend` and `send`) in Cloudflare; existing website records remain present. Receiving is off. Created `Crystal Powers Production` with Sending access restricted to that domain; its detail page confirms the restriction. Its secret is prepared in the Render editing form, alongside a blank `DATABASE_PASSWORD`, and is not yet saved at this handoff. The user must privately enter and submit the database password using **Save only**. Do not read, print or screenshot secret values. A separate pending question covers generating/storing the permanent encryption key, sender `studio@crystal-powers.com` and one clearly labelled test to the existing enquiry inbox. No new deployment has started. Auto-Deploy remains Off; retain the existing Starter plan and deploy only when configuration is complete. Owner setup/enrolment, hosted PostgreSQL migrations and live delivery remain unverified.
+
+Browser tabs are preserved for continuation. Private QA screenshots include `supabase-private-bucket-settings.png`, `cloudflare-resend-records.png`, `resend-verified-domain.png` and `render-database-password-handoff.png` under ignored `.codex-runtime/qa/`. Provider credentials remain outside repository files. Older production-preparation notes below describe previous checkpoints and are superseded by this update.
 
 Added shared semantic palettes, stronger form borders, consistent navigation and a compact mobile project CTA. Added persisted Reduce effects, CSS suppression and active canvas/film disposal. Homepage now handles loading/empty/error/retry rather than silently dropping the showcase.
 
