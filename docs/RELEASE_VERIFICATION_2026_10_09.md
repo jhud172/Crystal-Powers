@@ -1,6 +1,21 @@
 # Release verification — 9 October 2026
 
-The latest application is committed on `James/crystal-powers-2-completion`. This record verifies local release behaviour; it does not certify a deployment of that revision to Render.
+The tested application is committed on `James/crystal-powers-2-completion` and remote main. It was deployed to the existing Render service as `9abd386` on 9 October; the production evidence below supersedes earlier pending-deployment notes.
+
+## Hosted verification
+
+The first deployment built successfully but stopped because Supabase's pre-existing `rls_auto_enable` function made its otherwise empty `public` schema non-empty. A read-only query confirmed zero relations. A one-time version-zero Flyway baseline allowed all three migrations to run; no existing provider objects were removed. Retry `dep-db4ea4c9v7es73ac7410` applied V1–V3 to PostgreSQL 17.11 and booted Spring Boot 3.5.16 in 41.101 seconds, with Java 17, the unprivileged container user and the default production profile. Render reported Live at 14:00 BST. Temporary baseline variables were then removed. Health monitoring now uses `/api/health`, and On Commit automatic deployment is restored.
+
+Checks on the actual custom domain `https://crystal-powers.com`:
+
+- All six public pages, `/admin` and the SPA not-found route returned 200. HTML uses `Cache-Control: no-store`; its entry `/assets/index-HsDP3OUJ.js` matches the locally tested build, and production CSP is present.
+- Health returned `{"status":"up"}` and public projects returned the intended empty list. Anonymous owner projects returned 401; a nonexistent/unpublished project returned 404.
+- The live crystal reached its open state with one canvas, no document overflow, no broken completed images and no sampled browser console errors.
+- All five appearances selected correctly at an actual 390 px viewport without overflow. Reduce effects produced a static opening with zero canvases. The mobile menu closed on Escape. All six public pages, owner login and not-found rendering had no horizontal overflow or broken completed images in the 390 px check; Back/Forward worked. Temporary preferences and viewport override were restored.
+- Empty contact submission showed six invalid required fields and the validation message. Exactly one authorised, clearly labelled test then returned success. Resend email `01a120c1-68d8-7a0c-8fcb-4e5d42d575e3`, from `studio@crystal-powers.com` to the approved enquiry inbox, has **sent** and **delivered** events. This verifies provider delivery, not the recipient opening or inbox-versus-spam placement.
+- Private storage retains the 5 MB JPEG-only restriction and zero anonymous policies. Supabase permission inspection confirmed RLS on all eight application/history tables and no SELECT, INSERT, UPDATE or DELETE access for either browser role (`anon` / `authenticated`). Owner enrolment, authenticated media upload/publication and recovery delivery were not exercised against production.
+
+Private evidence includes `live-release-checks.json`, `live-mobile-pages.json`, `live-home-mobile.png`, `live-crystal-open.png`, `live-contact-delivery-success.png`, `resend-test-delivered.png` and Supabase schema/permission screenshots under ignored `.codex-runtime/qa/`. No credentials were put in Git or the browser application. The full 2.0 checklist remains open.
 
 ## Repeatable checks
 

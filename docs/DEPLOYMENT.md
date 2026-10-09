@@ -2,7 +2,13 @@
 
 ## Current boundary
 
-The repository contains a runnable application and a free-plan Render blueprint. No accounts, paid resources, DNS records or public deployment are created by this implementation. Real credentials, verified email sending and deployment must be completed in James's accounts. Never add production secrets to Git or frontend environment variables.
+The repository contains a runnable application and a free-plan Render blueprint. On 9 October 2026, James authorised deployment to his existing Render Starter service and provider configuration in his signed-in accounts. The tested application is live at `https://crystal-powers.com`, using the free Ireland Supabase project and a verified Resend domain. Existing hosting plans were preserved. Never add production secrets to Git or frontend environment variables. See `RELEASE_VERIFICATION_2026_10_09.md` for verified behaviour and remaining owner/content acceptance.
+
+## Initial Supabase migration boundary
+
+This new project's `public` schema had zero relations but contained Supabase's `rls_auto_enable` function. Flyway correctly refused to infer an initial schema version. After a read-only inspection established that no application tables or history existed, deployment temporarily used `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` and `SPRING_FLYWAY_BASELINE_VERSION=0`. Version zero lets migrations V1, V2 and V3 all run; the default baseline version one would skip the initial application schema. All three migrations applied, then both temporary variables were removed from Render with **Save only**. Future deployments use the existing history and normal migration validation.
+
+Do not enable automatic baselining as a permanent default, reuse this step against an existing application database, delete Supabase objects or baseline at version one. Inspect schema objects and existing data/history before any first-deployment baseline.
 
 ## Required configuration
 

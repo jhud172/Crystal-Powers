@@ -1,10 +1,16 @@
 # Codex session handover — Crystal Powers 2.0 continuation
 
-Date: 9 October 2026. Branch: `James/crystal-powers-2-completion`, based on `origin/James/immersive-rebuild` at `c66e3d0`. Worktree: `C:\Users\James Hudson\.codex\worktrees\crystal-powers-2-completion\Crystal-Production`. The tested release, including verification runner `022c885`, is pushed to remote main and the completion branch; documentation preparation reached `4bfce30`. The original checkout preserves unrelated untracked `clipmind/`. Render still serves old commit `6bfba8d` while production configuration is completed.
+Date: 9 October 2026. Branch: `James/crystal-powers-2-completion`, based on `origin/James/immersive-rebuild` at `c66e3d0`. Worktree: `C:\Users\James Hudson\.codex\worktrees\crystal-powers-2-completion\Crystal-Production`. The tested release, including verification runner `022c885`, is pushed to remote main and the completion branch and deployed through `9abd386`. The original checkout preserves unrelated untracked `clipmind/`. The latest application is verified on `https://crystal-powers.com`; full 2.0 checklist acceptance remains open.
 
 The latest audit/checklist was found on the immersive-rebuild branch and is now included in local main. Use `CRYSTAL_POWERS_2_0_AUDIT.md` and `CRYSTAL_POWERS_2_0_PROGRESS.md` to continue. The active homepage opening belongs to `features/experience/CrystalOpening.tsx`; do not modify the old crystal expecting the rebuilt homepage to change.
 
 ## Current changes
+
+### Live release supersedes the setup handoff below
+
+James privately saved the database password and approved generating/storing the permanent 32-byte encryption key, using `studio@crystal-powers.com` as sender and one labelled delivery test to the existing enquiry inbox. All required production values, including the restricted Resend key, are now saved in Render. Tested revision `9abd386` is live on `crystal-powers.com`; entry `index-HsDP3OUJ.js` matches the local build. The first attempt failed on an otherwise empty Supabase schema containing its `rls_auto_enable` function. After inspecting zero relations, a one-time baseline at version zero applied V1–V3 successfully. Both baseline settings were removed afterwards. Render health checks use `/api/health`; automatic On Commit deployment has been restored. See `RELEASE_VERIFICATION_2026_10_09.md` and `DEPLOYMENT.md` for the actual checks, safe baseline boundary and residual gates.
+
+Live routes/APIs, crystal boot, five appearances, 390 px pages, reduced effects, mobile Escape/history and contact validation were checked. The single authorised test has a Resend **delivered** event. Owner enrolment, private-media upload/publication, recovery delivery, backups and full 2.0 visual/content acceptance remain open. Do not tick the entire checklist or recreate/rotate the encryption key. Keep secrets in provider environment settings. The older unsaved-key/password handoff below is historical.
 
 ### Latest provider setup — 9 October
 

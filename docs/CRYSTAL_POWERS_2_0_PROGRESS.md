@@ -4,6 +4,12 @@ Date: 9 October 2026. Working branch: `James/crystal-powers-2-completion`, based
 
 ## Current milestone and implementation brief
 
+### Latest live release — 9 October 2026
+
+The tested application is now live on `https://crystal-powers.com` through the existing Render Starter service. Supabase PostgreSQL migrations V1–V3 applied successfully, private storage is configured, and Resend verified the sending domain and delivered the single authorised contact test. The first boot's non-empty-schema failure was resolved after inspecting zero relations and Supabase's own function, using a temporary version-zero baseline; the temporary settings were removed. Public pages/APIs, protected owner access, the actual compiled entry, live crystal, all five themes, 390 px routes, reduced effects, mobile menu/history and contact validation were checked. Render health monitoring uses `/api/health` and On Commit deployment is restored. Full evidence and limits are in `RELEASE_VERIFICATION_2026_10_09.md`.
+
+This completes the latest-release deployment request, not the full 2.0 checklist. Owner enrolment and real project publication, complete enquiry-flow contracts, visual acceptance/poster matching, private-media/recovery/backup production acceptance and physical-device performance remain open. Older release-preparation notes below describe earlier checkpoints.
+
 Objective: deliver the first reviewable visual foundation and representative homepage, Services builder and case-study drafts, then improve the shared shell and effects preference. Visitors gain consistent navigation, a visible mobile project entry, distinct appearances and a lighter static experience.
 
 Affected production routes: every route using `Layout`, including the public pages and owner shell. The special birthday route remains independent. Public route URLs, enquiry payloads, prices, project DTOs and backend code have not changed. No schema or provider configuration changed.
