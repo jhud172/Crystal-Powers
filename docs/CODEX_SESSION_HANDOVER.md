@@ -1,8 +1,8 @@
 # Codex session handover — Crystal Powers 2.0 continuation
 
-Date: 9 October 2026. Branch: `James/crystal-powers-2-completion`, based on `origin/James/immersive-rebuild` at `c66e3d0`. Worktree: `C:\Users\James Hudson\.codex\worktrees\crystal-powers-2-completion\Crystal-Production`. The original checkout remains on main at `6bfba8d` with untracked `clipmind/` preserved.
+Date: 9 October 2026. Branch: `James/crystal-powers-2-completion`, based on `origin/James/immersive-rebuild` at `c66e3d0`. Worktree: `C:\Users\James Hudson\.codex\worktrees\crystal-powers-2-completion\Crystal-Production`. Application commit `9fcb327` is pushed to that remote branch and fast-forwarded into the original checkout's local main, preserving untracked `clipmind/`. Remote main remains at `6bfba8d` pending production configuration verification.
 
-The latest audit/checklist was found on the immersive-rebuild branch, not main. Use `CRYSTAL_POWERS_2_0_AUDIT.md` and `CRYSTAL_POWERS_2_0_PROGRESS.md` to continue. Main does not contain the newer public/owner implementation; do not modify the old crystal expecting the rebuilt homepage to change.
+The latest audit/checklist was found on the immersive-rebuild branch and is now included in local main. Use `CRYSTAL_POWERS_2_0_AUDIT.md` and `CRYSTAL_POWERS_2_0_PROGRESS.md` to continue. The active homepage opening belongs to `features/experience/CrystalOpening.tsx`; do not modify the old crystal expecting the rebuilt homepage to change.
 
 ## Current changes
 
@@ -28,4 +28,4 @@ Evidence lives under ignored `.codex-runtime/qa/`; do not publish it as client c
 
 Review the three draft compositions, then continue the segmented crystal/frame and explicit animation contracts. Define enquiry intent and reset/continuity contracts before converting the actual Services/Contact/Support flows. Real project publication requires truthful permission-cleared content; privacy/support details must reflect actual operations.
 
-No changes were pushed, merged, published or deployed. The existing live Render service auto-deploys main; its hosting, Supabase/private storage, Resend, owner enrolment, DNS and real email receipt remain separate account-level actions. Read `OWNER_STUDIO.md`, `DEPLOYMENT.md` and `REBUILD_QA.md`; preserve their security and evidence boundaries. Retain this attached worktree until its changes are integrated or deliberately archived.
+James explicitly authorised committing, pushing and deploying the latest changes to the existing Render service. The application branch is pushed and local main updated; remote main and Render deployment await account access and configuration verification. Render is signed out in the in-app browser; James has been asked to sign in. Do not re-request deployment authorisation. Verify required PostgreSQL, encryption, private storage and email settings before triggering main's automatic deployment. Owner enrolment, DNS and real email receipt remain unverified account-level actions. Read `OWNER_STUDIO.md`, `DEPLOYMENT.md` and `REBUILD_QA.md`; preserve their security and evidence boundaries. Retain this attached worktree until its changes are integrated or deliberately archived.
