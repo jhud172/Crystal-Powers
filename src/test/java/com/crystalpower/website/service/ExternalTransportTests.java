@@ -53,6 +53,22 @@ class ExternalTransportTests {
     }
 
     @Test
+    void smtpAddsBrandNameAndPreservesReplyToAndConfiguredSenderNames() throws Exception {
+        var smtp = mock(org.springframework.mail.javamail.JavaMailSender.class);
+        for (String from : List.of("studio@example.invalid", "Crystal Powers Support <studio@example.invalid>")) {
+            var mime = new jakarta.mail.internet.MimeMessage((jakarta.mail.Session) null);
+            when(smtp.createMimeMessage()).thenReturn(mime);
+            new EmailTransport(smtp, new ObjectMapper(), "smtp", "", from, http).send(message);
+            var sender = (jakarta.mail.internet.InternetAddress) mime.getFrom()[0];
+            assertThat(sender.getAddress()).isEqualTo("studio@example.invalid");
+            assertThat(sender.getPersonal()).isEqualTo(from.contains("<") ? "Crystal Powers Support" : "Crystal Powers");
+            assertThat(mime.getReplyTo()[0].toString()).isEqualTo(message.replyTo());
+            verify(smtp).send(mime);
+        }
+        verifyNoInteractions(http);
+    }
+
+    @Test
     void privateStorageUsesAuthenticatedEndpointAndRejectsOversizedOrFailedResponses() throws Exception {
         var storage = new MediaStorage("supabase", "build/test-media", "https://synthetic.supabase.co", "synthetic-key", "project-media", http);
         String key = "11111111-1111-1111-1111-111111111111.jpg";

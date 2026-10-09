@@ -37,7 +37,7 @@ public class InquiryEmailService {
     }
     private String buildSubject(ContactForm form, String sourceLabel) {
         String packageSelection = StringUtils.hasText(form.getPackageSelection())
-                ? form.getPackageSelection().trim()
+                ? packageLabel(form.getPackageSelection())
                 : "Unspecified package";
         String fullName = buildFullName(form);
 
@@ -53,16 +53,16 @@ public class InquiryEmailService {
         List<MultipartFile> attachments = getPopulatedFiles(referenceFiles);
 
         StringBuilder html = new StringBuilder();
-        html.append("<!DOCTYPE html><html><body style=\"margin:0;padding:32px;background:#0b1020;color:#e5edf9;font-family:'Segoe UI',Arial,sans-serif;\">");
+        html.append("<!DOCTYPE html><html><body style=\"margin:0;padding:16px;background:#0b1020;color:#e5edf9;font-family:'Segoe UI',Arial,sans-serif;\">");
         html.append("<div style=\"max-width:760px;margin:0 auto;border:1px solid rgba(255,255,255,0.08);border-radius:28px;overflow:hidden;background:linear-gradient(180deg,#10172d,#0b1020);box-shadow:0 32px 80px rgba(2,6,23,0.45);\">");
-        html.append("<div style=\"padding:28px 32px;border-bottom:1px solid rgba(255,255,255,0.08);background:radial-gradient(circle at top right, rgba(103,232,249,0.16), transparent 240px),linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));\">");
+        html.append("<div style=\"padding:24px;border-bottom:1px solid rgba(255,255,255,0.08);background:radial-gradient(circle at top right, rgba(103,232,249,0.16), transparent 240px),linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));\">");
         html.append("<div style=\"font-size:12px;letter-spacing:0.32em;text-transform:uppercase;color:#67e8f9;font-weight:700;\">Crystal Powers</div>");
-        html.append("<h1 style=\"margin:14px 0 0;font-size:32px;line-height:1.08;color:#ffffff;\">New website build request</h1>");
+        html.append("<h1 style=\"margin:14px 0 0;font-size:32px;line-height:1.08;color:#ffffff;\">New website enquiry</h1>");
         html.append("<p style=\"margin:14px 0 0;font-size:15px;line-height:1.8;color:#c7d2e5;\">");
-        html.append(escape(sourceLabel)).append(" submitted a structured enquiry with package, maintenance, additions, and contact details.");
+        html.append(escape(sourceLabel)).append(" enquiry. Reply to this email to contact the sender.");
         html.append("</p></div>");
 
-        html.append("<div style=\"padding:32px;display:grid;gap:18px;\">");
+        html.append("<div style=\"padding:24px;\">");
         html.append(section("Contact details", rows(
                 row("Name", buildFullName(form)),
                 row("Email", form.getEmail()),
@@ -71,8 +71,8 @@ public class InquiryEmailService {
         )));
 
         html.append(section("Project scope", rows(
-                row("Package", form.getPackageSelection()),
-                row("Maintenance", form.getMaintenanceSelection()),
+                row("Package", packageLabel(form.getPackageSelection())),
+                row("Maintenance", maintenanceLabel(form.getMaintenanceSelection())),
                 row("Additions", additions.isEmpty() ? "No additions selected" : String.join(", ", additions)),
                 row("Custom additions", defaultText(form.getOtherAdditions()))
         )));
@@ -89,7 +89,7 @@ public class InquiryEmailService {
     }
 
     private String section(String title, String body) {
-        return "<section style=\"border:1px solid rgba(255,255,255,0.08);border-radius:22px;padding:22px;background:rgba(255,255,255,0.03);\">"
+        return "<section style=\"border:1px solid rgba(255,255,255,0.08);border-radius:22px;padding:18px;margin-bottom:18px;background:#171e33;\">"
                 + "<div style=\"font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:#7dd3fc;font-weight:700;\">"
                 + escape(title)
                 + "</div>"
@@ -98,7 +98,7 @@ public class InquiryEmailService {
     }
 
     private String rows(String... rows) {
-        StringBuilder html = new StringBuilder("<div style=\"display:grid;gap:12px;margin-top:18px;\">");
+        StringBuilder html = new StringBuilder("<div style=\"margin-top:18px;\">");
         for (String row : rows) {
             html.append(row);
         }
@@ -107,23 +107,23 @@ public class InquiryEmailService {
     }
 
     private String row(String label, String value) {
-        return "<div style=\"display:grid;gap:6px;padding:14px 16px;border-radius:16px;background:rgba(2,6,23,0.42);\">"
+        return "<div style=\"margin-bottom:12px;padding:14px 16px;border-radius:16px;background:#0e1427;\">"
                 + "<div style=\"font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:#8fa6c8;font-weight:700;\">"
                 + escape(label)
                 + "</div>"
-                + "<div style=\"font-size:15px;line-height:1.7;color:#ffffff;\">"
-                + escape(defaultText(value))
+                + "<div style=\"margin-top:6px;font-size:15px;line-height:1.7;color:#ffffff;overflow-wrap:anywhere;word-break:break-word;\">"
+                + ("Email".equals(label) ? emailLink(value) : escape(defaultText(value)))
                 + "</div>"
                 + "</div>";
     }
 
     private String textSection(String title, String value) {
-        return "<section style=\"border:1px solid rgba(255,255,255,0.08);border-radius:22px;padding:22px;background:rgba(255,255,255,0.03);\">"
+        return "<section style=\"border:1px solid rgba(255,255,255,0.08);border-radius:22px;padding:18px;margin-bottom:18px;background:#171e33;\">"
                 + "<div style=\"font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:#7dd3fc;font-weight:700;\">"
                 + escape(title)
                 + "</div>"
-                + "<div style=\"margin-top:18px;padding:18px 20px;border-radius:18px;background:rgba(2,6,23,0.42);font-size:15px;line-height:1.8;color:#ffffff;white-space:pre-wrap;\">"
-                + escape(defaultText(value))
+                + "<div style=\"margin-top:18px;padding:18px 20px;border-radius:18px;background:#0e1427;font-size:15px;line-height:1.8;color:#ffffff;overflow-wrap:anywhere;word-break:break-word;\">"
+                + escape(defaultText(value)).replace("\r\n", "\n").replace("\r", "\n").replace("\n", "<br>")
                 + "</div>"
                 + "</section>";
     }
@@ -169,9 +169,35 @@ public class InquiryEmailService {
     private String joinAttachmentNames(List<MultipartFile> files) {
         return files.stream()
                 .map(file -> StringUtils.hasText(file.getOriginalFilename()) ? file.getOriginalFilename().trim() : "reference-upload")
-                .map(this::escape)
                 .reduce((left, right) -> left + ", " + right)
                 .orElse("No files attached");
+    }
+
+    private String emailLink(String value) {
+        String email = escape(value);
+        return "<a href=\"mailto:" + email + "\" style=\"color:#7dd3fc;text-decoration:underline;\">" + email + "</a>";
+    }
+
+    // Keep the established API values; match the titles shown by the website.
+    private String packageLabel(String value) {
+        return switch (valueOrEmpty(value)) {
+            case "Basic" -> "Starter site foundation";
+            case "Starter" -> "Stronger business presence";
+            case "Standard" -> "Balanced premium build";
+            case "Experienced" -> "Advanced business structure";
+            case "Multi Grade" -> "Larger custom scope";
+            case "Custom Quote" -> "Tailored project scope";
+            default -> defaultText(value);
+        };
+    }
+
+    private String maintenanceLabel(String value) {
+        return switch (valueOrEmpty(value)) {
+            case "Basic Maintenance" -> "Essential coverage";
+            case "Standard Maintenance" -> "Ongoing updates";
+            case "Premium Maintenance" -> "Priority support";
+            default -> defaultText(value);
+        };
     }
 
     private String escape(String value) {

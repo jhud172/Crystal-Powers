@@ -39,13 +39,15 @@ public class EmailTransport {
     }
     public void send(Message message) {
         try {
-            new InternetAddress(from, true).validate(); new InternetAddress(message.to(), true).validate();
+            var sender = new InternetAddress(from, true); sender.validate();
+            if (sender.getPersonal() == null) sender.setPersonal("Crystal Powers", "UTF-8");
+            new InternetAddress(message.to(), true).validate();
             if (message.replyTo() != null) new InternetAddress(message.replyTo(), true).validate();
             if (message.subject().contains("\r") || message.subject().contains("\n")) throw new DeliveryException();
             if ("resend".equals(provider)) {
                 if (key.isBlank()) throw new DeliveryException();
                 Map<String, Object> body = new LinkedHashMap<>();
-                body.put("from", from); body.put("to", List.of(message.to())); body.put("subject", message.subject()); body.put("html", message.html());
+                body.put("from", sender.toString()); body.put("to", List.of(message.to())); body.put("subject", message.subject()); body.put("html", message.html());
                 if (message.replyTo() != null) body.put("reply_to", message.replyTo());
                 if (!message.attachments().isEmpty()) body.put("attachments", message.attachments().stream().map(attachment -> Map.of("filename", safeFilename(attachment.filename()), "content_type", attachment.contentType(), "content", Base64.getEncoder().encodeToString(attachment.content()))).toList());
                 var request = HttpRequest.newBuilder(URI.create("https://api.resend.com/emails")).timeout(Duration.ofSeconds(15))
@@ -59,7 +61,7 @@ public class EmailTransport {
                 }
             } else if ("smtp".equals(provider) && smtp != null) {
                 var mime = smtp.createMimeMessage(); var helper = new MimeMessageHelper(mime, true, "UTF-8");
-                helper.setFrom(from); helper.setTo(message.to()); if (message.replyTo() != null) helper.setReplyTo(message.replyTo());
+                helper.setFrom(sender); helper.setTo(message.to()); if (message.replyTo() != null) helper.setReplyTo(message.replyTo());
                 helper.setSubject(message.subject()); helper.setText(message.html(), true);
                 for (Attachment attachment : message.attachments()) helper.addAttachment(safeFilename(attachment.filename()), new ByteArrayResource(attachment.content()), attachment.contentType());
                 smtp.send(mime);
