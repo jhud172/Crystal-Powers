@@ -1,0 +1,74 @@
+/* Public navigation floats above the light artwork; private workspaces keep their shell. */
+.studio-shell:not(.owner-shell) .studio-header {
+  position: sticky; top: 12px; width: calc(100% - 32px); margin: 12px 16px 0;
+  height: 88px; padding-inline: clamp(18px, 3vw, 44px); gap: 20px;
+  border: 1px solid var(--studio-line); border-radius: 22px;
+  background: var(--studio-bg); background: color-mix(in srgb, var(--studio-bg) 88%, transparent);
+  backdrop-filter: blur(18px); box-shadow: 0 12px 40px #00000012, inset 0 1px 0 #ffffff50;
+}
+.studio-shell:not(.owner-shell) .studio-header .studio-brand { gap: 12px; }
+.studio-shell:not(.owner-shell) .studio-header .studio-brand-jewel { display: grid; place-items: center; width: 48px; height: 52px; border-radius: 13px 19px 13px 19px; background: linear-gradient(145deg, #f5fcff 0%, #8ed8ff 22%, #235a9b 65%, #09254d 100%); color: white; box-shadow: inset 0 1px 0 #ffffffc0, 0 5px 14px #12356425; }
+.studio-shell:not(.owner-shell) .studio-header .studio-brand svg { width: 28px; height: 36px; }
+.studio-shell:not(.owner-shell) .studio-header .studio-brand-name { font-size: 15px; line-height: 1.05; letter-spacing: -.025em; font-weight: 650; }
+.studio-shell:not(.owner-shell) .studio-desktop-nav { gap: 10px; margin-right: 12px; padding: 0; border-radius: 0; border: 0; }
+.studio-shell:not(.owner-shell) .studio-desktop-nav a { position: relative; padding: 10px 12px; border-radius: 10px; min-height: 44px; display: flex; align-items: center; transition: background var(--studio-motion-short), color var(--studio-motion-short); }
+.studio-shell:not(.owner-shell) .studio-desktop-nav a::after { display: none; }
+.studio-shell:not(.owner-shell) .studio-desktop-nav a:hover { background: var(--studio-raised); }
+.studio-shell:not(.owner-shell) .studio-desktop-nav a.active { background: var(--studio-raised); color: var(--studio-text); }
+.studio-shell:not(.owner-shell) .studio-desktop-nav a.active::before { content: ""; position: absolute; width: 4px; height: 4px; border-radius: 50%; background: var(--studio-accent); bottom: 4px; left: calc(50% - 2px); }
+.studio-shell:not(.owner-shell) .studio-header-actions { gap: 10px; }
+.studio-shell:not(.owner-shell) .studio-icon-button { background: transparent; border-color: var(--studio-line); font-weight: 400; transition: background var(--studio-motion-short), border-color var(--studio-motion-short); }
+.studio-shell:not(.owner-shell) .studio-icon-button > span { font-size: 17px; line-height: 1; }
+.studio-shell:not(.owner-shell) .studio-header-contact { gap: 12px; height: 44px; min-height: 44px; padding: 5px 7px 5px 14px; border: 1px solid var(--studio-control-line); border-radius: 14px; background: var(--studio-raised); color: var(--studio-text); font-weight: 400; line-height: 1.2; box-shadow: none; transition: background var(--studio-motion-short), border-color var(--studio-motion-short); }
+.studio-shell:not(.owner-shell) .studio-header-contact > span:last-child { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: color-mix(in srgb, var(--studio-accent) 12%, transparent); font-size: 17px; transition: transform var(--studio-motion-short), background var(--studio-motion-short); }
+.studio-shell:not(.owner-shell) .studio-menu-button { align-items: center; justify-content: center; height: 44px; min-height: 44px; gap: 9px; padding: 0 12px; border: 1px solid var(--studio-line); border-radius: 14px; background: transparent; font-weight: 400; line-height: 1.2; transition: background var(--studio-motion-short), border-color var(--studio-motion-short); }
+.studio-shell:not(.owner-shell) .studio-icon-button[aria-expanded="true"], .studio-shell:not(.owner-shell) .studio-menu-button[aria-expanded="true"] { background: var(--studio-raised); border-color: var(--studio-control-line); }
+@media (hover: hover) and (pointer: fine) {
+  .studio-shell:not(.owner-shell) .studio-icon-button:hover, .studio-shell:not(.owner-shell) .studio-menu-button:hover { background: var(--studio-raised); border-color: var(--studio-control-line); }
+  .studio-shell:not(.owner-shell) .studio-header-contact:hover { background: color-mix(in srgb, var(--studio-accent) 10%, var(--studio-raised)); border-color: var(--studio-accent); }
+  .studio-shell:not(.owner-shell) .studio-header-contact:hover > span:last-child { transform: translate(2px,-2px); background: color-mix(in srgb, var(--studio-accent) 22%, transparent); }
+  .studio-shell:not(.owner-shell) .studio-menu-button:hover .studio-menu-glyph i:last-child { transform: scaleX(.7); }
+}
+.studio-shell:not(.owner-shell) .studio-menu-button[aria-expanded="true"]:hover .studio-menu-glyph i:last-child { transform: translateY(-3px) rotate(-45deg); }
+.studio-shell:not(.owner-shell):is([data-motion="light"], [data-motion="reduced"]) .studio-header-contact:hover > span:last-child,
+.studio-shell:not(.owner-shell):is([data-motion="light"], [data-motion="reduced"]) .studio-menu-button:not([aria-expanded="true"]):hover .studio-menu-glyph i:last-child { transform: none; }
+.studio-shell:not(.owner-shell)[data-motion="reduced"] .studio-header-actions * { transition: none; }
+.studio-menu-glyph { display: grid; align-content: center; gap: 5px; width: 17px; height: 20px; }
+.studio-menu-glyph i { display: block; height: 1px; background: currentColor; transform-origin: center; transition: transform var(--studio-motion-short); }
+.studio-menu-button[aria-expanded="true"] .studio-menu-glyph i:first-child { transform: translateY(3px) rotate(45deg); }
+.studio-menu-button[aria-expanded="true"] .studio-menu-glyph i:last-child { transform: translateY(-3px) rotate(-45deg); }
+.studio-shell:not(.owner-shell) .studio-mobile-menu { top: calc(100% + 10px); border: 1px solid var(--studio-line); border-radius: 24px; box-shadow: var(--studio-elevation); padding: 24px; max-height: calc(100dvh - 114px); overflow-y: auto; background: var(--studio-bg); animation: studio-menu-arrive 220ms ease-out; }
+.studio-menu-intro { padding: 0 0 20px; border-bottom: 1px solid var(--studio-line); }
+.studio-menu-intro p { font-size: 9px; letter-spacing: .16em; color: var(--studio-muted); }
+.studio-menu-intro > span { display: block; margin-top: 7px; font-size: 20px; letter-spacing: -.04em; }
+.studio-shell:not(.owner-shell) .studio-mobile-menu a { min-height: 86px; font-size: clamp(25px, 4vw, 36px); gap: 16px; }
+.studio-menu-link-copy { display: grid; gap: 3px; }
+.studio-menu-link-copy small { font-size: 11px; line-height: 1.5; color: var(--studio-muted); max-width: 30ch; }
+.studio-shell:not(.owner-shell) .studio-mobile-menu .studio-menu-link-arrow { display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px; border: 1px solid var(--studio-line); border-radius: 50%; font-size: 20px; }
+@keyframes studio-menu-arrive { from { opacity: .6; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.studio-shell:not(.owner-shell) .studio-mobile-menu a:hover, .studio-shell:not(.owner-shell) .studio-mobile-menu a.active { color: var(--studio-accent); }
+.studio-shell:not(.owner-shell) .studio-appearance-panel { top: calc(100% + 14px); border-radius: 22px; border-color: var(--studio-control-line); }
+@media (max-width: 1000px) {
+  .studio-shell:not(.owner-shell) .studio-appearance-panel { top: calc(100% + 10px); right: 8px; }
+}
+@media (max-width: 760px) {
+  .studio-shell:not(.owner-shell) .studio-header { top: 8px; width: calc(100% - 20px); margin: 8px 10px 0; height: 76px; padding-inline: 14px; gap: 8px; border-radius: 20px; }
+  .studio-shell:not(.owner-shell) .studio-header-actions { gap: 8px; }
+  .studio-shell:not(.owner-shell) .studio-header .studio-brand svg { width: 22px; height: 30px; }
+  .studio-shell:not(.owner-shell) .studio-header .studio-brand-jewel { width: 36px; height: 42px; border-radius: 10px 14px 10px 14px; }
+  .studio-shell:not(.owner-shell) .studio-header .studio-brand-name { font-size: 13px; }
+  .studio-shell:not(.owner-shell) .studio-header .studio-brand { gap: 8px; }
+  .studio-shell:not(.owner-shell) .studio-header-contact { padding: 5px 7px 5px 12px; gap: 9px; }
+  .studio-shell:not(.owner-shell) .studio-appearance-panel { right: 0; max-height: calc(100dvh - 104px); }
+}
+/* Compact actions before they can crowd the complete crystal and wordmark. */
+@media (max-width: 600px) {
+  .studio-shell:not(.owner-shell) .studio-header-contact .studio-project-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .studio-shell:not(.owner-shell) .studio-header-contact { padding: 0; width: 44px; height: 44px; flex-shrink: 0; }
+  .studio-shell:not(.owner-shell) .studio-header-contact > span:last-child { background: transparent; }
+}
+@media (max-width: 480px) {
+  .studio-shell:not(.owner-shell) .studio-header { padding-inline: 12px; }
+  .studio-shell:not(.owner-shell) .studio-menu-button { width: 44px; padding: 0; }
+  .studio-menu-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}

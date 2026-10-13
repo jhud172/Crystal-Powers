@@ -53,9 +53,10 @@ body:has(.studio-shell)::before, body:has(.studio-shell)::after { display: none;
 .studio-header-contact span { font-size: 20px; }
 .studio-icon-button { display: grid; place-items: center; background: none; border: 1px solid var(--studio-line); width: 38px; height: 38px; border-radius: 50%; font-size: 20px !important; }
 .studio-appearance { position: relative; }
-.studio-appearance-panel { position: absolute; width: 210px; right: 0; top: 50px; background: var(--studio-raised); border: 1px solid var(--studio-line); padding: 18px; box-shadow: 0 20px 60px #0003; }
+.studio-appearance-panel { position: absolute; width: min(280px, calc(100vw - 32px)); right: 0; top: 56px; background: var(--studio-raised); border: 1px solid var(--studio-line); border-radius: 24px; padding: 20px; box-shadow: 0 20px 60px #0003; }
 .studio-appearance-panel p { font-size: 11px; color: var(--studio-muted); margin-bottom: 10px; }
-.studio-appearance-panel button { display: flex; justify-content: space-between; width: 100%; padding: 9px 0; border: 0; background: none; text-align: left; font-size: 12px; }
+.studio-appearance-panel button { display: flex; justify-content: space-between; width: 100%; padding: 12px; min-height: 44px; border: 0; border-radius: 10px; background: none; text-align: left; font-size: 12px; }
+.studio-appearance-panel > button:hover, .studio-appearance-panel > button[aria-pressed="true"] { background: var(--studio-bg); }
 .studio-menu-button { display: none; background: none; border: 0; }
 .studio-mobile-menu { position: absolute; left: 0; right: 0; top: 100%; padding: 20px var(--studio-gutter) 35px; background: var(--studio-bg); border-bottom: 1px solid var(--studio-line); }
 .studio-mobile-menu a { padding: 13px 0; display: flex; align-items: center; gap: 20px; font-size: 24px; border-bottom: 1px solid var(--studio-line); }

@@ -1,5 +1,7 @@
 export type RenderTier = "low" | "standard" | "high";
 export type RenderQuality = "automatic" | RenderTier;
+// Both dimensions keep landscape phones on still artwork as well.
+export const THREE_D_SCREEN_QUERY = "(min-width: 768px) and (min-height: 600px)";
 
 export function isRenderQuality(value: unknown): value is RenderQuality {
   return value === "automatic" || value === "low" || value === "standard" || value === "high";

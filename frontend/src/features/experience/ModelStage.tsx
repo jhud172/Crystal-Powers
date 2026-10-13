@@ -20,8 +20,8 @@ export function ModelStage({ model, image, imageAlt = "Project screenshot", titl
   const { theme } = useSiteTheme();
   const appearance = ["clean", "fresh", "summer-vibes"].includes(theme) ? "light" : "dark";
   const id = useId();
-  const { activeStage, activate, release, reduceEffects, reducedMotion: reduced, pageVisible, ambientMotion } = useExperience();
-  const active = activeStage === id && !reduceEffects;
+  const { activeStage, activate, release, reduceEffects, threeDAllowed, reducedMotion: reduced, pageVisible, ambientMotion } = useExperience();
+  const active = activeStage === id && threeDAllowed;
   const host = useRef<HTMLDivElement>(null);
   const launch = useRef<HTMLButtonElement>(null);
   const returnLaunchFocus = useRef(false);
@@ -41,6 +41,7 @@ export function ModelStage({ model, image, imageAlt = "Project screenshot", titl
   const handleReady = useCallback(() => setReady(true), []);
   const pause = useCallback(() => setPlaying(false), []);
   const open = () => {
+    if (!threeDAllowed) return;
     // A visible launch control is authoritative even before the observer reports.
     setVisible(true);
     activate(id); setFilm(false); setPlaying(false); setFailed(false);
@@ -85,20 +86,20 @@ export function ModelStage({ model, image, imageAlt = "Project screenshot", titl
   useEffect(() => { if (reduced) { setPlaying(false); setFilm(false); } }, [reduced]);
   useEffect(() => {
     const player = video.current;
-    if (film && visible && pageVisible && activeStage === null && ambientMotion) void player?.play().catch(() => setFilm(false));
+    if (film && threeDAllowed && visible && pageVisible && activeStage === null && ambientMotion) void player?.play().catch(() => setFilm(false));
     else player?.pause();
     return () => player?.pause();
-  }, [film, visible, pageVisible, activeStage, ambientMotion, appearance]);
+  }, [film, threeDAllowed, visible, pageVisible, activeStage, ambientMotion, appearance]);
   return <div ref={host} className={`model-stage ${className}`} data-active={active} data-ready={ready}>
     {image && model !== "crystal" ? <div className={`stage-poster stage-project-poster stage-project-${model}`}><div className="stage-project-device"><img src={image} alt={imageAlt} loading="lazy" /></div></div> : <ScenePoster model={model} light={appearance === "light"} className="stage-poster stage-live-poster" sizes="(max-width: 700px) 100vw, 70vw" eager={model === "crystal"} alt={model === "crystal" ? "Faceted optical crystals on a polished metal plinth" : `Custom ${model} display`} />}
-    {film && activeStage === null && ambientMotion && <video key={appearance} ref={video} className="stage-film" src={`/renders/crystal-${appearance}-orbit.mp4`} poster={`/renders/crystal-${appearance}.webp`} muted loop playsInline aria-label="Cinematic crystal orbit" onError={() => { setFilm(false); setFilmFailed(true); }} />}
+    {film && threeDAllowed && activeStage === null && ambientMotion && <video key={appearance} ref={video} className="stage-film" src={`/renders/crystal-${appearance}-orbit.mp4`} poster={`/renders/crystal-${appearance}.webp`} muted loop playsInline aria-label="Cinematic crystal orbit" onError={() => { setFilm(false); setFilmFailed(true); }} />}
     {active && visible && pageVisible && !failed && <div className="stage-canvas" tabIndex={0} role="region" aria-label={`${model} 3D view. Use left and right arrow keys to rotate. Press Escape to close.`} onKeyDown={event => {
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); setAngle(value => value + (event.key === "ArrowLeft" ? -0.3 : 0.3)); }
       if (event.key === "Escape") { event.stopPropagation(); close(); }
     }}><SceneBoundary key={`${model}:${displayImage ?? ""}`} onFailure={handleFailure}><Suspense fallback={null}><ModelCanvas model={model} image={displayImage} light={appearance === "light"} angle={angle} reset={reset} playing={playing} onInteraction={pause} onFinished={pause} onFailure={handleFailure} onReady={handleReady} /></Suspense></SceneBoundary></div>}
     {active && visible && pageVisible && !ready && !failed && <p className="stage-status" role="status">Loading the 3D view… You can close this view and keep browsing.</p>}
     {(active && failed || filmFailed) && <p className="stage-error" role="status">{failed ? "3D is unavailable on this device. The rendered view is still available." : "The film could not load. The rendered view is still available."}</p>}
-    <div className="stage-controls">{reduceEffects ? <p className="stage-reduced-note">Rendered view · effects reduced</p> : !active ? <>{model === "crystal" && ambientMotion && <button type="button" aria-pressed={film} onClick={() => { setFilm(!film); setFilmFailed(false); }}>{film ? "Pause film" : "Play film"}</button>}<button ref={launch} type="button" className="stage-launch" onClick={open}><span aria-hidden="true">◇</span> {title} <span aria-hidden="true">↗</span></button></> : <>
+    <div className="stage-controls">{!threeDAllowed ? <p className="stage-reduced-note">{reduceEffects ? "Rendered view · effects reduced" : "Rendered view"}</p> : !active ? <>{model === "crystal" && ambientMotion && <button type="button" aria-pressed={film} onClick={() => { setFilm(!film); setFilmFailed(false); }}>{film ? "Pause film" : "Play film"}</button>}<button ref={launch} type="button" className="stage-launch" onClick={open}><span aria-hidden="true">◇</span> {title} <span aria-hidden="true">↗</span></button></> : <>
       {failed ? <button type="button" disabled={retrying} onClick={() => void retry()}>{retrying ? "Preparing retry…" : "Retry 3D view"}</button> : <><button type="button" aria-label="Rotate left" disabled={!ready} onClick={() => setAngle(value => value - 0.35)}>←</button><button type="button" aria-label="Rotate right" disabled={!ready} onClick={() => setAngle(value => value + 0.35)}>→</button><button type="button" disabled={!ready} onClick={() => { setAngle(0); setPlaying(false); setReset(value => value + 1); }}>Reset</button>{!reduced && (model === "crystal" || model === "laptop") && <button type="button" disabled={!ready} aria-pressed={playing} onClick={() => setPlaying(value => !value)}>{playing ? "Pause" : "Animate"}</button>}</>}
       <button type="button" aria-label="Close 3D view" onClick={close}>Close ×</button>
     </>}</div>

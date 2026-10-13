@@ -1,0 +1,13 @@
+{
+  "brand": "Crystal Powers",
+  "concept": "04 \u00b7 bright crystal core",
+  "source": "assets\\blender\\scenes\\crystal-powers-logo-3d.blend",
+  "geometry": "Original solid faceted prism and extruded editable lettering",
+  "font": "Installed Windows Segoe UI Semibold; packed in native scene, mesh in GLB; no standalone font distribution",
+  "render": "Cycles, 48 samples, AgX, RGBA transparent film, four studio softboxes",
+  "files": [
+    "crystal-powers-logo-3d.png",
+    "crystal-powers-emblem-3d.png",
+    "crystal-powers-logo-3d.glb"
+  ]
+}

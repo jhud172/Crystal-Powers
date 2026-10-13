@@ -14,8 +14,17 @@
 .liquid-explore:hover { text-underline-offset: 6px; }
 .liquid-hero a:focus-visible, .liquid-hero button:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: 6px; }
 .liquid-light-art { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
-.liquid-light-veil, .liquid-light-pointer { width: 100%; height: 100%; }
-.liquid-light-pointer { transition: transform 140ms ease-out; }
+.liquid-light-veil, .liquid-light-flow { width: 100%; height: 100%; }
+.liquid-light-flow { transform-origin: 65% 50%; animation: liquid-light-flow 16s ease-in-out infinite; animation-play-state: var(--liquid-play-state, running); }
+/* Keep this requested autonomous loop in compact/lighter views; explicit reduction still wins. */
+.studio-shell[data-motion="light"] .liquid-hero[data-calm="false"] .liquid-light-flow { animation: liquid-light-flow 24s ease-in-out infinite !important; animation-play-state: var(--liquid-play-state, running) !important; }
+.liquid-light-art[data-ambient-paused="true"] { --liquid-play-state: paused; }
+@keyframes liquid-light-flow {
+  0%, 100% { transform: translate3d(-3%, 1%, 0) rotate(-3deg) scale(1.18, 1.16); }
+  25% { transform: translate3d(3%, -3%, 0) rotate(2deg) scale(1.24, 1.18); }
+  50% { transform: translate3d(4%, 2%, 0) rotate(4deg) scale(1.18, 1.26); }
+  75% { transform: translate3d(-2%, 3%, 0) rotate(-1deg) scale(1.25, 1.2); }
+}
 .liquid-light-art img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: var(--liquid-intensity, .85); transform: scale(var(--liquid-scale, 1)); filter: hue-rotate(var(--liquid-hue, 0deg)); }
 .liquid-hero[data-light="true"] .liquid-light-art { mix-blend-mode: multiply; }
 .liquid-hero[data-light="false"] .liquid-light-art img { filter: invert(1) hue-rotate(calc(var(--liquid-hue, 0deg) + 150deg)); opacity: calc(var(--liquid-intensity, .85) * .65); }
@@ -23,7 +32,7 @@
 .liquid-reveal h2 { font-size: clamp(26px, 3.3vw, 52px); line-height: 1.2; letter-spacing: -.05em; margin: 12px 0; }
 .liquid-reveal-copy > p:not(.studio-eyebrow) { color: var(--studio-muted); font-size: 14px; max-width: 50ch; }
 .liquid-replay { border: 0; background: transparent; color: var(--studio-muted); min-height: 44px; padding: 8px 0; text-decoration: underline; text-align: left; font-size: 12px; }
-.liquid-hero[data-calm="true"] *, .liquid-hero[data-calm="true"] .liquid-light-pointer { animation: none !important; transition: none !important; }
+.liquid-hero[data-calm="true"] * { animation: none !important; transition: none !important; }
 @keyframes liquid-type-arrive { from { opacity: .7; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (max-width: 760px) { .liquid-hero { min-height: auto; } .liquid-hero-content { padding-top: 32px; } .liquid-wordmark { font-size: clamp(60px, 15.5vw, 118px); margin-bottom: 38px; gap: 0 .15em; } .liquid-hero-copy h1 { font-size: clamp(36px, 8vw, 58px); } .liquid-reveal { grid-template-columns: 1fr; margin-top: 42px; } .liquid-light-art img { object-position: 62% center; } .liquid-reveal-image { max-height: 210px; object-position: top left; } }
 @media (prefers-reduced-motion: reduce) { .liquid-hero * { animation: none !important; transition: none !important; } .liquid-primary:hover { transform: none; } }

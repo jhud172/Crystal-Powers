@@ -77,3 +77,13 @@ Earlier final verification passed 56 backend tests with zero failures/errors/ski
 Next: rerun homepage browser checks for the contrast fix, then complete the remaining page, permission, client/team/billing/upload, PostgreSQL/restore and provider acceptance gates in the canonical audit. Legal operating facts, real company mailbox configuration and approved publication remain pending. Do not mark the whole release complete from the current test results.
 
 On the laptop, fetch origin, switch to this branch (create its tracking branch if absent), then pull with `--ff-only`. Preserve any existing laptop edits before switching.
+
+## Local continuation — 13 October 2026
+
+The local completion worktree now includes uncommitted autonomous light animation, custom appearance controls, tablet-only 3D policy and public navbar work. Fresh frontend build/bootJar and 56 backend tests pass. The packaged preview runs on localhost:8086 with a separate preview H2 database and disabled email/billing. Runtime PID is recorded in ignored .codex-runtime/preview-2026-10-13/process.pid; revalidate before reuse. No deployment or whole-audit acceptance occurred. Read the latest progress checkpoint for browser evidence, legacy native-select harness updates needed, and generated transparent logo concepts awaiting James's choice.
+
+Latest local branding: the selected Blender logo is integrated through BrandIdentity/BrandLogoCanvas, responsive branding delivery and favicon. Header/footer clicks unfold the real3D logo; phones use a2D pulse, reduced motion keeps still branding. Uncompressed GLTF loading explicitly disables unused decoders to preserve the existing CSP. Latest frontend build/package and integration56-test run pass; fresh browser console is clean after the decoder fix. See the interactive-logo checkpoint in progress for exact behaviour, delivery sizes, evidence and untested physical/failure gates. Runtime PID continues to be recorded in the ignored preview directory; no production deployment occurred.
+
+Mobile header follow-up: small-screen crystal/wordmark are enlarged and protected from shrinking, with compact project/Menu actions at 600/480px. Fresh frontend build/package and 12-width browser checks pass. See the mobile logo checkpoint and ignored screenshot in progress. Local preview refreshed; no deployment or whole-release acceptance.
+
+Latest public navbar buttons use regular-weight text, slimmer 44px controls, subtle surfaces and fine-pointer hover accents. Reduced effects suppresses decorative hover movement/transitions. Fresh frontend/package and targeted responsive/theme/keyboard checks pass; see the refined-navbar checkpoint. No deployment.

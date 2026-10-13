@@ -3,7 +3,6 @@ import { LiquidLightArtwork } from "./LiquidLightArtwork";
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { NavLink } from "react-router-dom";
 import { useSiteTheme } from "../../app/Layout";
-import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useMotionPolicy } from "../../hooks/useMotionPolicy";
 import { imageUrl, type PublicProject } from "../portfolio/projectApi";
 import { useExperience } from "./ExperienceContext";
@@ -13,17 +12,14 @@ export const defaultLiquidSettings: LiquidSettings = { colour: "coral", intensit
 type PreviewProject = { title: string; image: string; href: string };
 type Props = { project?: PublicProject; settings?: LiquidSettings; previewProject?: PreviewProject };
 
-/** Artwork and its reveal have one timeline owner; pointer movement stays outside React state. */
-function LightVeil({ open, settings, reduceEffects }: { open: boolean; settings: LiquidSettings; reduceEffects: boolean }) {
+/** CSS owns the ambient loop; the separate veil owns the reversible work reveal. */
+function LightVeil({ open, settings, reduceEffects, paused }: { open: boolean; settings: LiquidSettings; reduceEffects: boolean; paused: boolean }) {
   const host = useRef<HTMLDivElement>(null);
   const veil = useRef<HTMLDivElement>(null);
-  const pointer = useRef<HTMLDivElement>(null);
-  const pointerFrame = useRef<number | null>(null);
   const timeline = useRef<Animation | null>(null);
   const [visible, setVisible] = useState(true);
   const [failed, setFailed] = useState(false);
   const policy = useMotionPolicy(reduceEffects || settings.reduceEffects, "automatic");
-  const finePointer = useMediaQuery("(hover: hover) and (pointer: fine)");
   const quiet = policy.reducedMotion || !policy.pageVisible || !visible;
   useEffect(() => {
     if (!host.current || typeof IntersectionObserver !== "function") return;
@@ -57,24 +53,10 @@ function LightVeil({ open, settings, reduceEffects }: { open: boolean; settings:
       }
     };
   }, [open, settings.duration, quiet, failed]);
-  useEffect(() => {
-    if (quiet || !finePointer) {
-      if (pointerFrame.current !== null) cancelAnimationFrame(pointerFrame.current);
-      pointerFrame.current = null;
-      if (pointer.current) pointer.current.style.transform = "translate3d(0, 0, 0)";
-    }
-    return () => { if (pointerFrame.current !== null) cancelAnimationFrame(pointerFrame.current); };
-  }, [quiet, finePointer]);
   const hue = settings.colour === "cyan" ? 155 : settings.colour === "violet" ? 255 : 0;
   const variables = { "--liquid-hue": `${hue}deg`, "--liquid-intensity": settings.intensity / 100, "--liquid-scale": settings.scale / 100 } as CSSProperties;
-  return <div ref={host} className="liquid-light-art" style={variables} aria-hidden="true" data-failed={failed} onPointerMove={event => {
-    if (quiet || !finePointer || event.pointerType !== "mouse" || pointerFrame.current !== null) return;
-    const box = event.currentTarget.getBoundingClientRect();
-    const x = (event.clientX - box.left - box.width / 2) * .025;
-    const y = (event.clientY - box.top - box.height / 2) * .025;
-    pointerFrame.current = requestAnimationFrame(() => { pointerFrame.current = null; if (pointer.current) pointer.current.style.transform = `translate3d(${x}px, ${y}px, 0)`; });
-  }} onPointerLeave={() => { if (pointerFrame.current !== null) cancelAnimationFrame(pointerFrame.current); pointerFrame.current = null; if (pointer.current) pointer.current.style.transform = "translate3d(0, 0, 0)"; }}>
-    {!failed && <div ref={veil} className="liquid-light-veil"><div ref={pointer} className="liquid-light-pointer"><LiquidLightArtwork alt="" priority onUnavailable={()=>setFailed(true)}/></div></div>}
+  return <div ref={host} className="liquid-light-art" style={variables} aria-hidden="true" data-failed={failed} data-ambient-paused={quiet || paused}>
+    {!failed && <div ref={veil} className="liquid-light-veil"><div className="liquid-light-flow"><LiquidLightArtwork alt="" priority onUnavailable={()=>setFailed(true)}/></div></div>}
   </div>;
 }
 
@@ -82,6 +64,7 @@ export function LiquidLightHero({ project, settings = defaultLiquidSettings, pre
   const { theme } = useSiteTheme();
   const { reduceEffects, reducedMotion } = useExperience();
   const [open, setOpen] = useState(false);
+  const [paused, setPaused] = useState(false);
   const revealId = useId();
   const light = ["clean", "fresh", "summer-vibes"].includes(theme);
   const [replay, setReplay] = useState(0);
@@ -89,11 +72,11 @@ export function LiquidLightHero({ project, settings = defaultLiquidSettings, pre
   const shown = previewProject ?? (project ? { title: project.content.title, image: project.content.coverMediaId ? imageUrl(project.content.coverMediaId) : "", href: `/portfolio/${project.slug}` } : null);
   const calm = reduceEffects || reducedMotion || settings.reduceEffects;
   return <section className="liquid-hero" data-light={light} data-open={open} data-calm={calm} aria-labelledby="hero-title" onKeyDown={event => { if (event.key === "Escape" && open) { event.stopPropagation(); opener.current?.focus(); setOpen(false); } }}>
-    <LightVeil key={replay} open={open} settings={settings} reduceEffects={reduceEffects} />
+    <LightVeil key={replay} open={open} settings={settings} reduceEffects={reduceEffects} paused={paused} />
     <div className="liquid-hero-content">
       <p className="liquid-wordmark" aria-label="Crystal Powers"><span aria-hidden="true">Crystal</span><span aria-hidden="true">Powers</span></p>
       <div className="liquid-hero-copy"><p className="studio-eyebrow">INDEPENDENT DIGITAL STUDIO</p><h1 id="hero-title">Your idea.<br />A new dimension.</h1><p>Websites, apps and bespoke systems.<br />Designed and developed by James.</p>
-        <div className="liquid-actions"><NavLink to="/contact?intent=general" className="liquid-primary">Start a project</NavLink><button ref={opener} type="button" className="liquid-explore" aria-expanded={open} aria-controls={revealId} onClick={() => setOpen(value => !value)}>{open ? "Close the experience" : "Explore the work"}</button></div>
+        <div className="liquid-actions"><NavLink to="/contact?intent=general" className="liquid-primary">Start a project</NavLink><button ref={opener} type="button" className="liquid-explore" aria-expanded={open} aria-controls={revealId} onClick={() => setOpen(value => !value)}>{open ? "Close the experience" : "Explore the work"}</button>{!calm && <button type="button" className="liquid-replay liquid-pause" onClick={() => setPaused(value => !value)}>{paused ? "Resume animation" : "Pause animation"}</button>}</div>
       </div>
       <div className="liquid-reveal" data-open={open}><div className="liquid-reveal-copy"><p className="studio-eyebrow">SELECTED WORK</p><h2>{shown?.title ?? "An idea. Made real."}</h2><p>{shown ? "A closer look at the work behind the light." : "Explore the published portfolio and the way we would work together."}</p><NavLink to={shown?.href ?? "/portfolio"} className="studio-text-link">{shown ? "Explore the project" : "View the portfolio"}</NavLink></div>
         <div id={revealId} className="liquid-reveal-detail" hidden={!open}>

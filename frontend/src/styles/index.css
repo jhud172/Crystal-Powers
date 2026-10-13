@@ -18,6 +18,8 @@
 @import "./pages/client-workspace.css";
 @import "./pages/team.css";
 @import "./pages/support-inbox.css";
+@import "./pages/navigation.css";
+@import "./pages/brand-identity.css";
 
 html { scroll-behavior: smooth; }
 body { margin: 0; min-width: 320px; background: #0b1018; }
