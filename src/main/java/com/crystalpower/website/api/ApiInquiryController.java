@@ -1,7 +1,7 @@
 package com.crystalpower.website.api;
 
 import com.crystalpower.website.dto.ContactForm;
-import com.crystalpower.website.service.InquiryEmailService;
+import com.crystalpower.website.service.SupportIntakeService;
 import com.crystalpower.website.service.UploadValidationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -21,14 +21,14 @@ import java.util.Map;
 @RestController
 public class ApiInquiryController {
 
-    private final InquiryEmailService inquiryEmailService;
+    private final SupportIntakeService intake;
     private final UploadValidationService uploadValidationService;
     private final com.crystalpower.website.security.AttemptLimiter limiter;
 
     public ApiInquiryController(
-            InquiryEmailService inquiryEmailService,
+            SupportIntakeService intake,
             UploadValidationService uploadValidationService, com.crystalpower.website.security.AttemptLimiter limiter) {
-        this.inquiryEmailService = inquiryEmailService;
+        this.intake = intake;
         this.uploadValidationService = uploadValidationService;
         this.limiter = limiter;
     }
@@ -42,16 +42,19 @@ public class ApiInquiryController {
             return validationResponse(bindingResult);
         }
 
+        java.util.UUID reference;
         try {
             limit(request, contactForm);
-            inquiryEmailService.sendInquiry(contactForm, null, "Contact page");
+            reference = intake.receive(contactForm, null, "Contact page", submissionKey(request));
         } catch (org.springframework.web.server.ResponseStatusException exception) {
-            return errorResponse("Too many enquiries. Please wait before trying again.", HttpStatus.TOO_MANY_REQUESTS);
-        } catch (InquiryEmailService.InquiryEmailException exception) {
-            return errorResponse(exception.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
+            return submissionFailure(exception);
+        } catch (org.springframework.dao.DataIntegrityViolationException exception) {
+            return errorResponse("This enquiry is already being recorded. Please wait briefly, then retry.", HttpStatus.CONFLICT);
+        } catch (org.springframework.dao.DataAccessException exception) {
+            return errorResponse("The enquiry store is temporarily unavailable. Your details remain in the form; please try again.", HttpStatus.SERVICE_UNAVAILABLE);
         }
 
-        return ResponseEntity.ok(ApiFormResponse.success("Thanks. Your enquiry has been sent and the build request is now in the inbox."));
+        return ResponseEntity.ok(ApiFormResponse.success("Thanks. Your enquiry is saved and its notification has been sent. The Crystal Powers team will review it and reply using your chosen contact method.", reference));
     }
 
     @PostMapping("/api/services")
@@ -72,16 +75,31 @@ public class ApiInquiryController {
             return ResponseEntity.badRequest().body(ApiFormResponse.failure("Please check the highlighted fields and try again.", errors));
         }
 
+        java.util.UUID reference;
         try {
             limit(request, contactForm);
-            inquiryEmailService.sendInquiry(contactForm, referenceFiles, "Services page");
+            reference = intake.receive(contactForm, referenceFiles, "Services page", submissionKey(request));
         } catch (org.springframework.web.server.ResponseStatusException exception) {
-            return errorResponse("Too many enquiries. Please wait before trying again.", HttpStatus.TOO_MANY_REQUESTS);
-        } catch (InquiryEmailService.InquiryEmailException exception) {
-            return errorResponse(exception.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
+            return submissionFailure(exception);
+        } catch (org.springframework.dao.DataIntegrityViolationException exception) {
+            return errorResponse("This enquiry is already being recorded. Please wait briefly, then retry.", HttpStatus.CONFLICT);
+        } catch (org.springframework.dao.DataAccessException exception) {
+            return errorResponse("The enquiry store is temporarily unavailable. Your details remain in the form; please try again.", HttpStatus.SERVICE_UNAVAILABLE);
         }
 
-        return ResponseEntity.ok(ApiFormResponse.success("Thanks. Your build request has been sent and the quote details are now in the inbox."));
+        return ResponseEntity.ok(ApiFormResponse.success("Thanks. Your enquiry and reference files are saved for review, and the team notification has been sent. Crystal Powers will review the details and reply using your chosen contact method.", reference));
+    }
+
+    private java.util.UUID submissionKey(jakarta.servlet.http.HttpServletRequest request) {
+        String supplied = request.getHeader("Idempotency-Key");
+        if (supplied == null || supplied.isBlank()) return java.util.UUID.randomUUID();
+        try { var key = java.util.UUID.fromString(supplied); if (!key.toString().equalsIgnoreCase(supplied)) throw new IllegalArgumentException(); return key; }
+        catch (IllegalArgumentException invalid) { throw new org.springframework.web.server.ResponseStatusException(HttpStatus.BAD_REQUEST, "The submission reference is invalid. Please refresh the form and try again."); }
+    }
+    private ResponseEntity<ApiFormResponse> submissionFailure(org.springframework.web.server.ResponseStatusException exception) {
+        String message = exception.getStatusCode().value() == 429 ? "Too many enquiries. Please wait before trying again." : exception.getReason() == null ? "The enquiry could not be confirmed. Please try again." : exception.getReason();
+        java.util.UUID reference = exception instanceof SupportIntakeService.ReceiptException receipt ? receipt.requestId() : null;
+        return ResponseEntity.status(exception.getStatusCode()).body(new ApiFormResponse(false, message, Map.of(), reference));
     }
 
     private void limit(jakarta.servlet.http.HttpServletRequest request, ContactForm form) {
@@ -111,14 +129,16 @@ public class ApiInquiryController {
     public record ApiFormResponse(
             boolean success,
             String message,
-            Map<String, String> fieldErrors
+            Map<String, String> fieldErrors,
+            java.util.UUID requestId
     ) {
         public static ApiFormResponse success(String message) {
-            return new ApiFormResponse(true, message, Map.of());
+            return success(message, null);
         }
+        public static ApiFormResponse success(String message, java.util.UUID reference) { return new ApiFormResponse(true, message, Map.of(), reference); }
 
         public static ApiFormResponse failure(String message, Map<String, String> fieldErrors) {
-            return new ApiFormResponse(false, message, fieldErrors);
+            return new ApiFormResponse(false, message, fieldErrors, null);
         }
     }
 }

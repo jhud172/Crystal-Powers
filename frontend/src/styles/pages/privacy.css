@@ -1,0 +1,9 @@
+.privacy-page { max-width: 1120px; margin-inline: auto; }
+.privacy-page > header { max-width: 760px; padding-bottom: 2rem; border-bottom: 1px solid var(--studio-line); }
+.privacy-page h1 { font-size: var(--studio-type-form-title); line-height: 1.08; letter-spacing: -.055em; margin-block: 1rem 2rem; }
+.privacy-page p, .privacy-page a { overflow-wrap: anywhere; }
+.privacy-page nav { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; padding-block: 2rem; }
+.privacy-page nav a { min-height: 44px; display: inline-flex; align-items: center; text-underline-offset: .3em; }
+.privacy-page > section { max-width: 760px; padding-block: 2rem; border-top: 1px solid var(--studio-line); scroll-margin-top: 100px; }
+.privacy-page h2 { font-size: clamp(1.5rem, 3vw, 2.5rem); line-height: 1.2; margin-bottom: 1rem; }
+.privacy-page > section p { white-space: pre-wrap; line-height: 1.8; }

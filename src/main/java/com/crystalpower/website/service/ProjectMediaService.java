@@ -37,7 +37,11 @@ public class ProjectMediaService {
     public Media find(UUID id) { return media.find(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Image not found.")); }
     public byte[] read(UUID id) { return storage.read(find(id).key()); }
     public Media upload(UUID project, MultipartFile file, UUID owner) {
-        requireProject(project);
+        return uploadChecked(project,file,()->{requireProject(project);return ProjectRepository.Editor.owner(owner);});
+    }
+    /** Authorisation is repeated inside the final metadata transaction after decoding/storage. */
+    public Media uploadChecked(UUID project,MultipartFile file,java.util.function.Supplier<ProjectRepository.Editor> authorise) {
+        transaction.executeWithoutResult(status->authorise.get());
         if (file.isEmpty() || file.getSize() > 12_000_000) throw bad("Choose a PNG, JPEG or WebP image under 12 MB.");
         if (!processing.tryAcquire()) throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Another image is processing. Try again in a moment.");
         try {
@@ -74,7 +78,13 @@ public class ProjectMediaService {
             storage.put(created.key(), bytes.toByteArray());
             // Store first: an interrupted transaction can leave an orphan, never a published broken upload.
             // Backup tooling reconciles such orphaned objects against project_media.
-            transaction.executeWithoutResult(status -> { media.insert(created); projects.audit(owner, "PROJECT_IMAGE_UPLOADED", project); });
+            transaction.executeWithoutResult(status -> {
+                var actor=authorise.get();
+                projects.lockPresentation(project).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Project not found."));
+                media.lockBudget();
+                if(media.list(project).size()>=40 || media.storedBytes()+created.bytes()>850_000_000)throw bad("The image library has reached its storage allowance. Review stored media before uploading more.");
+                media.insert(created);projects.audit(actor,"PROJECT_IMAGE_UPLOADED",project);
+            });
             return created;
         } catch (IOException | IllegalArgumentException exception) { throw bad("The image could not be decoded. Export it again as PNG, JPEG or WebP."); }
         finally { processing.release(); }

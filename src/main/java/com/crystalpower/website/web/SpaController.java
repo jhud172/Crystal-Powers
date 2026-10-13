@@ -18,12 +18,24 @@ public class SpaController {
     @GetMapping({
             "/",
             "/home",
+            "/home/",
             "/about",
+            "/about/",
             "/services",
+            "/services/",
             "/portfolio",
+            "/portfolio/",
             "/portfolio/{slug}",
+            "/portfolio/{slug}/",
             "/support",
-            "/contact"
+            "/support/",
+            "/contact",
+            "/contact/",
+            "/accessibility",
+            "/accessibility/",
+            "/admin/",
+            "/admin/reset/",
+            "/birthday/mission-vi/"
     })
     @ResponseBody
     public ResponseEntity<String> spa(HttpServletRequest request) throws IOException {
@@ -41,8 +53,9 @@ public class SpaController {
         return page(request);
     }
     private ResponseEntity<String> page(HttpServletRequest request) throws IOException {
-        var response = ResponseEntity.ok().contentType(MediaType.TEXT_HTML).cacheControl(CacheControl.noStore());
-        if (request.getRequestURI().startsWith("/admin")) response.header("X-Robots-Tag", "noindex, nofollow");
-        return response.body(metadata.html(request.getRequestURI()));
+        var page = metadata.render(request.getRequestURI());
+        var response = ResponseEntity.status(page.status()).contentType(MediaType.TEXT_HTML).cacheControl(CacheControl.noStore());
+        if (page.noindex()) response.header("X-Robots-Tag", "noindex, nofollow");
+        return response.body(page.html());
     }
 }

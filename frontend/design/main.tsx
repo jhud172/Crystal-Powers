@@ -1,7 +1,8 @@
 import { createRoot } from "react-dom/client";
-import { ObservatoryDraft } from "../src/features/design/ObservatoryDraft";
-import "../src/styles/pages/studio.css";
-import "../src/styles/base/studio-tokens.css";
-import "../src/styles/design/observatory.css";
+import { BrowserRouter } from "react-router-dom";
+import { Layout } from "../src/app/Layout";
+import { LiquidLightDraft } from "../src/features/design/LiquidLightDraft";
+import "../src/styles/index.css";
+import "../src/styles/design/liquid-light-draft.css";
 
-createRoot(document.getElementById("root")!).render(<ObservatoryDraft />);
+createRoot(document.getElementById("root")!).render(<BrowserRouter><Layout><LiquidLightDraft /></Layout></BrowserRouter>);

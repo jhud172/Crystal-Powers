@@ -1,0 +1,12 @@
+/* Shared interaction states; route composition remains in its owned stylesheet. */
+.studio-shell .studio-button:active:not(:disabled) { transform: translateY(0); }
+.studio-shell .studio-text-link:hover,
+.studio-shell .studio-text-link:focus-visible { text-decoration: underline; text-underline-offset: .35em; }
+.studio-shell button.studio-text-link { border: 0; background: transparent; padding: 0; min-height: var(--studio-control-target); color: inherit; }
+.studio-shell .field-input[aria-invalid="true"] { border-color: var(--studio-error); }
+.studio-shell .field-input[readonly]:not(:disabled) { border-style: dashed; }
+.studio-shell .field-input:disabled { background: var(--studio-raised); color: var(--studio-muted); cursor: not-allowed; }
+.studio-shell .studio-device-tabs button { min-height: var(--studio-control-target); }
+.studio-shell .studio-device-tabs button:disabled { cursor: not-allowed; opacity: .5; }
+.studio-shell .studio-device-tabs button:hover:not(:disabled) { color: var(--studio-text); }
+@media (max-width: 760px) { .studio-shell { --studio-type-section: clamp(32px, 7.2vw, 45px); } }

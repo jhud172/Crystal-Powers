@@ -1,6 +1,11 @@
 import { ChangeEvent } from "react";
 
 export type ContactFormState = {
+  intent: string;
+  projectInterest: string;
+  websiteAddress: string;
+  expectedResult: string;
+  reproductionSteps: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -15,6 +20,11 @@ export type ContactFormState = {
 };
 
 export const initialContactForm: ContactFormState = {
+  intent: "website",
+  projectInterest: "",
+  websiteAddress: "",
+  expectedResult: "",
+  reproductionSteps: "",
   firstName: "",
   lastName: "",
   email: "",
@@ -57,8 +67,8 @@ export function ContactFields({ form, errors, onChange, includeScope = true }: P
         <ErrorText id="email-error" message={errors.email} />
       </div>
       <div>
-        <label htmlFor="phoneNumber" className="field-label">Phone number</label>
-        <input id="phoneNumber" name="phoneNumber" value={form.phoneNumber} onChange={onChange} type="tel" className="field-input" placeholder="+44 7..." autoComplete="tel" maxLength={40} {...invalid("phoneNumber")} />
+        <label htmlFor="phoneNumber" className="field-label">Phone number {form.preferredContactPoint === "WhatsApp" ? "(for WhatsApp)" : "(optional)"}</label>
+        <input id="phoneNumber" name="phoneNumber" value={form.phoneNumber} onChange={onChange} type="tel" className="field-input" placeholder="+44 7..." autoComplete="tel" required={form.preferredContactPoint === "WhatsApp"} maxLength={40} {...invalid("phoneNumber")} />
         <ErrorText id="phoneNumber-error" message={errors.phoneNumber} />
       </div>
       <div className="services-form-span-two">
@@ -80,12 +90,12 @@ export function ContactFields({ form, errors, onChange, includeScope = true }: P
         </>
       ) : null}
       <div className="services-form-span-two">
-        <label htmlFor="message" className="field-label">Message</label>
-        <textarea id="message" name="message" value={form.message} onChange={onChange} rows={6} className="field-input resize-y" placeholder="Project type, timings, priorities, and anything important about the build." required maxLength={2500} {...invalid("message")} />
+        <label htmlFor="message" className="field-label">{form.intent === "support" ? "What happened or what would you like changed?" : form.intent === "general" ? "Your question" : "Tell me about your idea"}</label>
+        <textarea id="message" name="message" value={form.message} onChange={onChange} rows={6} className="field-input resize-y" placeholder={form.intent === "support" ? "Which page or feature needs help, what happened and what should happen instead?" : form.intent === "general" ? "What would you like to ask James?" : "Project type, timings, priorities and anything important about the build."} required maxLength={2500} {...invalid("message")} />
         <ErrorText id="message-error" message={errors.message} />
       </div>
       <div className="services-form-span-two">
-        <label htmlFor="extraInformation" className="field-label">Extra information</label>
+        <label htmlFor="extraInformation" className="field-label">Anything else? (optional)</label>
         <textarea id="extraInformation" name="extraInformation" value={form.extraInformation} onChange={onChange} rows={4} className="field-input resize-y" placeholder="Anything else that should shape the quote or delivery plan." maxLength={2500} {...invalid("extraInformation")} />
         <ErrorText id="extraInformation-error" message={errors.extraInformation} />
       </div>

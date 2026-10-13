@@ -2,6 +2,8 @@
 **/build/
 !**/src/**/build/
 target/
+bin/
+*.log
 .codex-temp/
 .codex-runtime/
 __pycache__/

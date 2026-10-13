@@ -1,0 +1,11 @@
+.recovery-page { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: center; gap: 48px; min-height: 70svh; }
+.recovery-page .studio-actions { flex-wrap: wrap; }
+.recovery-signal { width: min(100%, 520px); justify-self: end; color: var(--studio-muted); stroke: currentColor; stroke-width: 1; }
+.recovery-signal circle { opacity: .4; }
+.recovery-signal .recovery-crystal { color: var(--studio-accent); stroke-width: 1.8; }
+.recovery-signal .recovery-trail { color: var(--studio-accent); }
+.recovery-signal .recovery-node { fill: var(--studio-accent); opacity: 1; stroke: none; }
+.project-unavailable { border-block: 1px solid var(--studio-line); }
+.project-unavailable h1 { font-size: var(--studio-type-compact-title); line-height: 1.15; margin: 20px 0; letter-spacing: -.04em; }
+.project-unavailable p:not(.studio-eyebrow) { max-width: 540px; color: var(--studio-muted); }
+@media (max-width: 800px) { .recovery-page { grid-template-columns: minmax(0, 1fr); padding-top: 44px; gap: 32px; } .recovery-signal { width: min(100%, 280px); justify-self: center; margin-inline: auto; } }

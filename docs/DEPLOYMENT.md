@@ -1,5 +1,7 @@
 # Deployment and recovery
 
+Current release readiness and rollback limits: [RELEASE_CANDIDATE_2_0.md](RELEASE_CANDIDATE_2_0.md). Both application versions are 2.0.0; this candidate remains uncommitted/undeployed and full acceptance is open. Historical retained 83872dd rebuild/boot evidence predates V4-V60; it does not prove compatibility with current schema or identify the live backend revision.
+
 ## Current boundary
 
 The repository contains a runnable application and a free-plan Render blueprint. On 9 October 2026, James authorised deployment to his existing Render Starter service and provider configuration in his signed-in accounts. The tested application is live at `https://crystal-powers.com`, using the free Ireland Supabase project and a verified Resend domain. Existing hosting plans were preserved. Never add production secrets to Git or frontend environment variables. See `RELEASE_VERIFICATION_2026_10_09.md` for verified behaviour and remaining owner/content acceptance.
@@ -55,7 +57,7 @@ Reference: [Resend send-email API](https://resend.com/docs/api-reference/emails/
 
 ## Render
 
-Read-only inspection on 13 September 2026 found the existing **Crystal Powers** service in **My Workspace** (`srv-d7giag77f7vs73bd36sg`), serving `https://crystal-production.onrender.com` from `jhud172/Crystal-Powers`, branch `main`. It currently uses the paid **Starter** plan and automatically deploys commits to `main`. No service settings were changed. The new free-plan blueprint does not automatically alter that existing service. Before pushing or deploying, James must approve whether to reconfigure that service or create a separate free service, and supply the database, storage and email configuration. Never merge into `main` assuming deployment is disabled.
+The existing **Crystal Powers** service in **My Workspace** (`srv-d7giag77f7vs73bd36sg`) uses `jhud172/Crystal-Powers`, branch `main`, and the paid **Starter** plan. James authorised its deployment/provider configuration on 9 October; preserve that service/plan and use the existing authority. The older free-plan blueprint is not authority to create a second service or change plans. On Commit deployment was restored in the verified 9 October release; inspect its current setting before pushing a final candidate to main, since that can trigger deployment. Do not publish an incomplete candidate simply to sync a working branch. Current release readiness and retained rollback evidence are in RELEASE_CANDIDATE_2_0.md.
 
 1. Build and test the branch before pushing. `render.yaml` uses the free Docker web-service plan and disables automatic deployment.
 2. Review and create the service in the intended account. Set every secret in Render's environment settings.
@@ -96,3 +98,25 @@ It refuses existing tables or media directories. Start a local instance against 
 For a real recovery, first verify the backup and retain a backup of the current state. Stop the app. Restore the scoped dump into an empty, compatible PostgreSQL database using `pg_restore --exit-on-error --no-owner --dbname TARGET database.dump` with credentials supplied securely. Restore every `media/*.jpg` into a private bucket with identical keys. Apply the corresponding environment settings and encryption key. Run the same owner, public and private-media checks before reopening traffic. Production restore is a deliberate operator action; the script does not overwrite a live database.
 
 Repeat backup verification regularly and rehearse restoration after schema or storage changes. Database-only backups do not contain the object-storage image bytes.
+
+## Current 2.0 source additions - acceptance pending
+
+Source now contains V1-V60, not just the original three migrations. Team/client accounts, scoped channel conversations and attachments, support/client communication, delegated projects, billing/refund operations and invitation delivery are connected in source. None of this establishes that the current candidate has been compiled, migrated or accepted in production. The chronological source checkpoints formerly below are retained in [candidate/deployment history](archive/RELEASE_CANDIDATE_HISTORY_2026_10_12.md).
+
+| Setting area | Current contract |
+| --- | --- |
+| Public origin | PUBLIC_URL must be the operator's actual origin; invitation delivery requires HTTPS with no path/query/fragment/userinfo |
+| Mail | Existing SMTP/Resend transport; server-only sender/reply-to/key; INVITATION_EMAIL_ENABLED=false by default; provider configuration does not create a company mailbox |
+| Upload scanning | UPLOAD_SCAN_ENABLED and trusted private scanner address/port; CLEAN plus human review for ordinary access; unavailable scanner does not release quarantine |
+| Channel file allowance | TEAM_UPLOAD_MAX_WORKSPACE_BYTES=536870912 default; five active files/15 MiB total per message; workspace allowance checks serialize with writes |
+| Multipart transport | 15 MB file default and 16 MB request default allow envelope overhead; business limits remain separately enforced |
+| Billing | Stripe GBP contracts, mode-bound current provider/customer verification and raw signed events; example credentials blank and feature flags disabled |
+| Refunds | BILLING_REFUNDS_ENABLED=false; explicit consent/leases/provider result and separate ledger reconciliation; no automatic blind money retry |
+| Recovery workers | Optional default-disabled event/invoice recovery; prove bounded scheduling/leases/retries before enabling |
+| Account/model storage | Preserve encryption keys/root identity/private media and database; no public role self-selection or automatic private publication |
+
+Use actual [.env.example](../.env.example) and application properties for variable names/defaults; do not expose real values. [Team scope](TEAM_HUB_2_0.md), [client operations](CLIENT_OPERATIONS_2_0.md) and [email setup](COMPANY_EMAIL_SETUP_2_0.md) describe feature contracts and outstanding real facts. [Current release readiness](RELEASE_CANDIDATE_2_0.md) owns the full verification and rollback sequence.
+
+Include all present owner/project/team/client/support/upload/billing/financial/refund tables in a matched private backup. New optional tables/columns are included by the current backup helper; earlier snapshots must not be described as containing later data. Rehearse V1-V60 migration, RLS/revokes, indexes, concurrency and database/media restore on disposable targets. An older V1-V3 application/jar is not a proven rollback against the new schema. Do not reset production history/data to make an old application start.
+
+No actual migration, scan, account/email/payment/refund/publication, DNS/provider or deployment operation occurred during this source-documentation reconciliation. Full build/tests remain deferred until implementation completion under James's instruction.

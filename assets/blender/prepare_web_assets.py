@@ -1,9 +1,14 @@
 """Create responsive delivery copies and verify exported Blender asset contracts."""
 import json
+import argparse
 import struct
 from pathlib import Path
 
 from PIL import Image
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--validate-only", action="store_true", help="Validate existing posters and refresh manifest without re-encoding images")
+args = parser.parse_args()
 
 ROOT = Path(__file__).resolve().parents[2]
 PUBLIC = ROOT / "frontend/public"
@@ -55,7 +60,12 @@ for name in ("crystal", "laptop", "monitor", "phone", "observatory"):
                 for width in (1600, 800):
                     output = source.with_name(f"{name}-{appearance}{pose}{'-800' if width == 800 else ''}.webp")
                     size = (width, round(rendered.height * width / rendered.width))
-                    rendered.resize(size, Image.Resampling.LANCZOS).save(output, format="WEBP", quality=88, method=6)
+                    if args.validate_only:
+                        with Image.open(output) as existing:
+                            assert existing.format == "WEBP" and existing.size == size, f"Invalid existing responsive poster: {output.name}"
+                            existing.verify()
+                    else:
+                        rendered.resize(size, Image.Resampling.LANCZOS).save(output, format="WEBP", quality=88, method=6)
                     manifest["renders"][output.name] = {"width": size[0], "height": size[1], "bytes": output.stat().st_size}
 
 (PUBLIC / "models/manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")

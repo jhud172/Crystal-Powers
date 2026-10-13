@@ -44,6 +44,7 @@ export function PostBirthdayMission() {
     setDriveMode(true);
     setAnnouncement("Night drive started. Moving to the secured purchase record.");
     navigator.vibrate?.([12, 24, 18]);
+    securedRef.current?.focus({ preventScroll: true });
     securedRef.current?.scrollIntoView({
       behavior: reducedMotion ? "auto" : "smooth",
       block: "start"
@@ -73,7 +74,9 @@ export function PostBirthdayMission() {
     const originalViewport = viewport?.content ?? "";
     const originalThemeColour = themeColour?.content ?? "";
     const originalColourScheme = existingColourScheme?.content ?? "";
-    const robots = document.createElement("meta");
+    const existingRobots = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    const originalRobots = existingRobots?.content ?? "";
+    const robots = existingRobots ?? document.createElement("meta");
 
     document.title = "Mission VI - The Wait Begins";
     html.lang = "en-GB";
@@ -89,7 +92,7 @@ export function PostBirthdayMission() {
     }
     robots.name = "robots";
     robots.content = "noindex, nofollow, noarchive";
-    document.head.appendChild(robots);
+    if (!existingRobots) document.head.appendChild(robots);
 
     return () => {
       document.title = originalTitle;
@@ -106,7 +109,7 @@ export function PostBirthdayMission() {
       } else {
         colourScheme.remove();
       }
-      robots.remove();
+      if (existingRobots) robots.content = originalRobots; else robots.remove();
     };
   }, []);
 
@@ -123,6 +126,10 @@ export function PostBirthdayMission() {
 
     const revealTargets = experience.querySelectorAll<HTMLElement>("[data-after-reveal]");
     const sections = experience.querySelectorAll<HTMLElement>("[data-after-chapter]");
+    if (typeof IntersectionObserver !== "function") {
+      revealTargets.forEach(target => target.classList.add("is-visible"));
+      return;
+    }
     const revealObserver = new IntersectionObserver(
       (entries) => entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add("is-visible")),
       { threshold: 0.16, rootMargin: "0px 0px -8%" }
@@ -182,9 +189,10 @@ export function PostBirthdayMission() {
       <a className="after-skip-link" href="#after-main">Skip to mission status</a>
       <main
         id="after-main"
+        tabIndex={-1}
         ref={experienceRef}
         className={`after-experience${driveMode ? " is-driving" : ""}`}
-        data-active-chapter={activeChapter}
+        data-active-chapter={typeof IntersectionObserver === "function" ? activeChapter : undefined}
       >
         <div className="after-progress" aria-hidden="true"><i /></div>
         <div className="after-road-light" aria-hidden="true"><i /><i /><i /></div>
@@ -200,7 +208,7 @@ export function PostBirthdayMission() {
               ["destination", "destination", "Destination"]
             ] as const).map(([chapter, target, label]) => (
               <li key={chapter}>
-                <a href={`#${target}`} aria-current={activeChapter === chapter ? "step" : undefined}>
+                <a href={`#${target}`} aria-current={typeof IntersectionObserver === "function" && activeChapter === chapter ? "step" : undefined}>
                   <i aria-hidden="true" /><span>{label}</span>
                 </a>
               </li>
@@ -229,6 +237,7 @@ export function PostBirthdayMission() {
 
         <section
           id="secured"
+          tabIndex={-1}
           ref={securedRef}
           className="after-secured"
           data-after-chapter="secured"
@@ -256,15 +265,16 @@ export function PostBirthdayMission() {
             <p className="after-eyebrow"><span>Checkpoint 02</span> Live launch runway</p>
             <h2 id="runway-title">Next stop:<br /><em>Vice City.</em></h2>
           </div>
-          <div className="after-countdown" data-after-reveal aria-live="polite" aria-atomic="true">
+          <div className="after-countdown" data-after-reveal role="timer" aria-label="Countdown to the scheduled release date" aria-live="off">
             <div><span>Days</span><strong>{countdown.days}</strong></div>
             <div><span>Hours</span><strong>{pad(countdown.hours)}</strong></div>
             <div><span>Minutes</span><strong>{pad(countdown.minutes)}</strong></div>
             <div><span>Seconds</span><strong>{pad(countdown.seconds)}</strong></div>
           </div>
           <p className="after-runway__note" data-after-reveal>
-            {countdown.launched ? "The runway is open. Your mission is ready to play." : "Official release target: 19 November 2026."}
+            {countdown.launched ? "The scheduled launch date has arrived. Check Rockstar Games for the current launch status." : "Official release target: 19 November 2026."}
           </p>
+          <a className="mission-release-link" href="https://www.rockstargames.com/VI" target="_blank" rel="noopener noreferrer">Official launch information <span aria-hidden="true">↗</span></a>
           <a className="after-section-link after-section-link--light" href="#destination"><small>Final checkpoint</small><strong>A message for Dad</strong><i aria-hidden="true">↓</i></a>
         </section>
 

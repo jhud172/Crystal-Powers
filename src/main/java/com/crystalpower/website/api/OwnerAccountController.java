@@ -54,6 +54,12 @@ public class OwnerAccountController {
         var codes = accounts.confirmAuthenticator(owner, pending.secret(), code.code()); signOut(request);
         return Map.of("recoveryCodes", codes);
     }
+    @PostMapping("/authenticator/cancel")
+    public Map<String, String> cancel(HttpServletRequest request) {
+        var session = request.getSession(false);
+        if (session != null) session.removeAttribute(PENDING);
+        return Map.of("message", "New authenticator setup cancelled. Your existing authenticator is still active.");
+    }
     private void limit(OwnerPrincipal owner) { limiter.check("account-security:" + owner.id(), 10, 900); }
     private void signOut(HttpServletRequest request) { request.getSession().invalidate(); SecurityContextHolder.clearContext(); }
 }

@@ -14,12 +14,14 @@ import java.util.List;
 @RestController
 public class SiteMetadataController {
     private final ProjectService projects;
+    private final com.crystalpower.website.service.PublicPrivacyService privacy;
     private final String baseUrl;
-    public SiteMetadataController(ProjectService projects, @Value("${app.public-url}") String baseUrl) { this.projects = projects; this.baseUrl = baseUrl.replaceAll("/+$", ""); }
+    public SiteMetadataController(ProjectService projects, com.crystalpower.website.service.PublicPrivacyService privacy, @Value("${app.public-url}") String baseUrl) { this.projects = projects;this.privacy=privacy; this.baseUrl = baseUrl.replaceAll("/+$", ""); }
     @GetMapping(value = "/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> sitemap() {
         StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
-        for (String path : List.of("/", "/about", "/services", "/portfolio", "/support", "/contact")) append(xml, path);
+        for (String path : List.of("/", "/about", "/services", "/portfolio", "/support", "/contact", "/accessibility")) append(xml, path);
+        if(privacy.ready())append(xml,"/privacy");
         projects.published().forEach(project -> append(xml, "/portfolio/" + project.slug()));
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(Duration.ofSeconds(30)).mustRevalidate()).body(xml.append("</urlset>").toString());
     }

@@ -1,0 +1,10 @@
+ALTER TABLE team_invitation ADD COLUMN mail_state VARCHAR(20) NOT NULL DEFAULT 'NOT_SENT' CHECK(mail_state IN ('NOT_SENT','RUNNING','ACCEPTED','UNKNOWN'));
+ALTER TABLE team_invitation ADD COLUMN mail_id UUID;
+ALTER TABLE team_invitation ADD COLUMN mail_nonce UUID;
+ALTER TABLE team_invitation ADD COLUMN mail_started_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE team_invitation ADD COLUMN mail_completed_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE client_invitation ADD COLUMN mail_state VARCHAR(20) NOT NULL DEFAULT 'NOT_SENT' CHECK(mail_state IN ('NOT_SENT','RUNNING','ACCEPTED','UNKNOWN'));
+ALTER TABLE client_invitation ADD COLUMN mail_id UUID;
+ALTER TABLE client_invitation ADD COLUMN mail_nonce UUID;
+ALTER TABLE client_invitation ADD COLUMN mail_started_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE client_invitation ADD COLUMN mail_completed_at TIMESTAMP WITH TIME ZONE;

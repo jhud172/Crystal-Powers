@@ -42,10 +42,9 @@
 .studio-interior .services-quote-form, .studio-interior .contact-form-section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
 .studio-interior .field-label { color: var(--studio-text); font: inherit; font-size: 12px; margin-bottom: 9px; }
 .studio-interior .field-input { background: var(--studio-raised); color: var(--studio-text); border: 1px solid var(--studio-line); border-radius: 0; font: inherit; font-size: 14px; padding: 14px; box-shadow: none; min-height: 48px; width: 100%; }
-.studio-interior .field-input::placeholder { color: var(--studio-muted); opacity: .8; }
+.studio-interior .field-input::placeholder { color: var(--studio-muted); opacity: 1; }
 .studio-interior .field-input option { color: var(--studio-text); background: var(--studio-bg); }
-.studio-interior .field-error { color: #d66e61; font-size: 12px; margin-top: 8px; }
-[data-appearance="light"] .studio-interior .field-error { color: #a03629; }
+.studio-interior .field-error { color: var(--studio-error); font-size: var(--studio-type-label); margin-top: 8px; }
 .studio-interior .primary-button, .studio-interior .services-file-trigger { background: var(--studio-text); color: var(--studio-button-text); border: 1px solid var(--studio-text); border-radius: 0; box-shadow: none; font-size: 12px; padding: 15px 23px; letter-spacing: 0; font-weight: 500; }
 .studio-interior .primary-button::before, .studio-interior .primary-button::after { display: none; }
 .studio-interior .services-file-picker { border: 1px solid var(--studio-line); background: var(--studio-raised); border-radius: 0; }

@@ -354,7 +354,9 @@ function LegacyBirthdayMission() {
     const originalDescription = description?.content ?? "";
     const originalViewport = viewport?.content ?? "";
     const originalThemeColour = themeColour?.content ?? "";
-    const robots = document.createElement("meta");
+    const existingRobots = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    const originalRobots = existingRobots?.content ?? "";
+    const robots = existingRobots ?? document.createElement("meta");
 
     document.title = "Mission VI - Happy Birthday Dad";
     html.lang = "en-GB";
@@ -365,7 +367,7 @@ function LegacyBirthdayMission() {
     themeColour?.setAttribute("content", "#09071c");
     robots.name = "robots";
     robots.content = "noindex, nofollow, noarchive";
-    document.head.appendChild(robots);
+    if (!existingRobots) document.head.appendChild(robots);
 
     const introFrame = window.requestAnimationFrame(playIntro);
 
@@ -383,7 +385,7 @@ function LegacyBirthdayMission() {
       description?.setAttribute("content", originalDescription);
       viewport?.setAttribute("content", originalViewport);
       themeColour?.setAttribute("content", originalThemeColour);
-      robots.remove();
+      if (existingRobots) robots.content = originalRobots; else robots.remove();
     };
   }, [playIntro]);
 
@@ -416,6 +418,10 @@ function LegacyBirthdayMission() {
       ".birthday-promise, .birthday-countdown, .birthday-finale"
     );
     const chapterSections = experience.querySelectorAll<HTMLElement>("[data-birthday-chapter]");
+    if (typeof IntersectionObserver !== "function") {
+      revealSections.forEach(section => section.classList.add("is-visible"));
+      return;
+    }
     const revealObserver = new IntersectionObserver(
       (entries) => entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add("is-visible")),
       { threshold: 0.18 }
@@ -548,10 +554,11 @@ function LegacyBirthdayMission() {
 
       <main
         id="birthday-main"
+        tabIndex={-1}
         ref={experienceRef}
         className={`birthday-experience${unlocked ? " is-unlocked" : ""}`}
         data-state={unlocked ? "unlocked" : "locked"}
-        data-active-chapter={activeChapter}
+        data-active-chapter={typeof IntersectionObserver === "function" ? activeChapter : undefined}
       >
         <div className="birthday-scroll-progress" aria-hidden="true"><i /></div>
         <nav className="birthday-chapter-rail" aria-label="Birthday mission chapters">
@@ -561,7 +568,7 @@ function LegacyBirthdayMission() {
             ["countdown", "birthday-countdown", "Countdown"],
             ["finale", "birthday-finale", "Birthday message"]
           ] as const).map(([chapter, target, label]) => (
-            <a key={chapter} href={`#${target}`} aria-current={activeChapter === chapter ? "true" : undefined}>
+            <a key={chapter} href={`#${target}`} aria-current={typeof IntersectionObserver === "function" && activeChapter === chapter ? "true" : undefined}>
               <span>{label}</span>
             </a>
           ))}
@@ -664,15 +671,16 @@ function LegacyBirthdayMission() {
             <p className="birthday-kicker">Until the adventure begins</p>
             <h2 id="countdown-title">The wait is part of the mission.</h2>
           </div>
-          <div className="birthday-countdown__clock" aria-live="polite" aria-atomic="true">
+          <div className="birthday-countdown__clock" role="timer" aria-label="Countdown to the scheduled release date" aria-live="off">
             <div><strong>{countdown.days}</strong><span>Days</span></div>
             <div><strong>{pad(countdown.hours)}</strong><span>Hours</span></div>
             <div><strong>{pad(countdown.minutes)}</strong><span>Mins</span></div>
             <div><strong>{pad(countdown.seconds)}</strong><span>Secs</span></div>
           </div>
           <p className="birthday-countdown__note">
-            {countdown.launched ? "Launch day has arrived. Time to redeem the mission." : "Based on the current official release date: 19 November 2026."}
+            {countdown.launched ? "The scheduled launch date has arrived. Check Rockstar Games for the current launch status." : "Based on the current official release date: 19 November 2026."}
           </p>
+          <a className="mission-release-link" href="https://www.rockstargames.com/VI" target="_blank" rel="noopener noreferrer">Official launch information <span aria-hidden="true">↗</span></a>
           <a className="birthday-chapter-transition birthday-chapter-transition--light" href="#birthday-finale">
             <span><small>One final stop</small><strong>Open your birthday message</strong></span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>

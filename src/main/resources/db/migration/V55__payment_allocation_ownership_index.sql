@@ -1,0 +1,1 @@
+CREATE INDEX billing_payment_link_payment_idx ON billing_payment_link(payment_id,allocation_reference,bill_id);

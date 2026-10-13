@@ -1,0 +1,215 @@
+{
+  "source": "Original Crystal Powers GLBs photographed with the actual ModelCanvas; no external images/models",
+  "captures": [
+    {
+      "filename": "crystal-dark.png",
+      "model": "crystal",
+      "light": false,
+      "pose": "closed",
+      "position": [
+        3.6,
+        2.5,
+        7.5
+      ],
+      "fov": 34,
+      "posterWidth": 1600,
+      "posterHeight": 1000,
+      "bytes": 78396,
+      "sha256": "972979869e93bb4df6bd514945064fd8c0a2a09413c4ecf9b108804b504ebb74"
+    },
+    {
+      "filename": "crystal-light.png",
+      "model": "crystal",
+      "light": true,
+      "pose": "closed",
+      "position": [
+        3.6,
+        2.5,
+        7.5
+      ],
+      "fov": 34,
+      "posterWidth": 1600,
+      "posterHeight": 1000,
+      "bytes": 56089,
+      "sha256": "414689feaac96b78f5857b83af75d5274d990d3d30e8b7c3dfa25a8581226168"
+    },
+    {
+      "filename": "laptop-dark.png",
+      "model": "laptop",
+      "light": false,
+      "pose": "closed",
+      "position": [
+        3.6,
+        2.5,
+        7.5
+      ],
+      "fov": 34,
+      "posterWidth": 1600,
+      "posterHeight": 1120,
+      "bytes": 272461,
+      "sha256": "2a49df8de15faabdb04bfe499bdf936354afbf4902ec65cc0a4eac4d515fad39"
+    },
+    {
+      "filename": "laptop-light.png",
+      "model": "laptop",
+      "light": true,
+      "pose": "closed",
+      "position": [
+        3.6,
+        2.5,
+        7.5
+      ],
+      "fov": 34,
+      "posterWidth": 1600,
+      "posterHeight": 1120,
+      "bytes": 271171,
+      "sha256": "a128e44ae013443a402c2bcf741a2a942116e1e7b30884e81bd0ec1fb3a9a4e1"
+    },
+    {
+      "filename": "monitor-dark.png",
+      "model": "monitor",
+      "light": false,
+      "pose": "closed",
+      "position": [
+        3.6,
+        2.5,
+        7.5
+      ],
+      "fov": 34,
+      "posterWidth": 1600,
+      "posterHeight": 1120,
+      "bytes": 234277,
+      "sha256": "ccfb49aad3023515eff53cc1015b0d24b3feb816d0b66aa3d810e1e9297ecb12"
+    },
+    {
+      "filename": "monitor-light.png",
+      "model": "monitor",
+      "light": true,
+      "pose": "closed",
+      "position": [
+        3.6,
+        2.5,
+        7.5
+      ],
+      "fov": 34,
+      "posterWidth": 1600,
+      "posterHeight": 1120,
+      "bytes": 233172,
+      "sha256": "2b2780a1d6ff4630f0da8b45ac155dae9d2c6f166e02ec768ab311f85bc96b6f"
+    },
+    {
+      "filename": "phone-dark.png",
+      "model": "phone",
+      "light": false,
+      "pose": "closed",
+      "position": [
+        2.2,
+        1.6,
+        5.4
+      ],
+      "fov": 30,
+      "posterWidth": 1600,
+      "posterHeight": 1120,
+      "bytes": 211503,
+      "sha256": "1e47f105738f6bd35e92975078eccfb882dde8557562e190450df4a1bd8bc1e8"
+    },
+    {
+      "filename": "phone-light.png",
+      "model": "phone",
+      "light": true,
+      "pose": "closed",
+      "position": [
+        2.2,
+        1.6,
+        5.4
+      ],
+      "fov": 30,
+      "posterWidth": 1600,
+      "posterHeight": 1120,
+      "bytes": 211366,
+      "sha256": "a26dbddc7dbf9770716f11506a9ec4ba619d363384bd1b42168e06f2eed72c37"
+    },
+    {
+      "filename": "observatory-dark.png",
+      "model": "observatory",
+      "light": false,
+      "pose": "closed",
+      "position": [
+        3.6,
+        2.55,
+        9
+      ],
+      "fov": 30,
+      "posterWidth": 1600,
+      "posterHeight": 1000,
+      "bytes": 304673,
+      "sha256": "8a4da57a80fa035abf6c2e6a30c8b74f4cea431146e6aa71f6c9ed1636f96140"
+    },
+    {
+      "filename": "observatory-dark-open.png",
+      "model": "observatory",
+      "light": false,
+      "pose": "open",
+      "position": [
+        3.6,
+        2.55,
+        9
+      ],
+      "fov": 30,
+      "posterWidth": 1600,
+      "posterHeight": 1000,
+      "bytes": 390510,
+      "sha256": "f1e0f5dd766ff5be2d3f95125ba66915913e5fc3126c882f1fc1a1bed058f522"
+    },
+    {
+      "filename": "observatory-light.png",
+      "model": "observatory",
+      "light": true,
+      "pose": "closed",
+      "position": [
+        3.6,
+        2.55,
+        9
+      ],
+      "fov": 30,
+      "posterWidth": 1600,
+      "posterHeight": 1000,
+      "bytes": 307527,
+      "sha256": "41250d35ae0b068ee0aaaae286d0d623063efc7ca8bef783617b795a547649e6"
+    },
+    {
+      "filename": "observatory-light-open.png",
+      "model": "observatory",
+      "light": true,
+      "pose": "open",
+      "position": [
+        3.6,
+        2.55,
+        9
+      ],
+      "fov": 30,
+      "posterWidth": 1600,
+      "posterHeight": 1000,
+      "bytes": 391921,
+      "sha256": "8f23d85d3f54f6087ca5a038914c15ba8531d91739bc3432736a444d5af5650c"
+    }
+  ],
+  "errors": [],
+  "sourceHashes": {
+    "frontend/src/features/experience/ModelCanvas.tsx": "684c59d00b720679c72958b05113aa67bbbe57aed7436c4f4d2d2411234fc79c",
+    "frontend/src/features/experience/PreparedScene.tsx": "83d08a0e60984496d5876b2071887d54f3cfe7da025f850a8f6f98e1d43da9df",
+    "frontend/src/features/experience/useEnvironmentPreparation.ts": "fd4b6950b4fb5773e43bdde5a2c58a6bbc39bfda763e4e05c53f92759caa7388",
+    "frontend/src/features/experience/waitForScenePrograms.ts": "71135e96f735648a3c16fe0c57502bd0935617f53f7778b083c23f95349de471",
+    "frontend/src/features/experience/scenePresentation.ts": "fa5f74f63cbdde32932f8ffa3bd0c2e82fe5d51860ed1a9b4e4310bcc109a067",
+    "frontend/src/features/experience/renderQuality.ts": "48a7d77d7bcf51a47cb801f9c6f5a2c236d38d246da426a68deecf8c1d7f5449",
+    "frontend/public/renders/studio-screen.png": "559f2e19208f86acf68504fa4a450bac4a6a762f027f8411a07dc6d1a7a8ed3c",
+    "frontend/public/renders/studio-mobile.png": "f6b55df433d2b88ceb051978ec647b45c23a25f69ebfc5d8b0619e792ab35c07"
+  },
+  "modelHashes": {
+    "crystal": "6ee2932d8051bf380167d625b79d934bf5526776634b67ab29acb6c043348be1",
+    "laptop": "2cb80444bd5e56a390fdfb86392ff1f968654dd543d19a60ee21e089a7434646",
+    "monitor": "bd010785c69687d3e14974c9ab7dff3238f424ff1cf537447d563df200b235ca",
+    "phone": "bfb5113ee043db454f5ac9770b1f4f378be12f2f029233bd53e4febec9df6676",
+    "observatory": "f37548366d608406f1f2ec748b6483c39c8ca8525af0212a1460816bd5bfb835"
+  }
+}

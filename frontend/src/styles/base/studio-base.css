@@ -1,6 +1,8 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../../tailwind.config.ts";
+
+/* Preserve the former border default while upgrading Tailwind preflight. */
+*, ::before, ::after { border-color: var(--color-gray-200, #e5e7eb); }
 
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; min-width: 320px; -webkit-font-smoothing: antialiased; }
@@ -8,6 +10,6 @@ button, input, textarea, select { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; }
 ::selection { background: #b6b4e866; }
-body.reveal-ready .studio-shell [data-reveal] { opacity: 0; transform: translateY(20px); transition: opacity .65s ease, transform .65s ease; }
+body.reveal-ready .studio-shell [data-reveal] { opacity: 1; transform: none; }
 body.reveal-ready .studio-shell [data-reveal].is-visible { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { body.reveal-ready .studio-shell [data-reveal] { opacity: 1; transform: none; } }

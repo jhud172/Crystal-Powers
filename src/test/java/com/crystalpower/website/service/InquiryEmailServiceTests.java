@@ -12,6 +12,26 @@ import static org.mockito.Mockito.*;
 
 class InquiryEmailServiceTests {
     @Test
+    void supportMessageIncludesEscapedIssueDetailsWithoutWebsitePackageQuestions() {
+        var transport = mock(EmailTransport.class);
+        var service = new InquiryEmailService(transport, "owner@example.invalid");
+        var form = new ContactForm();
+        form.setIntent("support");
+        form.setFirstName("Synthetic");
+        form.setEmail("visitor@example.invalid");
+        form.setWebsiteAddress("https://example.invalid");
+        form.setExpectedResult("Expected <result>");
+        form.setReproductionSteps("Open page\nPress button & observe");
+        form.setMessage("Synthetic issue");
+        service.sendInquiry(form, null, "Contact page");
+        var captured = ArgumentCaptor.forClass(EmailTransport.Message.class);
+        verify(transport).send(captured.capture());
+        assertThat(captured.getValue().subject()).contains("existing-client support");
+        assertThat(captured.getValue().html()).contains("Support details", "https://example.invalid",
+                "Expected &lt;result&gt;", "Open page<br>Press button &amp; observe")
+                .doesNotContain("Project scope", "Unspecified package");
+    }
+    @Test
     void enquiryMatchesWebsiteLabelsAndKeepsEscapedContentAttachmentsAndReplyAddress() throws Exception {
         var transport = mock(EmailTransport.class);
         var service = new InquiryEmailService(transport, "owner@example.invalid");
@@ -38,6 +58,21 @@ class InquiryEmailServiceTests {
         var preview = Path.of("build/reports/email-preview.html");
         Files.createDirectories(preview.getParent());
         Files.writeString(preview, message.html());
+    }
+
+    @Test
+    void projectInterestIsIncludedAsEscapedContextWithoutChangingTheSubject() {
+        var transport = mock(EmailTransport.class);
+        var service = new InquiryEmailService(transport, "owner@example.invalid");
+        var form = new ContactForm();
+        form.setIntent("general"); form.setFirstName("Synthetic"); form.setEmail("visitor@example.invalid");
+        form.setMessage("A different project inspired by the example.");
+        form.setProjectInterest("Clare <script>unsafe()</script> & context");
+        service.sendInquiry(form, null, "Contact page");
+        var captured = ArgumentCaptor.forClass(EmailTransport.Message.class);
+        verify(transport).send(captured.capture());
+        assertThat(captured.getValue().html()).contains("Project interest", "Clare &lt;script&gt;unsafe()&lt;/script&gt; &amp; context").doesNotContain("<script>");
+        assertThat(captured.getValue().subject()).doesNotContain("unsafe", "Clare");
     }
 
     @Test

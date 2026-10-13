@@ -38,6 +38,10 @@ public class EmailTransport {
         this.smtp = smtp; this.json = json; this.provider = provider; this.key = key; this.from = from; this.http = http;
     }
     public void send(Message message) {
+        send(message, UUID.randomUUID().toString());
+    }
+    public boolean configured() { return !from.isBlank() && (("resend".equals(provider) && !key.isBlank()) || ("smtp".equals(provider) && smtp != null)); }
+    public void send(Message message, String idempotencyKey) {
         try {
             var sender = new InternetAddress(from, true); sender.validate();
             if (sender.getPersonal() == null) sender.setPersonal("Crystal Powers", "UTF-8");
@@ -52,13 +56,10 @@ public class EmailTransport {
                 if (!message.attachments().isEmpty()) body.put("attachments", message.attachments().stream().map(attachment -> Map.of("filename", safeFilename(attachment.filename()), "content_type", attachment.contentType(), "content", Base64.getEncoder().encodeToString(attachment.content()))).toList());
                 var request = HttpRequest.newBuilder(URI.create("https://api.resend.com/emails")).timeout(Duration.ofSeconds(15))
                         .header("Authorization", "Bearer " + key).header("Content-Type", "application/json")
-                        .header("Idempotency-Key", UUID.randomUUID().toString()).POST(HttpRequest.BodyPublishers.ofString(json.writeValueAsString(body))).build();
+                        .header("Idempotency-Key", idempotencyKey).POST(HttpRequest.BodyPublishers.ofString(json.writeValueAsString(body))).build();
+                long deadline = System.nanoTime() + Duration.ofSeconds(15).toNanos();
                 var response = http.send(request, HttpResponse.BodyHandlers.ofInputStream());
-                try (var stream = response.body()) {
-                    if (response.statusCode() < 200 || response.statusCode() >= 300) throw new DeliveryException();
-                    var result = json.readTree(stream.readNBytes(8192));
-                    if (result == null || !result.hasNonNull("id")) throw new DeliveryException();
-                }
+                readReceipt(response, deadline);
             } else if ("smtp".equals(provider) && smtp != null) {
                 var mime = smtp.createMimeMessage(); var helper = new MimeMessageHelper(mime, true, "UTF-8");
                 helper.setFrom(sender); helper.setTo(message.to()); if (message.replyTo() != null) helper.setReplyTo(message.replyTo());
@@ -68,6 +69,21 @@ public class EmailTransport {
             } else throw new DeliveryException();
         } catch (InterruptedException exception) { Thread.currentThread().interrupt(); throw new DeliveryException(); }
         catch (Exception exception) { throw new DeliveryException(); }
+    }
+    /** The request timeout alone does not bound an InputStream body read. */
+    private void readReceipt(HttpResponse<java.io.InputStream> response,long deadline) throws java.io.IOException {
+        try(var stream=response.body()) {
+            long remaining=deadline-System.nanoTime();
+            if(remaining<=0 || response.statusCode()<200 || response.statusCode()>=300)throw new DeliveryException();
+            var timer=java.util.concurrent.Executors.newSingleThreadScheduledExecutor(runnable->{var thread=new Thread(runnable,"mail-response-deadline");thread.setDaemon(true);return thread;});
+            var expiry=timer.schedule(()->{try{stream.close();}catch(java.io.IOException ignored){}},remaining,java.util.concurrent.TimeUnit.NANOSECONDS);
+            try {
+                byte[] bytes=stream.readNBytes(8193);
+                if(bytes.length>8192 || System.nanoTime()>=deadline)throw new DeliveryException();
+                var result=json.readTree(bytes);
+                if(result==null || !result.hasNonNull("id") || !result.get("id").isTextual() || result.get("id").asText().isBlank())throw new DeliveryException();
+            } finally { expiry.cancel(false);timer.shutdownNow(); }
+        }
     }
     private String safeFilename(String name) { return name == null ? "reference-upload" : name.replaceAll("[\\\\/\\r\\n\\x00-\\x1f]", "_"); }
 }

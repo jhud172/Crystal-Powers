@@ -1,0 +1,9 @@
+.liquid-draft-controls { padding: 22px var(--studio-gutter); border-bottom: 1px solid var(--studio-control-line); display: grid; grid-template-columns: minmax(140px, .45fr) minmax(180px, 1fr); gap: 12px 24px; }
+.liquid-draft-controls h2, .liquid-draft-controls > p { grid-column: 1 / -1; margin: 0; }
+.liquid-draft-controls label { font-size: 13px; align-self: end; }
+.liquid-draft-controls input, .liquid-draft-controls select { width: 100%; min-height: 44px; background: var(--studio-bg); color: var(--studio-text); accent-color: var(--studio-accent); }
+.liquid-draft-controls button { padding: 10px 16px; border: 1px solid var(--studio-control-line); background: var(--studio-bg); color: var(--studio-text); min-height: 44px; }
+.liquid-draft-controls .liquid-draft-check { display: flex; align-items: center; gap: 12px; }
+.liquid-draft-check input { width: 18px; }
+.liquid-draft-controls pre { grid-column: 1 / -1; max-width: 100%; overflow: auto; padding: 16px; background: var(--studio-raised); font-size: 12px; }
+@media (max-width: 760px) { .liquid-draft-controls { grid-template-columns: 1fr; } }

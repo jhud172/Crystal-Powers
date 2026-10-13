@@ -6,8 +6,9 @@ Use for the homepage crystal scene or any future WebGL work.
 
 ## Rules
 
-- Preserve the original Blender collection and active real 3D stages in `frontend/src/features/experience/`. The earlier `components/hero/CrystalOpenerScene.tsx` is inactive legacy code.
+- Preserve the original Blender collection and active real 3D stages in `frontend/src/features/experience/`. The superseded `components/hero/CrystalOpenerScene.tsx` was removed after import tracing; its history remains in Git.
 - React Three Fiber owns scene lifecycle.
+- `useEnvironmentPreparation.ts` owns cancellable PMREM filter preparation using a private public-API renderer adapter and tiny scratch target; retain seeds until the real environment acquires its programs. `waitForScenePrograms.ts` owns completion/linkage polling and skips retired native handles. `PreparedScene.tsx` owns main/transmission preparation and the first ready draw; keep route/quality cleanup and shader diagnostics intact. Keep tone mapping, render-target state and temporary back-face material changes restored in finally blocks. During preparation, reserved artwork covers cleared drawing buffers without resetting authored playback.
 - Use Drei only where useful.
 - Lazy-load WebGL scenes with `React.lazy` and `Suspense`.
 - Never put essential text inside canvas.

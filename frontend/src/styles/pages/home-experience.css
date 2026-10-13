@@ -1,0 +1,39 @@
+/* Home composition: the offer precedes optional art; proof uses published content. */
+.home-proof { scroll-margin-top: 24px; }
+.home-proof:has(.home-project) { background: var(--studio-raised); padding-top: 72px; padding-bottom: 72px; }
+.home-project { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(24px, 4vw, 64px); margin-top: 44px; align-items: center; }
+.home-project-story h3 { font-size: clamp(28px, 3vw, 48px); letter-spacing: -.04em; line-height: 1.2; margin: 24px 0; }
+.home-project-story h3, .studio-home .studio-featured-list h3 { overflow-wrap: anywhere; }
+.home-project-story > p:not(.studio-eyebrow) { color: var(--studio-muted); font-size: 14px; max-width: 440px; }
+.home-project-story .studio-button { margin-top: 28px; }
+.home-project-story .home-project-guidance { margin-top: 24px; font-size: 11px !important; }
+.home-project .studio-device-stage { height: 490px; background: var(--studio-raised); }
+.home-project .stage-project-device img { max-height: 280px; }
+.studio-home .studio-featured-fallback { padding-block: 48px; }
+@media (max-width: 1000px) {
+  .home-project { grid-template-columns: minmax(0, 1fr); }
+  .home-project .studio-device-stage { height: 460px; }
+}
+@media (max-width: 600px) {
+  .home-proof:has(.home-project) { padding-block: 44px; }
+  .home-proof .studio-section-heading { align-items: start; flex-direction: column; gap: 20px; }
+}
+
+/* Liquid Light continues as open editorial sections below the signature artwork. */
+.studio-home .studio-section { padding-block: var(--studio-space-section); }
+.studio-home .home-proof:has(.home-project) { background: var(--studio-bg); border-block: 1px solid var(--studio-line); }
+.studio-home .home-project .studio-device-stage { background: var(--studio-raised); border-radius: clamp(16px, 2vw, 32px); overflow: hidden; }
+.studio-home .studio-introduction { border-bottom: 0; }
+.studio-home .studio-service-row { transition: background var(--studio-motion-short) var(--studio-ease); }
+.studio-home .studio-service-row:is(:hover, :focus-visible) { background: var(--studio-raised); }
+.studio-home .studio-service-row h3 { font-size: clamp(24px, 2.7vw, 40px); }
+.studio-home .studio-service-row p { font-size: 14px; line-height: 1.7; }
+.studio-home .collaboration-chapter { border: 0; border-top: 1px solid var(--studio-control-line); background: transparent; padding-inline: 0; }
+.studio-home .studio-final { position: relative; isolation: isolate; background: var(--studio-raised); border-top: 1px solid var(--studio-line); }
+.studio-home .studio-final h2 > span { color: var(--studio-text); }
+.studio-home .studio-final .studio-button { min-height: 52px; }
+@media (max-width: 600px) {
+  .studio-home .home-project .studio-device-stage { height: 360px; }
+  .studio-home .studio-service-row { gap: 16px; }
+  .studio-home .studio-service-row p { font-size: 13px; }
+}

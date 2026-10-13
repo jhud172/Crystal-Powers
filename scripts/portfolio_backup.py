@@ -13,7 +13,8 @@ import shutil
 import subprocess
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 
-TABLES = ("admin_account", "recovery_code", "password_reset", "project", "project_revision", "project_media", "admin_audit", "flyway_schema_history")
+CORE_TABLES = ("admin_account", "recovery_code", "password_reset", "project", "project_revision", "project_media", "admin_audit", "flyway_schema_history")
+TABLES = CORE_TABLES + ("project_media_budget", "team_workspace", "team_account", "team_invitation", "team_audit", "team_channel", "team_message", "team_message_attachment", "support_request", "support_message", "support_event", "support_attachment", "billing_payment_request", "client_account", "client_invitation", "client_request", "client_reply", "billing_customer", "billing_intent", "billing_checkout_attempt", "billing_stripe_event", "team_group", "team_group_member", "team_channel_read", "team_mention", "team_role_profile", "team_preferences", "team_channel_preferences", "billing_observation", "billing_provider_payment", "billing_payment_link", "billing_provider_adjustment", "billing_payment_mutex", "billing_invoice_sync", "billing_invoice_allocation", "billing_client_invoice", "billing_refund_request")
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -73,10 +74,27 @@ def backup(args):
     destination = args.directory.resolve()
     destination.mkdir(parents=True, exist_ok=False)
     (destination / "media").mkdir()
-    manifest = {"format": 1, "database": os.environ.get("PGDATABASE", ""), "files": [], "tables": list(TABLES), "encryptionKeyIncluded": False}
+    # Support pre-hub deployments, but never silently omit an unfamiliar business table.
+    available = set(json.loads(sql("SELECT COALESCE(json_agg(table_name), '[]'::json) FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'")))
+    if not set(CORE_TABLES).issubset(available):
+        raise ValueError("The expected application schema is incomplete; backup stopped.")
+    unknown = {name for name in available if name.startswith(("team_", "support_", "client_", "billing_", "project_")) and name not in TABLES}
+    if unknown:
+        raise ValueError("New business tables require backup inventory review; no incomplete recovery point will be accepted.")
+    selected = [name for name in TABLES if name in available]
+    sequences = []
+    for table in ("team_message", "billing_observation"):
+        if table in selected:
+            sequence = sql(f"SELECT pg_get_serial_sequence('public.{table}', 'id')")
+            if not re.fullmatch(r"public\.[a-z0-9_]+", sequence):
+                raise ValueError(f"The {table} sequence is missing or unexpected.")
+            sequences.append(sequence)
+    manifest = {"format": 2, "database": os.environ.get("PGDATABASE", ""), "files": [], "tables": selected, "sequences": sequences, "encryptionKeyIncluded": False}
     dump_args = ["--format=custom", "--file", str(destination / "database.dump")]
-    for table in TABLES:
+    for table in selected:
         dump_args.extend(["--table", "public." + table])
+    for sequence in sequences:
+        dump_args.extend(["--table", sequence])
     pg("pg_dump", *dump_args)
     rows = json.loads(sql("SELECT COALESCE(json_agg(m), '[]'::json) FROM (SELECT storage_key, bytes FROM project_media ORDER BY storage_key) m"))
     if args.media_provider == "supabase":

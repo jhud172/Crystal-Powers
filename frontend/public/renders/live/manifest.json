@@ -1,0 +1,150 @@
+{
+  "source": "Original Crystal Powers GLBs photographed with the actual ModelCanvas; no external images/models",
+  "quality": "standard",
+  "renders": {
+    "crystal-dark-800.webp": {
+      "width": 800,
+      "height": 500,
+      "bytes": 15158,
+      "sha256": "278fa329a8932ee0354f57062700585747659fe5d60ec78a7147be31d577901a"
+    },
+    "crystal-dark.webp": {
+      "width": 1600,
+      "height": 1000,
+      "bytes": 21356,
+      "sha256": "8d823408784ac1afa072f5d64c44188c6c7871b1b187b0e5bb2ee52ed53cef30"
+    },
+    "crystal-light-800.webp": {
+      "width": 800,
+      "height": 500,
+      "bytes": 13902,
+      "sha256": "66ff3573381952dd6911af8d9387968ce1f909f0f2507e205e10d80584965b9c"
+    },
+    "crystal-light.webp": {
+      "width": 1600,
+      "height": 1000,
+      "bytes": 19056,
+      "sha256": "f5877cafa354e9f4c8c4e76f650a97026a0c152499a5d025b0194762ff5b86e9"
+    },
+    "laptop-dark-800.webp": {
+      "width": 800,
+      "height": 560,
+      "bytes": 18466,
+      "sha256": "6a79da76adca6570a3900293e5e8d85cba9eba1e58fcbd7a5ace53e8ba1f0513"
+    },
+    "laptop-dark.webp": {
+      "width": 1600,
+      "height": 1120,
+      "bytes": 37352,
+      "sha256": "b9d815bc24106b5cb43788b34e62426b316b41d3c384d8763c9258f42ff7912f"
+    },
+    "laptop-light-800.webp": {
+      "width": 800,
+      "height": 560,
+      "bytes": 20196,
+      "sha256": "60d117217852e31ea997cc985bbffc1dd625b475c4c7bca60e4b9ad2368c9a12"
+    },
+    "laptop-light.webp": {
+      "width": 1600,
+      "height": 1120,
+      "bytes": 40254,
+      "sha256": "b2820711314e48886dbafa644e034111063c9b8ee8e3b2083de17fd30d90630d"
+    },
+    "monitor-dark-800.webp": {
+      "width": 800,
+      "height": 560,
+      "bytes": 17526,
+      "sha256": "537e152d785d927a5f2ce3be3a37d791285341498508326a4cc0263e8d728c56"
+    },
+    "monitor-dark.webp": {
+      "width": 1600,
+      "height": 1120,
+      "bytes": 29922,
+      "sha256": "bec25edb74c996a2fad2e6c982425d752879d7c1d7a08412e34ee0bcce7cebfc"
+    },
+    "monitor-light-800.webp": {
+      "width": 800,
+      "height": 560,
+      "bytes": 19136,
+      "sha256": "61ff87b62346cb7c3c4bebdf2cd2bf5c28fe05d09f101fee5a2253c1805d0b9f"
+    },
+    "monitor-light.webp": {
+      "width": 1600,
+      "height": 1120,
+      "bytes": 30364,
+      "sha256": "d4dd8a904a7699c51875090724d5967b52ce5cdc74d51ee8e1552f6b11bf2b67"
+    },
+    "phone-dark-800.webp": {
+      "width": 800,
+      "height": 560,
+      "bytes": 13378,
+      "sha256": "83309a988bacb22da29d62fa1d2634a881e815b76cddb7fa819ec46c77c74f4b"
+    },
+    "phone-dark.webp": {
+      "width": 1600,
+      "height": 1120,
+      "bytes": 25140,
+      "sha256": "1c3cd5288e94e081c6d16a407bd685b7644ada50c1ee7ca356d2b96042d77e4f"
+    },
+    "phone-light-800.webp": {
+      "width": 800,
+      "height": 560,
+      "bytes": 13818,
+      "sha256": "288a6c8537569107e74e0962d34af95fc351a6678dc9d818a3f5668c011acf21"
+    },
+    "phone-light.webp": {
+      "width": 1600,
+      "height": 1120,
+      "bytes": 25444,
+      "sha256": "7adbd471808c9b15ac3407f2e8a1bdef701990ac308599a501aa8c0bd9d2f02a"
+    },
+    "observatory-dark-800.webp": {
+      "width": 800,
+      "height": 500,
+      "bytes": 44080,
+      "sha256": "04d2f260448bbf055f71ca8f6238e2ed8bc0ae8c8ef796637ebc8bd9790f8a62"
+    },
+    "observatory-dark.webp": {
+      "width": 1600,
+      "height": 1000,
+      "bytes": 60586,
+      "sha256": "bfe572c73f4175de6ae0651dd8ed3f9cb466cdfbc457ffd4deecf67bc6ff5a62"
+    },
+    "observatory-dark-open-800.webp": {
+      "width": 800,
+      "height": 500,
+      "bytes": 48238,
+      "sha256": "2221a650e2950abe7c435ebc35e5ffc06c3e35c6f45c16d87565c5f0cf45a79e"
+    },
+    "observatory-dark-open.webp": {
+      "width": 1600,
+      "height": 1000,
+      "bytes": 74608,
+      "sha256": "ba9214cb73ebd96f8056ade5676f36e10b09f21761185c7a3377ce75db40026a"
+    },
+    "observatory-light-800.webp": {
+      "width": 800,
+      "height": 500,
+      "bytes": 44252,
+      "sha256": "6d23ef14661b787a5e554782d138a799571d79ebe97da2a492959f0d732d5594"
+    },
+    "observatory-light.webp": {
+      "width": 1600,
+      "height": 1000,
+      "bytes": 61938,
+      "sha256": "42fddf2dea506e7e607d5bd154b328cde1f7148cd07cabd72c3c408712293eab"
+    },
+    "observatory-light-open-800.webp": {
+      "width": 800,
+      "height": 500,
+      "bytes": 48860,
+      "sha256": "afa5c583a57b5591e2963f5b8e5742e04d17b166184c6495bcbf225a7ef77451"
+    },
+    "observatory-light-open.webp": {
+      "width": 1600,
+      "height": 1000,
+      "bytes": 74538,
+      "sha256": "d6d15fc2714094eefadeb8efd548a5d4685382c7264507a3e63eba83dc0879f4"
+    }
+  }
+}

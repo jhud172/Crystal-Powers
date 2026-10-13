@@ -1,0 +1,11 @@
+{
+  "source": "hero.png",
+  "delivery": "hero.webp",
+  "width": 1536,
+  "height": 1024,
+  "sourceBytes": 1609369,
+  "deliveryBytes": 929946,
+  "sourceSha256": "8ca71dc8684d6b7ac4eb41af323b739e5b8f0984bbf4fe9ab8410891c66335f8",
+  "deliverySha256": "9b28b6fc3bf95bb8923ab2cbc9de5cfcc41a74dc5d5c9a0635259cb48d6e096c",
+  "lossless": true
+}

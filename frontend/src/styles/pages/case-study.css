@@ -1,0 +1,79 @@
+.work-heading { padding-top: 64px; }
+.work-heading h1, .case-heading h1 { font-size: var(--studio-type-display); line-height: 1.07; letter-spacing: var(--studio-tracking-display); margin: 28px 0; overflow-wrap: anywhere; }
+.work-heading .studio-page-lead { max-width: 700px; }
+.work-filter-bar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 40px; }
+.work-filter-bar > p { font-size: 13px; color: var(--studio-muted); }
+.work-filter-bar .studio-device-tabs { margin: 0; flex-wrap: wrap; }
+.work-filter-bar .work-filter-count { display: inline-block; min-width: 3ch; padding-left: 8px; text-align: right; font-variant-numeric: tabular-nums; color: var(--studio-muted); }
+.work-filter-count[data-pending="true"] { visibility: hidden; }
+.work-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px 36px; }
+.work-grid .studio-project-entry { margin: 0; min-width: 0; }
+.work-grid .studio-project-entry:first-child { grid-column: 1 / -1; }
+.work-grid .studio-project-entry:not(:first-child) .studio-project-entry-copy { grid-template-columns: 1fr; gap: 20px; }
+.studio-project-image-link:focus-visible img { transform: scale(1.025); }
+.studio-project-image-link:focus-visible > span { text-decoration: underline; }
+.work-loading { min-height: 440px; color: var(--studio-muted); }
+.work-loading > div { aspect-ratio: 16 / 9; background: var(--studio-raised); border: 1px solid var(--studio-line); }
+.work-loading p { font-size: 13px; padding-top: 20px; }
+.case-heading { padding-top: 52px; }
+.case-heading > .studio-eyebrow { margin-top: 36px; }
+.case-introduction { display: grid; grid-template-columns: 2fr 1fr; gap: 60px; margin: 32px 0; align-items: start; }
+.case-introduction > p { max-width: 760px; }
+.case-introduction dl { display: flex; flex-wrap: wrap; gap: 28px; border-top: 1px solid var(--studio-control-line); padding-top: 20px; }
+.case-introduction dt { font-size: 11px; color: var(--studio-muted); margin-bottom: 8px; }
+.case-introduction dd { font-size: 14px; margin: 0; }
+.case-chapter-nav { display: flex; flex-wrap: wrap; gap: 20px 32px; padding-top: 28px; padding-bottom: 28px; border-block: 1px solid var(--studio-line); margin-top: 40px; }
+.case-chapter-nav a { display: flex; gap: 12px; align-items: center; min-height: 44px; font-size: 13px; }
+.case-chapter-nav a span { color: var(--studio-accent); }
+.case-story { display: grid; grid-template-columns: 1fr 2fr; gap: 60px; }
+.case-story aside p + p { margin-top: 20px; }
+.case-story aside ul { color: var(--studio-muted); font-size: 12px; padding: 0; list-style: none; margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; }
+.case-story aside li { border: 1px solid var(--studio-line); padding: 8px 12px; }
+.case-story > div > section { padding: 36px 0; border-bottom: 1px solid var(--studio-line); }
+.case-story h2 { font-size: clamp(30px, 3vw, 46px); margin: 20px 0; letter-spacing: -.04em; }
+.case-story > div p { color: var(--studio-muted); font-size: 16px; line-height: 1.85; white-space: pre-line; }
+.case-study [id] { scroll-margin-top: 110px; }
+.case-gallery { padding: 60px var(--studio-gutter); }
+.case-gallery-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px; margin-top: 36px; }
+.case-gallery figure { margin: 0; min-width: 0; }
+.case-gallery-grid button { width: 100%; display: block; text-align: left; position: relative; background: var(--studio-raised); border: 1px solid var(--studio-line); }
+.case-gallery-grid img { width: 100%; height: 360px; object-fit: contain; }
+.case-gallery-grid button span { display: block; padding: 18px; color: var(--studio-accent); font-size: 12px; }
+.case-lightbox { width: min(1100px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); background: var(--studio-bg); color: var(--studio-text); border: 1px solid var(--studio-control-line); padding: 24px; overflow: auto; }
+.case-lightbox::backdrop { background: #050912de; }
+.case-lightbox header, .case-lightbox footer { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+.case-lightbox h2 { font-size: 20px; }
+.case-lightbox button { min-height: 44px; padding: 10px 14px; border: 1px solid var(--studio-control-line); font-size: 13px; }
+.case-lightbox button:disabled { opacity: .6; cursor: not-allowed; }
+.case-lightbox figure { margin: 24px 0; }
+.case-lightbox img { width: 100%; height: min(60dvh, 640px); object-fit: contain; }
+.case-lightbox footer p { color: var(--studio-muted); font-size: 13px; }
+.case-continuity { display: flex; flex-wrap: wrap; gap: 40px; border-top: 1px solid var(--studio-line); }
+.case-continuity > a { flex: 1; min-width: 220px; }
+.case-continuity h2 { font-size: 26px; margin-top: 20px; }
+.enquiry-project-interest { border: 1px solid var(--studio-control-line); padding: 20px; margin-bottom: 28px; font-size: 14px; }
+@media (max-width: 800px) { .work-grid, .case-introduction, .case-story, .case-gallery-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; } .work-filter-bar { align-items: start; flex-direction: column; gap: 16px; } .case-heading { padding-top: 36px; } .case-story > div p { font-size: 14px; } .case-gallery { padding-top: 40px; } .case-gallery-grid img { height: 300px; } .case-lightbox { padding: 16px; } .case-lightbox footer { gap: 8px; } .case-lightbox footer button { padding: 10px; font-size: 12px; } }
+
+/* Liquid Light work pages: imagery stays central, with clear fallback surfaces. */
+.project-artwork-fallback { display: grid; align-content: center; justify-items: center; gap: 12px; width: 100%; min-height: 240px; padding: 32px; text-align: center; background: var(--studio-raised); color: var(--studio-muted); }
+.project-artwork-fallback p { margin: 0; font-size: 14px; max-width: 36ch; }
+.studio-project-image-link .project-artwork-fallback { height: 100%; }
+.case-gallery-grid .project-artwork-fallback { height: 360px; }
+.liquid-work .work-heading, .liquid-case .case-heading { padding-block: var(--studio-space-section) clamp(32px, 4vw, 64px); }
+.liquid-work .work-heading h1, .liquid-case .case-heading h1 { font-weight: 400; }
+.liquid-work .studio-project-image-link { border-radius: clamp(16px, 2vw, 32px); }
+.liquid-work .studio-project-image-link > span { border-radius: var(--studio-action-radius); }
+.liquid-work .work-filter-bar .studio-device-tabs button { border-radius: var(--studio-action-radius); padding-inline: 18px; }
+.liquid-case .studio-project-cover { background: var(--studio-raised); }
+.liquid-case .case-chapter-nav { gap: 12px 32px; }
+.liquid-case .case-story aside li { border: 0; border-bottom: 1px solid var(--studio-line); padding-inline: 0; }
+.liquid-case .case-gallery-grid button { border-radius: 18px; overflow: hidden; }
+.case-lightbox { border-radius: 20px; }
+.case-lightbox button { border-radius: var(--studio-action-radius); }
+@media (max-width: 800px) {
+  .case-gallery-grid .project-artwork-fallback { height: 300px; }
+  .liquid-work .work-heading, .liquid-case .case-heading { padding-top: 40px; }
+  .liquid-work .studio-project-image-link > span { right: 12px; bottom: 12px; }
+}
+
+.case-lightbox header { flex-wrap: wrap; }

@@ -1,0 +1,11 @@
+.project-device-note { color: var(--studio-muted); font-size: 13px; margin: 12px 0 28px; line-height: 1.7; }
+.project-device-preview .studio-device-tabs button:disabled { opacity: .65; cursor: not-allowed; }
+.project-device-preview .studio-device-stage { height: clamp(460px, 47vw, 760px); }
+.stage-project-poster { display: flex; align-items: center; justify-content: center; padding: clamp(24px, 5vw, 72px); padding-bottom: 84px; background: var(--studio-raised); }
+.stage-project-device { position: relative; width: min(100%, 900px); border: 10px solid #202733; border-radius: 12px; background: #0b1018; box-shadow: 0 24px 60px #0003; }
+.stage-project-poster .stage-project-device img { display: block; width: 100%; height: 100%; max-height: 520px; object-fit: contain; object-position: top; border-radius: 2px; }
+.stage-project-laptop .stage-project-device::after { content: ""; position: absolute; height: 12px; background: #414b5d; bottom: -20px; left: -5%; width: 110%; border-radius: 2px 2px 10px 10px; }
+.stage-project-monitor .stage-project-device::after { content: ""; position: absolute; width: 22%; height: 24px; left: 39%; bottom: -34px; background: #414b5d; border-radius: 0 0 4px 4px; }
+.stage-project-phone .stage-project-device { width: min(100%, 230px); border-radius: 28px; padding: 10px 0; }
+.stage-project-phone .stage-project-device img { border-radius: 14px; max-height: 490px; }
+@media (max-width: 1200px) { .stage-project-device { border-width: 6px; } .stage-project-phone .stage-project-device { width: min(100%, 150px); } .stage-project-poster .stage-project-device img { max-height: 300px; } }

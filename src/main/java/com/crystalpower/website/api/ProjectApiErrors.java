@@ -10,14 +10,16 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@RestControllerAdvice(assignableTypes = {OwnerAuthController.class, OwnerAccountController.class, OwnerRecoveryController.class, AdminProjectController.class, PublicProjectController.class, ProjectMediaController.class})
+@RestControllerAdvice(assignableTypes = {OwnerAuthController.class, OwnerAccountController.class, OwnerRecoveryController.class, AdminProjectController.class, PublicProjectController.class, ProjectMediaController.class, TeamAdminController.class, TeamActivationController.class, TeamAuthController.class, TeamChannelController.class, TeamMemberController.class, TeamSupportController.class, TeamUploadController.class, TeamBillingController.class, TeamClientController.class, ClientAuthController.class, ClientPortalController.class, ClientBillingController.class, StripeWebhookController.class, TeamBillingRecoveryController.class, TeamGroupController.class, TeamMentionController.class, TeamProjectController.class, TeamProjectMediaController.class, TeamRefundController.class, TeamAttachmentController.class, TeamAttachmentQueueController.class, TeamInvitationEmailController.class, PublicPrivacyController.class, OwnerPrivacyController.class})
 public class ProjectApiErrors {
+    @ExceptionHandler({jakarta.validation.ConstraintViolationException.class, org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<?> invalidParameter() { return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Check the request reference, filters and input values, then try again.")); }
     @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
     public ResponseEntity<?> malformed() { return ResponseEntity.badRequest().body(Map.of("success", false, "message", "The request could not be read. Check the form and try again.")); }
     @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
     public ResponseEntity<?> oversized() { return ResponseEntity.status(413).body(Map.of("success", false, "message", "The upload is too large. Choose an image under 12 MB.")); }
     @ExceptionHandler(org.springframework.dao.DataAccessException.class)
-    public ResponseEntity<?> unavailable() { return ResponseEntity.status(503).body(Map.of("success", false, "message", "The project store is temporarily unavailable. Your unsaved edits are still in this tab.")); }
+    public ResponseEntity<?> unavailable() { return ResponseEntity.status(503).body(Map.of("success", false, "message", "The data store is temporarily unavailable. Your unsaved edits are still in this tab.")); }
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<?> status(ResponseStatusException exception) {
         return ResponseEntity.status(exception.getStatusCode()).body(Map.of("success", false, "message", exception.getReason() == null ? "The request could not be completed." : exception.getReason()));

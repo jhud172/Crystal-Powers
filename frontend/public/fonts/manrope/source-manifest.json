@@ -1,0 +1,58 @@
+{
+  "family": "Manrope",
+  "weights": [
+    400,
+    500,
+    600,
+    700
+  ],
+  "sourceCssUrl": "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap",
+  "sourceCssSha256": "7fa5f1edad86a19d80edf5d86354380e193e08f3c3c62e556e4431887cb9781c",
+  "files": [
+    {
+      "subset": "cyrillic-ext",
+      "file": "manrope-v20-cyrillic-ext-de37de877dc1.woff2",
+      "url": "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggqxSuXd.woff2",
+      "bytes": 2552,
+      "sha256": "de37de877dc17e4577341fa68bb5cb526b53d54cb29721e674208546a3c7849d"
+    },
+    {
+      "subset": "cyrillic",
+      "file": "manrope-v20-cyrillic-c268b459a932.woff2",
+      "url": "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggOxSuXd.woff2",
+      "bytes": 14500,
+      "sha256": "c268b459a9329e59fecf39a17618efd44c71735532048d60b12aab76a8c14914"
+    },
+    {
+      "subset": "greek",
+      "file": "manrope-v20-greek-2fb2e8cbfd52.woff2",
+      "url": "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggSxSuXd.woff2",
+      "bytes": 9444,
+      "sha256": "2fb2e8cbfd52ae46179a8b6024eb162f1f9c6de3d22d6e3a30d8f395de7220be"
+    },
+    {
+      "subset": "vietnamese",
+      "file": "manrope-v20-vietnamese-6bbb044ab420.woff2",
+      "url": "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggixSuXd.woff2",
+      "bytes": 8520,
+      "sha256": "6bbb044ab420e07edb0a3042d2eb314b85e83a0182e945a15ab3b9092668dfd5"
+    },
+    {
+      "subset": "latin-ext",
+      "file": "manrope-v20-latin-ext-3911b66d9f2e.woff2",
+      "url": "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggmxSuXd.woff2",
+      "bytes": 15120,
+      "sha256": "3911b66d9f2e005a4b989223405d0e5032619c668597ba467cc76a23c8fffcfb"
+    },
+    {
+      "subset": "latin",
+      "file": "manrope-v20-latin-a30ddcd34970.woff2",
+      "url": "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggexSg.woff2",
+      "bytes": 24836,
+      "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972"
+    }
+  ],
+  "licenceSha256": "58172e0c0fac2cda8a37b348164bb55e44b0e69051e557e92b1d3f6910141f7b",
+  "fontlogSha256": "b6b54bcc1dbd1b18d5afd087ec0b578097644b1c9ec3e0a642d4df7808f449c2",
+  "unmodified": true
+}

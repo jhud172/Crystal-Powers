@@ -1,0 +1,44 @@
+{
+  "project": "Clare’s Life Celebrations",
+  "sourceUrl": "https://clareslifecelebrations.com",
+  "capturedOn": "2026-10-10",
+  "preparedOn": "2026-10-12",
+  "approvedBy": "James",
+  "approvalScope": "This is the only approved real public portfolio project. Review the saved revision and media before publication.",
+  "suggestedSlug": "clares-life-celebrations",
+  "state": "Prepared source assets and private-draft content; not uploaded, saved to a production account or published by this preparation.",
+  "files": [
+    {
+      "file": "desktop.jpg",
+      "width": 1440,
+      "height": 1000,
+      "bytes": 193075,
+      "sha256": "a402f547e057f2b7f186686dff9d949f8afb7ec3a5f1887637d0f7e51b021593"
+    },
+    {
+      "file": "mobile.jpg",
+      "width": 390,
+      "height": 844,
+      "bytes": 80161,
+      "sha256": "e10daf8035b518ae87433bf8da95d39df4548daae8ffc792203d8066ac342b93"
+    }
+  ],
+  "assignAfterUpload": [
+    {
+      "file": "desktop.jpg",
+      "slots": [
+        "cover",
+        "screens.desktop"
+      ],
+      "alt": "Clare’s Life Celebrations homepage on desktop, with its peacock identity, ceremony introduction and enquiry actions."
+    },
+    {
+      "file": "mobile.jpg",
+      "slots": [
+        "screens.mobile"
+      ],
+      "alt": "Clare’s Life Celebrations homepage on a narrow screen, with readable ceremony information and enquiry buttons."
+    }
+  ],
+  "featureAfterPublicationReview": true
+}

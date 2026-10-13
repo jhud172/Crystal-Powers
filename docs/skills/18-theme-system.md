@@ -8,7 +8,7 @@ Use for theme picker, CSS variables, theme styles, theme-aware assets, and visua
 
 - Theme data: `frontend/src/data/site.ts`.
 - Theme state: `frontend/src/app/Layout.tsx`.
-- Theme CSS: `frontend/src/styles/themes/*/theme.css`.
+- Active semantic theme CSS: `frontend/src/styles/base/studio-tokens.css`; route composition in `styles/pages/`. Unused earlier `styles/themes/*/theme.css` files were removed after import tracing; all five appearance IDs/cookies/assets remain supported.
 - Active theme: `body[data-theme]`.
 - Cookie: `crystal_theme`.
 
@@ -25,4 +25,3 @@ Use for theme picker, CSS variables, theme styles, theme-aware assets, and visua
 ## Validation
 
 Test key routes in every theme after theme-related changes.
-

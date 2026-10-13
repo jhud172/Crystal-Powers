@@ -1,0 +1,58 @@
+.liquid-hero { position: relative; isolation: isolate; overflow: hidden; min-height: min(850px, calc(100svh - 96px)); background: var(--studio-bg); color: var(--studio-text); }
+.liquid-hero-content { position: relative; pointer-events: none; padding: clamp(35px, 5vw, 76px) var(--studio-gutter) 32px; }
+.liquid-hero-content a, .liquid-hero-content button { pointer-events: auto; }
+.liquid-wordmark { display: flex; flex-wrap: wrap; column-gap: .18em; margin: 0 0 clamp(40px, 5vw, 85px); font-size: clamp(72px, 11.4vw, 224px); line-height: .98; letter-spacing: -.085em; font-weight: 400; }
+.liquid-wordmark span { display: block; animation: liquid-type-arrive 440ms ease-out both; }
+.liquid-wordmark span + span { animation-delay: 70ms; }
+.liquid-hero-copy { max-width: 720px; }
+.liquid-hero-copy h1 { font-size: clamp(40px, 4.7vw, 76px); letter-spacing: -.065em; line-height: 1.12; margin: 18px 0 24px; }
+.liquid-hero-copy > p:not(.studio-eyebrow) { font-size: clamp(16px, 1.6vw, 21px); line-height: 1.6; color: var(--studio-muted); }
+.liquid-actions { display: flex; gap: clamp(22px, 5vw, 65px); flex-wrap: wrap; margin-top: 30px; align-items: center; }
+.studio-shell .liquid-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 13px 27px; border-radius: 999px; background: var(--studio-text); color: var(--studio-bg); text-decoration: none; font-size: 14px; }
+.liquid-primary:hover { transform: translateY(-2px); }
+.liquid-explore { border: 0; border-bottom: 1px solid currentColor; padding: 12px 0; min-height: 48px; color: var(--studio-text); background: transparent; font: inherit; font-size: 14px; cursor: pointer; }
+.liquid-explore:hover { text-underline-offset: 6px; }
+.liquid-hero a:focus-visible, .liquid-hero button:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: 6px; }
+.liquid-light-art { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+.liquid-light-veil, .liquid-light-pointer { width: 100%; height: 100%; }
+.liquid-light-pointer { transition: transform 140ms ease-out; }
+.liquid-light-art img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: var(--liquid-intensity, .85); transform: scale(var(--liquid-scale, 1)); filter: hue-rotate(var(--liquid-hue, 0deg)); }
+.liquid-hero[data-light="true"] .liquid-light-art { mix-blend-mode: multiply; }
+.liquid-hero[data-light="false"] .liquid-light-art img { filter: invert(1) hue-rotate(calc(var(--liquid-hue, 0deg) + 150deg)); opacity: calc(var(--liquid-intensity, .85) * .65); }
+.liquid-reveal { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .7fr); position: relative; gap: 25px; margin-top: clamp(45px, 6vw, 100px); padding-top: 24px; border-top: 1px solid var(--studio-control-line); }
+.liquid-reveal h2 { font-size: clamp(26px, 3.3vw, 52px); line-height: 1.2; letter-spacing: -.05em; margin: 12px 0; }
+.liquid-reveal-copy > p:not(.studio-eyebrow) { color: var(--studio-muted); font-size: 14px; max-width: 50ch; }
+.liquid-replay { border: 0; background: transparent; color: var(--studio-muted); min-height: 44px; padding: 8px 0; text-decoration: underline; text-align: left; font-size: 12px; }
+.liquid-hero[data-calm="true"] *, .liquid-hero[data-calm="true"] .liquid-light-pointer { animation: none !important; transition: none !important; }
+@keyframes liquid-type-arrive { from { opacity: .7; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (max-width: 760px) { .liquid-hero { min-height: auto; } .liquid-hero-content { padding-top: 32px; } .liquid-wordmark { font-size: clamp(60px, 15.5vw, 118px); margin-bottom: 38px; gap: 0 .15em; } .liquid-hero-copy h1 { font-size: clamp(36px, 8vw, 58px); } .liquid-reveal { grid-template-columns: 1fr; margin-top: 42px; } .liquid-light-art img { object-position: 62% center; } .liquid-reveal-image { max-height: 210px; object-position: top left; } }
+@media (prefers-reduced-motion: reduce) { .liquid-hero * { animation: none !important; transition: none !important; } .liquid-primary:hover { transform: none; } }
+
+/* A permanent proof strip and a separate optional preview keep disclosure semantics honest. */
+.liquid-reveal:has(.liquid-reveal-detail[hidden]) { grid-template-columns: minmax(0, 1fr); }
+.liquid-reveal-detail[hidden] { display: none; }
+.liquid-reveal-detail { min-width: 0; align-self: center; }
+.liquid-reveal-detail > p { max-width: 42ch; color: var(--studio-muted); font-size: 14px; }
+.liquid-reveal-controls { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 12px; }
+.liquid-replay { cursor: pointer; font: inherit; font-size: 13px; }
+.liquid-primary { border-radius: var(--studio-action-radius); transition: transform var(--studio-motion-short) var(--studio-ease); }
+.liquid-light-art::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, var(--studio-bg) 0%, transparent 65%); opacity: .35; }
+.liquid-hero-copy { max-width: min(720px, 58%); }
+@media (max-width: 760px) {
+  .liquid-hero-copy { max-width: 100%; }
+  .liquid-light-art::after { background: linear-gradient(0deg, var(--studio-bg) 8%, transparent 80%); opacity: .7; }
+  .liquid-wordmark { margin-bottom: 26px; }
+  .liquid-hero-content { padding-top: 24px; }
+  .liquid-hero-copy h1 { margin-block: 14px 18px; }
+  .liquid-actions { margin-top: 22px; gap: 14px 28px; }
+}
+
+.liquid-art-unavailable { display: grid; place-items: center; width: 100%; aspect-ratio: 3 / 2; padding: 1rem; border: 1px solid var(--studio-line); color: var(--studio-muted); background: var(--studio-raised); font-size: .85rem; text-align: center; }
+
+.liquid-reveal-media { min-width: 0; animation: liquid-type-arrive 320ms ease-out; }
+.liquid-reveal-media .project-artwork-retry > div { min-height: 160px; }
+.liquid-reveal-media img { display: block; width: 100%; max-height: 280px; object-fit: contain; object-position: top right; }
+.liquid-reveal-media .project-artwork-fallback { min-height: 160px; aspect-ratio: auto; padding: 1.25rem; }
+.liquid-reveal-media .project-artwork-retry-button { min-height: 44px; margin-top: .5rem; padding: .5rem 0; border: 0; border-bottom: 1px solid var(--studio-line); background: transparent; color: inherit; font: inherit; font-size: .8rem; }
+.liquid-reveal-media .project-artwork-retry-button[aria-disabled="true"] { opacity: .6; cursor: progress; }
+.liquid-reveal-media .project-artwork-status { margin-top: .5rem; font-size: .8rem; color: var(--studio-muted); }

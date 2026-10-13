@@ -46,8 +46,14 @@ try {
     Assert-ExitCode 'Frontend production build'
     & node frontend/scripts/verify-animation-contract.mjs
     Assert-ExitCode 'Animation contracts'
-    & python assets/blender/prepare_web_assets.py
+    & node scripts/verify-font-assets.cjs
+    Assert-ExitCode 'Local font provenance and delivery contracts'
+    & python assets/prepare_liquid_light.py --validate-only
+    Assert-ExitCode 'Liquid Light original-pixel delivery contract'
+    & python assets/blender/prepare_web_assets.py --validate-only
     Assert-ExitCode 'Blender web asset contracts'
+    & python assets/blender/prepare_live_posters.py
+    Assert-ExitCode 'Canonical live poster contracts'
 
     $env:SKIP_FRONTEND_BUILD = '1'
     & .\gradlew.bat test bootJar --no-daemon --rerun-tasks

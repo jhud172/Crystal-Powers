@@ -1,0 +1,1 @@
+CREATE INDEX team_message_attachment_queue_idx ON team_message_attachment(channel_id,review_state,created_at,id);

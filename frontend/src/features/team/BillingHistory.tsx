@@ -1,0 +1,20 @@
+import { useEffect, useRef, useState } from "react";
+import { api, ApiError } from "../portfolio/projectApi";
+import { OwnerError } from "../admin/OwnerError";
+
+type Observation={id:string;category:string;reference:string;state:string;amountPence:number;detail:string;recordedAt:string};
+type Page={items:Observation[];nextCursor:string | null;liveMode:boolean};
+export function BillingHistory({ request, bill, disabled, onExpired }: {request:string;bill:string;disabled:boolean;onExpired:()=>void}) {
+  const [open,setOpen]=useState(false),[page,setPage]=useState<Page | null>(null),[cursor,setCursor]=useState<string | null>(null),[history,setHistory]=useState<(string | null)[]>([]);
+  const [refresh,setRefresh]=useState(0),[loading,setLoading]=useState(false),[error,setError]=useState("");
+  const generation=useRef(0),heading=useRef<HTMLHeadingElement>(null),focus=useRef(false);
+  useEffect(()=>{if(!open)return;const current=++generation.current,abort=new AbortController();setLoading(true);setError("");
+    void api<Page>(`/api/team/support/requests/${request}/billing/${bill}/history${cursor ? `?before=${encodeURIComponent(cursor)}` : ""}`,{signal:abort.signal}).then(result=>{if(current===generation.current){setPage(result);if(focus.current){heading.current?.focus();focus.current=false;}}}).catch((failure:unknown)=>{if(current!==generation.current || failure instanceof DOMException && failure.name==="AbortError")return;setPage(null);setError((failure as Error).message);if(failure instanceof ApiError && failure.status===401)onExpired();}).finally(()=>{if(current===generation.current)setLoading(false);});
+    return()=>{generation.current++;abort.abort();};
+  },[open,request,bill,cursor,refresh]);
+  function move(next:string | null,kind:"older"|"newer"|"latest"){if(disabled || loading)return;focus.current=true;if(kind==="older")setHistory(values=>[...values.slice(-99),cursor]);else if(kind==="newer")setHistory(values=>values.slice(0,-1));else setHistory([]);setCursor(next);if(next===cursor)setRefresh(value=>value+1);}
+  return <details className="billing-history" onToggle={event=>{if(event.target===event.currentTarget)setOpen(event.currentTarget.open);}}><summary>Billing activity history</summary><h4 ref={heading} tabIndex={-1}>Recorded billing observations</h4><p>Changes observed by this app, newest recorded first. These entries are not separate transactions and must not be added together as revenue. Earlier activity may need reconciliation; refunds, disputes and a complete accounting ledger are separate.</p><OwnerError message={error}/>{page && <p>{page.liveMode ? "Live billing environment" : "Stripe test environment"}</p>}
+    <nav className="team-history-nav" aria-label="Billing history pages"><button className="admin-secondary" disabled={disabled || loading} onClick={()=>{focus.current=true;setRefresh(value=>value+1);}}>Refresh history</button><button className="admin-secondary" disabled={disabled || loading || !history.length} onClick={()=>move(history[history.length-1],"newer")}>Newer observations</button><button className="admin-secondary" disabled={disabled || loading || !page?.nextCursor} onClick={()=>{if(page?.nextCursor)move(page.nextCursor,"older");}}>Older observations</button><button className="admin-text-button" disabled={disabled || loading || cursor===null} onClick={()=>move(null,"latest")}>Latest observations</button></nav>
+    {loading ? <p role="status">Loading billing observations…</p> : page && !page.items.length ? <p>No observations on this page. History starts when this feature records activity.</p> : <ol className="support-event-list">{page?.items.map(item=><li key={item.id}><strong>{item.category.toLowerCase().replace(/_/g," ")} · {item.state}</strong><time dateTime={item.recordedAt}>{new Date(item.recordedAt).toLocaleString("en-GB")}</time><p>Associated amount: {new Intl.NumberFormat("en-GB",{style:"currency",currency:"GBP"}).format(item.amountPence/100)}</p><p>{item.detail}</p><small>Reference: {item.reference}</small></li>)}</ol>}
+  </details>;
+}

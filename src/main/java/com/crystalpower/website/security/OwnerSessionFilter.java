@@ -15,7 +15,7 @@ public class OwnerSessionFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
-        if (request.getRequestURI().startsWith("/api/admin/")) {
+        if (request.getRequestURI().startsWith("/api/admin/") || request.getRequestURI().startsWith("/api/team/")) {
             response.setHeader("Cache-Control", "no-store");
             response.setHeader("X-Robots-Tag", "noindex, nofollow");
             var authentication = SecurityContextHolder.getContext().getAuthentication();

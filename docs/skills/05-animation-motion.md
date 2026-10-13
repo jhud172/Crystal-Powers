@@ -7,7 +7,7 @@ Use for scroll reveal, cursor aura, tilt, route transitions, CSS transitions, GS
 ## Responsibilities
 
 - CSS: simple hover, focus, and lightweight transitions.
-- Existing interaction foundation: reveal, cursor aura, and tilt in `frontend/src/lib/interactions/`.
+- Active motion policy and cancellable public cues: `hooks/useMotionPolicy.ts`, `features/experience/ExperienceContext.tsx` and `MotionScope.tsx`. Unused legacy reveal/cursor/tilt helpers were removed after import tracing; do not recreate duplicate global listeners.
 - GSAP: coordinated timelines and ScrollTrigger only if explicitly installed/authorised.
 - Motion: mount, unmount, layout, and route transitions only if explicitly installed/authorised.
 - React Three Fiber: 3D scene animation.
@@ -31,4 +31,3 @@ For each animation, document trigger, duration, easing, cleanup, mobile behaviou
 ## Validation
 
 Verify no duplicate global listeners, no hidden critical content, no reduced-motion regression, and no new main-bundle growth without justification.
-

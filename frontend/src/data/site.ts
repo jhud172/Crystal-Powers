@@ -9,14 +9,14 @@ export const navItems = [
 export const themes = [
   { id: "futuristic", label: "Futuristic", color: "#090e19" },
   { id: "classic", label: "Classic", color: "#17120f" },
-  { id: "clean", label: "Clean", color: "#f3f6fb" },
+  { id: "clean", label: "Clean", color: "#f8f4ed" },
   { id: "fresh", label: "Fresh", color: "#f0f8f3" },
   { id: "summer-vibes", label: "Summer vibes", color: "#fff6ec" }
 ] as const;
 
 export type ThemeId = (typeof themes)[number]["id"];
 
-export const defaultTheme: ThemeId = "futuristic";
+export const defaultTheme: ThemeId = "clean";
 
 export type ThemeAssets = {
   brandMotionWebp: string;

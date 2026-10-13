@@ -12,6 +12,8 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 import com.crystalpower.website.service.OwnerService;
+import com.crystalpower.website.service.TeamAuthenticationService;
+import com.crystalpower.website.service.ClientAccessService;
 
 @Configuration
 public class SecurityConfiguration {
@@ -28,20 +30,27 @@ public class SecurityConfiguration {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http,
-            HttpSessionSecurityContextRepository contexts, HttpSessionCsrfTokenRepository csrf, OwnerService owners) throws Exception {
+            HttpSessionSecurityContextRepository contexts, HttpSessionCsrfTokenRepository csrf, OwnerService owners, TeamAuthenticationService teams, ClientAccessService clients) throws Exception {
         http.authorizeHttpRequests(authorise -> authorise
                 .requestMatchers("/api/admin/auth/**").permitAll()
+                .requestMatchers("/api/team/auth/**").permitAll()
+                .requestMatchers("/api/client/auth/**").permitAll()
+                .requestMatchers("/api/client/**").hasRole("CLIENT")
+                .requestMatchers(HttpMethod.POST,"/api/billing/stripe/webhook").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("OWNER")
+                .requestMatchers("/api/team/**").hasAnyRole("OWNER", "TEAM")
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .requestMatchers(HttpMethod.HEAD, "/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/contact", "/api/services").permitAll()
                 .anyRequest().denyAll())
             .securityContext(context -> context.securityContextRepository(contexts))
             .addFilterAfter(new OwnerSessionFilter(owners), SecurityContextHolderFilter.class)
+            .addFilterAfter(new TeamSessionFilter(teams), OwnerSessionFilter.class)
+            .addFilterAfter(new ClientSessionFilter(clients), TeamSessionFilter.class)
             .csrf(config -> config.csrfTokenRepository(csrf)
                     .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                     // Preserve existing anonymous form contracts; owner APIs always require CSRF.
-                    .ignoringRequestMatchers("/api/contact", "/api/services"))
+                    .ignoringRequestMatchers("/api/contact", "/api/services", "/api/billing/stripe/webhook"))
             .formLogin(config -> config.disable())
             .httpBasic(config -> config.disable())
             .logout(config -> config.disable())

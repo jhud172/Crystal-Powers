@@ -1,0 +1,24 @@
+{
+  "title": "Clare’s Life Celebrations",
+  "category": "WEBSITE",
+  "summary": "A personal, characterful website for Clare’s celebrant services, bringing ceremony information, stories and an enquiry journey together across desktop and mobile.",
+  "overview": "Give people exploring a wedding, celebration of life or another ceremony a clear way to learn about Clare, understand the services and start a conversation.",
+  "approach": "A peacock-inspired identity and warm photography establish the visual direction. Ceremony pages organise the details around the occasion, with FAQs and clear enquiry actions. Responsive layouts keep the same journey available on smaller screens.",
+  "outcome": "A live website with ceremony information, an introduction to Clare, reviews, a journal, FAQs and an availability enquiry. Visitors can explore the services and send the details of their occasion through the website.",
+  "liveUrl": "https://clareslifecelebrations.com",
+  "technologies": [
+    "Java",
+    "Spring Boot",
+    "Thymeleaf",
+    "CSS",
+    "JavaScript"
+  ],
+  "displayDevice": "laptop",
+  "coverMediaId": null,
+  "coverAlt": "Clare’s Life Celebrations homepage on desktop, with its peacock identity, ceremony introduction and enquiry actions.",
+  "gallery": [],
+  "screens": {
+    "desktop": null,
+    "mobile": null
+  }
+}

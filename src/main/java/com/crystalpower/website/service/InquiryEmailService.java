@@ -24,13 +24,20 @@ public class InquiryEmailService {
     }
 
     public void sendInquiry(ContactForm form, MultipartFile[] referenceFiles, String sourceLabel) {
+        deliver(form, referenceFiles, sourceLabel, null);
+    }
+    public void sendInquiry(ContactForm form, MultipartFile[] referenceFiles, String sourceLabel, String idempotencyKey) {
+        deliver(form, referenceFiles, sourceLabel, idempotencyKey);
+    }
+    private void deliver(ContactForm form, MultipartFile[] referenceFiles, String sourceLabel, String idempotencyKey) {
         try {
             List<EmailTransport.Attachment> attachments = new ArrayList<>();
             for (MultipartFile file : getPopulatedFiles(referenceFiles)) {
                 attachments.add(new EmailTransport.Attachment(file.getOriginalFilename(), file.getContentType(), file.getBytes()));
             }
-            transport.send(new EmailTransport.Message(recipientAddress, form.getEmail().trim(),
-                    buildSubject(form, sourceLabel).replaceAll("[\\r\\n]", " "), buildHtmlBody(form, sourceLabel, referenceFiles), attachments));
+            var message = new EmailTransport.Message(recipientAddress, form.getEmail().trim(),
+                    buildSubject(form, sourceLabel).replaceAll("[\\r\\n]", " "), buildHtmlBody(form, sourceLabel, referenceFiles), attachments);
+            if (idempotencyKey == null) transport.send(message); else transport.send(message, idempotencyKey);
         } catch (EmailTransport.DeliveryException | IOException exception) {
             throw new InquiryEmailException("Your enquiry could not be delivered right now. Please try again later.", exception);
         }
@@ -45,7 +52,8 @@ public class InquiryEmailService {
             fullName = "New enquiry";
         }
 
-        return String.format("Crystal Powers | %s | %s | %s", sourceLabel, packageSelection, fullName);
+        return String.format("Crystal Powers | %s | %s | %s", intentLabel(form),
+                "website".equals(form.getIntent()) ? packageSelection : sourceLabel, fullName);
     }
 
     private String buildHtmlBody(ContactForm form, String sourceLabel, MultipartFile[] referenceFiles) {
@@ -57,7 +65,8 @@ public class InquiryEmailService {
         html.append("<div style=\"max-width:760px;margin:0 auto;border:1px solid rgba(255,255,255,0.08);border-radius:28px;overflow:hidden;background:linear-gradient(180deg,#10172d,#0b1020);box-shadow:0 32px 80px rgba(2,6,23,0.45);\">");
         html.append("<div style=\"padding:24px;border-bottom:1px solid rgba(255,255,255,0.08);background:radial-gradient(circle at top right, rgba(103,232,249,0.16), transparent 240px),linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));\">");
         html.append("<div style=\"font-size:12px;letter-spacing:0.32em;text-transform:uppercase;color:#67e8f9;font-weight:700;\">Crystal Powers</div>");
-        html.append("<h1 style=\"margin:14px 0 0;font-size:32px;line-height:1.08;color:#ffffff;\">New website enquiry</h1>");
+        html.append("<h1 style=\"margin:14px 0 0;font-size:32px;line-height:1.08;color:#ffffff;\">New ")
+                .append(escape(intentLabel(form))).append(" enquiry</h1>");
         html.append("<p style=\"margin:14px 0 0;font-size:15px;line-height:1.8;color:#c7d2e5;\">");
         html.append(escape(sourceLabel)).append(" enquiry. Reply to this email to contact the sender.");
         html.append("</p></div>");
@@ -70,12 +79,19 @@ public class InquiryEmailService {
                 row("Preferred contact", form.getPreferredContactPoint())
         )));
 
-        html.append(section("Project scope", rows(
+        if (StringUtils.hasText(form.getProjectInterest())) html.append(textSection("Project interest", form.getProjectInterest()));
+        if ("website".equals(form.getIntent())) html.append(section("Project scope", rows(
                 row("Package", packageLabel(form.getPackageSelection())),
                 row("Maintenance", maintenanceLabel(form.getMaintenanceSelection())),
                 row("Additions", additions.isEmpty() ? "No additions selected" : String.join(", ", additions)),
                 row("Custom additions", defaultText(form.getOtherAdditions()))
         )));
+
+        if ("support".equals(form.getIntent())) {
+            html.append(section("Support details", rows(row("Website address", form.getWebsiteAddress()))));
+            html.append(textSection("Expected result", form.getExpectedResult()));
+            html.append(textSection("Steps to reproduce", form.getReproductionSteps()));
+        }
 
         html.append(textSection("Message", form.getMessage()));
         html.append(textSection("Extra information", defaultText(form.getExtraInformation())));
@@ -176,6 +192,16 @@ public class InquiryEmailService {
     private String emailLink(String value) {
         String email = escape(value);
         return "<a href=\"mailto:" + email + "\" style=\"color:#7dd3fc;text-decoration:underline;\">" + email + "</a>";
+    }
+
+    private String intentLabel(ContactForm form) {
+        return switch (valueOrEmpty(form.getIntent())) {
+            case "app" -> "app";
+            case "system" -> "bespoke system";
+            case "general" -> "general question";
+            case "support" -> "existing-client support";
+            default -> "website";
+        };
     }
 
     // Keep the established API values; match the titles shown by the website.

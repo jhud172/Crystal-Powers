@@ -1,12 +1,30 @@
+@import "./base/fonts.css";
 @import "./base/studio-base.css";
 @import "./pages/studio.css";
 @import "./pages/admin.css";
 @import "./pages/studio-interiors.css";
 @import "./base/studio-tokens.css";
-@import "./pages/opening.css";
+@import "./base/studio-controls.css";
+@import "./pages/enquiry.css";
+@import "./pages/founder.css";
+@import "./pages/workflow-illustrations.css";
+@import "./pages/project-preview.css";
+@import "./pages/case-study.css";
+@import "./pages/home-experience.css";
+@import "./pages/recovery.css";
+@import "./pages/accessibility.css";
+@import "./pages/privacy.css";
+@import "./pages/liquid-light.css";
+@import "./pages/client-workspace.css";
+@import "./pages/team.css";
+@import "./pages/support-inbox.css";
 
 html { scroll-behavior: smooth; }
 body { margin: 0; min-width: 320px; background: #0b1018; }
 #root { min-height: 100vh; }
 .choice-card-button { width: 100%; height: 100%; text-align: left; }
 .form-status { margin-bottom: 1rem; }
+
+/* Shared motion never gates content; hidden documents suspend owned CSS loops. */
+.studio-shell[data-motion="paused"] *, .studio-shell[data-motion="paused"] *::before, .studio-shell[data-motion="paused"] *::after { animation-play-state: paused !important; }
+.studio-shell:is([data-motion="light"], [data-motion="reduced"]) *, .studio-shell:is([data-motion="light"], [data-motion="reduced"]) *::before, .studio-shell:is([data-motion="light"], [data-motion="reduced"]) *::after { animation: none !important; }

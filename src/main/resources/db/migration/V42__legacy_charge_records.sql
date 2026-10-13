@@ -1,0 +1,2 @@
+ALTER TABLE billing_provider_payment ALTER COLUMN customer_id DROP NOT NULL;
+ALTER TABLE billing_provider_payment ADD COLUMN kind VARCHAR(30) NOT NULL DEFAULT 'PAYMENT_INTENT' CHECK(kind IN ('PAYMENT_INTENT','CHARGE'));

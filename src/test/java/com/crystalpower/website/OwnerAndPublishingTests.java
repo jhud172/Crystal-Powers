@@ -46,6 +46,7 @@ class OwnerAndPublishingTests {
     @Autowired ProjectService projects;
     @Autowired SecretVault vault;
     @Autowired ProjectMediaService media;
+    @Autowired jakarta.validation.Validator validator;
 
     @BeforeEach
     void clearSyntheticDatabase() {
@@ -194,7 +195,7 @@ class OwnerAndPublishingTests {
     void shareMetadataEscapesPublishedContentAndNeverIncludesDrafts() throws Exception {
         var owner = owners.setup(TOKEN, EMAIL, PASSWORD);
         var project = projects.create("share-check", projectContent("Private secret title", null), owner.id());
-        mvc.perform(get("/portfolio/share-check")).andExpect(status().isOk())
+        mvc.perform(get("/portfolio/share-check")).andExpect(status().isNotFound())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("noindex, nofollow")))
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Private secret title"))));
         mvc.perform(get("/sitemap.xml")).andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("share-check"))));
@@ -204,9 +205,170 @@ class OwnerAndPublishingTests {
         projects.publish(project.id(), saved.version(), owner.id());
         mvc.perform(get("/portfolio/share-check")).andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("&lt;script&gt;unexpected()&lt;/script&gt; &amp; title")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("property=\"og:image\" content=\"http://localhost:8080/api/media/" + image)))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"twitter:image\" content=\"http://localhost:8080/api/media/" + image)))
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("<script>unexpected()"))));
         mvc.perform(get("/sitemap.xml")).andExpect(content().string(org.hamcrest.Matchers.containsString("/portfolio/share-check")));
         mvc.perform(get("/admin")).andExpect(header().string("X-Robots-Tag", "noindex, nofollow"));
+    }
+
+    @Test
+    void historicalStoredContentWithoutScreenSlotsRemainsReadable() throws Exception {
+        var owner = owners.setup(TOKEN, EMAIL, PASSWORD);
+        var draft = projects.create("legacy-screen-content", projectContent("Legacy project", null), owner.id());
+        var oldPayload = (com.fasterxml.jackson.databind.node.ObjectNode) json.valueToTree(draft.content());
+        oldPayload.remove("screens");
+        database.update("UPDATE project_revision SET payload = ? WHERE project_id = ?", json.writeValueAsString(oldPayload), draft.id());
+        assertThat(projects.draft(draft.id()).content().screens()).isNull();
+        assertThat(projects.draft(draft.id()).content().title()).isEqualTo("Legacy project");
+        assertThat(projects.revisions(draft.id())).hasSize(1);
+    }
+
+    @Test
+    void deviceScreensRejectForeignMediaAndIncompleteDescriptions() {
+        var owner = owners.setup(TOKEN, EMAIL, PASSWORD);
+        var first = projects.create("screen-owner", projectContent("Screen owner", null), owner.id());
+        var other = projects.create("screen-other", projectContent("Other", null), owner.id());
+        UUID own = UUID.randomUUID(), foreign = UUID.randomUUID();
+        database.update("INSERT INTO project_media (id, project_id, storage_key, content_type, bytes, width, height) VALUES (?, ?, ?, 'image/jpeg', 100, 100, 100)", own, first.id(), own + ".jpg");
+        database.update("INSERT INTO project_media (id, project_id, storage_key, content_type, bytes, width, height) VALUES (?, ?, ?, 'image/jpeg', 100, 100, 100)", foreign, other.id(), foreign + ".jpg");
+        for (boolean desktop : List.of(true, false)) {
+            var foreignScreen = new ProjectContent.GalleryImage(foreign, "Foreign screen");
+            var slots = new ProjectContent.Screens(desktop ? foreignScreen : null, desktop ? null : foreignScreen);
+            assertThatThrownBy(() -> projects.save(first.id(), 1, withScreens(projectContent("Screen owner", own), slots), owner.id()))
+                    .isInstanceOf(ResponseStatusException.class).hasMessageContaining("Images must belong");
+        }
+        var blank = projects.save(first.id(), 1, withScreens(projectContent("Screen owner", own),
+                new ProjectContent.Screens(null, new ProjectContent.GalleryImage(own, ""))), owner.id());
+        assertThatThrownBy(() -> projects.publish(first.id(), blank.version(), owner.id()))
+                .isInstanceOf(ResponseStatusException.class).hasMessageContaining("description to each selected device screenshot");
+        var invalid = withScreens(projectContent("Screen owner", own), new ProjectContent.Screens(
+                new ProjectContent.GalleryImage(own, null), new ProjectContent.GalleryImage(null, "Mobile")));
+        assertThat(validator.validate(invalid)).extracting(value -> value.getPropertyPath().toString())
+                .contains("screens.desktop.alt", "screens.mobile.mediaId");
+    }
+
+    @Test
+    void onlyThePublishedRevisionExposesItsDeviceScreens() throws Exception {
+        var owner = owners.setup(TOKEN, EMAIL, PASSWORD);
+        var draft = projects.create("responsive-screens", projectContent("Responsive screens", null), owner.id());
+        var source = new java.awt.image.BufferedImage(100, 80, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        var bytes = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(source, "png", bytes);
+        var upload = new MockMultipartFile("file", "screen.png", "image/png", bytes.toByteArray());
+        var cover = media.upload(draft.id(), upload, owner.id());
+        var desktop = media.upload(draft.id(), upload, owner.id());
+        var mobile = media.upload(draft.id(), upload, owner.id());
+        var replacement = media.upload(draft.id(), upload, owner.id());
+        try {
+            var saved = projects.save(draft.id(), 1, withScreens(projectContent("Responsive screens", cover.id()),
+                    new ProjectContent.Screens(new ProjectContent.GalleryImage(desktop.id(), "Desktop layout"), new ProjectContent.GalleryImage(mobile.id(), "Mobile layout"))), owner.id());
+            mvc.perform(get("/api/media/" + desktop.id())).andExpect(status().isNotFound());
+            mvc.perform(get("/api/media/" + mobile.id())).andExpect(status().isNotFound());
+            projects.publish(draft.id(), saved.version(), owner.id());
+            mvc.perform(get("/api/media/" + desktop.id())).andExpect(status().isOk());
+            mvc.perform(get("/api/media/" + mobile.id())).andExpect(status().isOk());
+            projects.save(draft.id(), saved.version(), withScreens(saved.content(), new ProjectContent.Screens(saved.content().screens().desktop(), new ProjectContent.GalleryImage(replacement.id(), "Unpublished replacement"))), owner.id());
+            mvc.perform(get("/api/media/" + replacement.id())).andExpect(status().isNotFound());
+            assertThat(projects.published("responsive-screens").content().screens().mobile().mediaId()).isEqualTo(mobile.id());
+            projects.unpublish(draft.id(), owner.id());
+            mvc.perform(get("/api/media/" + desktop.id())).andExpect(status().isNotFound());
+            mvc.perform(get("/api/media/" + mobile.id())).andExpect(status().isNotFound());
+        } finally {
+            for (var image : List.of(cover, desktop, mobile, replacement)) java.nio.file.Files.deleteIfExists(java.nio.file.Path.of("build/test-media").resolve(image.key()));
+        }
+    }
+
+    @Test
+    void orderingIsAtomicAndPreservesRevisionsAndPresentationFlags() {
+        var owner = owners.setup(TOKEN, EMAIL, PASSWORD);
+        var first = projects.create("order-first", projectContent("First", null), owner.id());
+        var second = projects.create("order-second", projectContent("Second", null), owner.id());
+        first = projects.presentation(first.id(), true, 0, true, owner.id());
+        projects.ordering(List.of(new ProjectService.OrderChange(first.id(), first.updatedAt(), 2), new ProjectService.OrderChange(second.id(), second.updatedAt(), 1)), owner.id());
+        assertThat(projects.draft(first.id()).sortOrder()).isEqualTo(2);
+        assertThat(projects.draft(first.id()).featured()).isTrue();
+        assertThat(projects.draft(first.id()).archived()).isTrue();
+        assertThat(projects.draft(first.id()).version()).isEqualTo(1);
+        assertThat(projects.draft(second.id()).sortOrder()).isEqualTo(1);
+        assertThat(projects.draft(second.id()).publishedVersion()).isNull();
+    }
+
+    @Test
+    void staleOrderingAndPresentationNeverOverwriteCompetingChanges() {
+        var owner = owners.setup(TOKEN, EMAIL, PASSWORD);
+        var first = projects.create("stale-order-first", projectContent("First", null), owner.id());
+        var second = projects.create("stale-order-second", projectContent("Second", null), owner.id());
+        projects.presentation(second.id(), true, 25, true, owner.id());
+        assertThatThrownBy(() -> projects.ordering(List.of(new ProjectService.OrderChange(first.id(), first.updatedAt(), 10), new ProjectService.OrderChange(second.id(), second.updatedAt(), 20)), owner.id()))
+                .isInstanceOfSatisfying(ResponseStatusException.class, failure -> assertThat(failure.getStatusCode().value()).isEqualTo(409));
+        assertThat(projects.draft(first.id()).sortOrder()).isEqualTo(0);
+        assertThat(projects.draft(second.id()).sortOrder()).isEqualTo(25);
+        assertThatThrownBy(() -> projects.presentation(second.id(), false, 0, false, owner.id(), second.updatedAt()))
+                .isInstanceOfSatisfying(ResponseStatusException.class, failure -> assertThat(failure.getStatusCode().value()).isEqualTo(409));
+        assertThat(projects.draft(second.id()).archived()).isTrue();
+        assertThatThrownBy(() -> projects.ordering(List.of(new ProjectService.OrderChange(first.id(), first.updatedAt(), 1), new ProjectService.OrderChange(first.id(), first.updatedAt(), 2)), owner.id()))
+                .isInstanceOfSatisfying(ResponseStatusException.class, failure -> assertThat(failure.getStatusCode().value()).isEqualTo(400));
+    }
+
+    @Test
+    void orderingEndpointRequiresOwnerAndValidSnapshotFields() throws Exception {
+        mvc.perform(post("/api/admin/projects/ordering").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(EMAIL).roles("OWNER")).contentType(MediaType.APPLICATION_JSON).content("{\"items\":[]}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/admin/projects/ordering").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"items\":[]}"))
+                .andExpect(status().isUnauthorized());
+        for (String body : List.of("{\"items\":[]}", "{\"items\":[null]}", "{\"items\":[{\"id\":\"" + UUID.randomUUID() + "\",\"sortOrder\":10001}]}")) {
+            mvc.perform(post("/api/admin/projects/ordering").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(EMAIL).roles("OWNER")).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Test
+    void presentationSnapshotIsOptionalForLegacyClientsAndEnforcedWhenProvided() throws Exception {
+        var result = mvc.perform(post("/api/admin/auth/setup").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("token", TOKEN, "email", EMAIL, "password", PASSWORD)))).andExpect(status().isOk()).andReturn();
+        var session = (MockHttpSession) result.getRequest().getSession(false);
+        String secret = json.readTree(mvc.perform(get("/api/admin/auth/enrolment").session(session)).andReturn().getResponse().getContentAsString()).get("secret").asText();
+        mvc.perform(post("/api/admin/auth/verify").session(session).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(Map.of("code", code(secret)))))
+                .andExpect(status().isOk());
+        var owner = ownerRepository.byEmail(EMAIL).orElseThrow();
+        var draft = projects.create("legacy-presentation", projectContent("Legacy client", null), owner.id());
+        mvc.perform(patch("/api/admin/projects/" + draft.id() + "/presentation").session(session).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"featured\":true,\"sortOrder\":4,\"archived\":false}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.featured").value(true));
+        mvc.perform(patch("/api/admin/projects/" + draft.id() + "/presentation").session(session).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of("featured", false, "sortOrder", 0, "archived", true, "expectedUpdatedAt", draft.updatedAt()))))
+                .andExpect(status().isConflict());
+        assertThat(projects.draft(draft.id()).sortOrder()).isEqualTo(4);
+        assertThat(projects.draft(draft.id()).archived()).isFalse();
+    }
+
+    @Test
+    void cancellingAuthenticatorSetupRequiresOwnerAndCsrfAndPreservesCurrentCredentials() throws Exception {
+        var setup = mvc.perform(post("/api/admin/auth/setup").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("token", TOKEN, "email", EMAIL, "password", PASSWORD)))).andExpect(status().isOk()).andReturn();
+        var session = (MockHttpSession) setup.getRequest().getSession(false);
+        String initialSecret = json.readTree(mvc.perform(get("/api/admin/auth/enrolment").session(session)).andReturn().getResponse().getContentAsString()).get("secret").asText();
+        var enrolled = json.readTree(mvc.perform(post("/api/admin/auth/verify").session(session).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("code", code(initialSecret))))).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var before = ownerRepository.byEmail(EMAIL).orElseThrow();
+        var pending = json.readTree(mvc.perform(post("/api/admin/account/authenticator").session(session).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("password", PASSWORD, "code", enrolled.get("recoveryCodes").get(0).asText()))))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        mvc.perform(post("/api/admin/account/authenticator/cancel").with(csrf())).andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/admin/account/authenticator/cancel").session(session)).andExpect(status().isForbidden());
+        mvc.perform(post("/api/admin/account/authenticator/cancel").session(session).with(csrf())).andExpect(status().isOk());
+        mvc.perform(post("/api/admin/account/authenticator/confirm").session(session).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("code", code(pending.get("secret").asText()))))).andExpect(status().isBadRequest());
+        var after = ownerRepository.byEmail(EMAIL).orElseThrow();
+        assertThat(after.credentialsVersion()).isEqualTo(before.credentialsVersion());
+        assertThat(after.encryptedTotp()).isEqualTo(before.encryptedTotp());
+        assertThat(owners.verify(after.id(), after.credentialsVersion(), enrolled.get("recoveryCodes").get(1).asText()).principal().id()).isEqualTo(after.id());
+        mvc.perform(get("/api/admin/projects").session(session)).andExpect(status().isOk());
+    }
+
+    private ProjectContent withScreens(ProjectContent content, ProjectContent.Screens screens) {
+        return new ProjectContent(content.title(), content.category(), content.summary(), content.overview(), content.approach(), content.outcome(), content.liveUrl(), content.technologies(), content.displayDevice(), content.coverMediaId(), content.coverAlt(), content.gallery(), screens);
     }
 
     private MockHttpSession login() throws Exception {

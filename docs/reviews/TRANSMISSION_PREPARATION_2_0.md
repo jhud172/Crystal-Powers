@@ -1,0 +1,37 @@
+# Transmission shader preparation — 10 October 2026
+
+## Objective and ownership
+
+Remove the wider-screen cold transmission pause while preserving the authored crystal, reflections, animation, material sides, quality tiers, controls and fallbacks. This affects the shared optional 3D stages on Home, Studio, case studies and private device previews. `PreparedScene.tsx` owns preparation; `ModelCanvas.tsx` still owns models/environment; browser scripts own diagnostic and fault fixtures; `prepare_live_posters.py` owns capture provenance. No route, API, backend behaviour, schema, upload, email, provider, dependency or model contract changes. Rollback removes this preparation addition without changing persistent data.
+
+## Traced cause and fix
+
+The preceding packaged 1440 trace records425ms and287ms long tasks. Shader-source attribution identifies the first as `PMREMGGXConvolution` (~400.5ms status wait), the second as the untone-mapped `Aurora heart` (~67.6ms) and transmissive back-face `Prism_2` (~201.1ms) variants. Initial preparation compiled the main output, but the transmission capture uses a linear render target with no tone mapping. The installed renderer explicitly renders double-sided transmissive back faces separately.
+
+Preparation now compiles that linear/untone-mapped variant using a temporary1×1 target. It also explicitly prepares the double-sided transmissive back-face variant and restores material sides, tone mapping, target, cube face and mip level in finally blocks. The temporary target is disposed immediately; Lighter scenes with no transmission do not allocate it. Native quality checks confirm bounded real transmission targets remain unchanged. No shader checks are disabled and no draw/geometry/material quality is removed.
+
+The first source attempt prepared the linear target and removed the heart wait, but still left an approximately208ms Prism wait. Explicit back-face preparation removes it in the final source trace. I initially described the single-pass case as the asset-specific cause. Inspection corrects that: the actual GLB petals have `alphaMode=OPAQUE`, `doubleSided=true` and transmission; the loader therefore uses opaque materials. Normal compile's transparent double-face handling does not cover that back-face variant. The same explicit fix also covers transparent materials using forceSinglePass.
+
+The completion gate now checks successful linkage after completion, rather than interpreting finished compilation as success. Failed linkage uses the existing readable fallback and native Retry3D. The owned timer/deadline/context-loss checks and cancellation remain intact. This follows the [Khronos completion/linkage distinction](https://registry.khronos.org/webgl/extensions/KHR_parallel_shader_compile/).
+
+## Verified results and limits
+
+Three final packaged1440 instrumented traces report single488/388/438ms long tasks, with no secondary transmission task. The largest shader waits are still PMREM generation444.7/352.2/399.1ms; heart/petal status reads are below3ms in these traces. The one preceding source/package baseline sample and three after samples are attribution evidence, not a statistical field performance guarantee. Instrumentation includes CPU sampling and shader-source bookkeeping. The remaining environment wait is still a performance gap; this change does not complete PERF-01 or physical/thermal PERF-03.
+
+Fresh packaged startup52, Home101, quality98, Studio43, motion69, native-scene144, shell169 and staticHTTP51 pass:676 browser plus51 HTTP checks. Eight linkage-failure/retry checks are new; the accumulated functional-browser count becomes2,257. Source/package repeats and regression refreshes are not counted again. Missing capability, delayed completion, route cancellation, thrown query failure, unsuccessful linkage and native retry are labelled driver fixtures on real local scenes. Motion's hidden signal remains deterministic emulation; native hidden-tab acceptance is still open.
+
+All12 freshly recaptured PNG poses are pixel- and byte-identical, all24 delivered WebPs remain byte-identical (817,568bytes). New `--refresh-provenance` updates only the capture manifest when every new PNG byte hash and existing delivery manifest match. A deliberately incorrect capture hash was rejected before any public write; input restored in finally; all public image/delivery-manifest hashes stayed unchanged. Actual changed artwork still requires review and `--promote`. The default command remains validation only. Preparation helper SHA25642d15a9f9cbdd36fd4a10113ba01c687d1d4ea8d2966859f10eb576a00c95ea5; ModelCanvas renderer SHA remainsce1a4c7d9407966204ce9bcb50f4ff16c11eb717349c51b18f15f1ab49222295. Photography provenance includes both.
+
+Full `verify-release.ps1` passes frontend665, animation/model/poster contracts,43 H2 tests (zero failures/errors/skips),bootJar and whitespace. Reachability remains86 source/82 production, no unresolved/unreachable/computed imports. Scene36.77/12.94→37.50/13.18kB gzip; entry109.79/31.97 and CSS93.74/17.65 remain the same sizes; Three1007.34/276.29 remains an existing large-chunk warning. MockBean, unchecked-test, JVM-sharing and line-ending warnings plus eight dependency advisories remain. No dependency installation.
+
+Actual jar/index/eight compiled assets match exactly, with no stale assets. Retained ignored `release-2-0/candidate-2.0.0-transmission-preparation.jar`:88,905,269bytes, SHA256bd67d16c4ece6321530d6ecc6b0ca27d75b91fbe477bae1e03b7db71e1dd8752. Earlier candidates/rollback remain preserved. This is a local build, not a deployed release or client publication.
+
+## Evidence and next action
+
+Ignored `startup-pc/transmission-before-1440.json` records baseline shader identities; `transmission-source-after-1440.json` preserves the incomplete first attempt; `transmission-source-final-1440.json` and `transmission-after-1440-1..3.json`/CPU profiles record the final result. `transmission-poster-parity.json` records byte parity and failed-input rejection. Each affected browser/HTTP suite preserves `after-transmission-preparation.json`. Cold-loading profiles remain separate from these instrumented traces.
+
+Next, investigate cancellable environment/PMREM shader preparation through supported APIs before changing lighting, baking different artwork or adopting a weaker scene. Preserve shader cache/resource ownership, verify visual parity and route/quality cancellation, and measure all tiers. Historical per-feature costs, representative interaction/field evidence and physical sustained testing still need their own proof. No whole page/phase/release is accepted; source remains uncommitted/unpushed/undeployed, with no owner account, external email, provider write or real portfolio publication created.
+
+Fresh28 cold profiles pass all resource/error/canvas/layout checks, retained as ignored `performance-pc/after-transmission-preparation.json`. Live Home413ms at390 and475ms at1440 (one long task each),903,584 resource bytes excluding HTML; Reduce effects191,055 bytes with no canvas/long task. These are single local samples, not field Web Vitals acceptance.
+
+Runtime cleanup: preceding shader8084 session72219/PID59196 and final transmission8084 session21806/PID56356 stopped through their original handles; both PIDs verified absent. Full build/browser/profile processes completed. Preserve original source/Vite/SMTP/private QA runtimes, ignored evidence and retained rollback node_modules junction. No account, external email or publication operation occurred.

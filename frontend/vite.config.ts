@@ -23,9 +23,6 @@ export default defineConfig({
             return "vendor-three";
           }
 
-          if (id.indexOf("CrystalOpenerScene") >= 0) {
-            return "crystal-scene";
-          }
         }
       }
     }

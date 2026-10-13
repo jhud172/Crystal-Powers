@@ -13,9 +13,9 @@
       }
     },
     "laptop": {
-      "bytes": 1322404,
-      "meshes": 104,
-      "nodes": 106,
+      "bytes": 1063912,
+      "meshes": 7,
+      "nodes": 9,
       "animations": [
         "LaptopOpen"
       ],

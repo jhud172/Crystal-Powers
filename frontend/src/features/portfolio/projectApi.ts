@@ -5,12 +5,15 @@ export type ProjectContent = {
   overview: string; approach: string; outcome: string; liveUrl: string; technologies: string[];
   displayDevice: "laptop" | "monitor" | "phone"; coverMediaId: string | null; coverAlt: string;
   gallery: { mediaId: string; alt: string }[];
+  screens?: { desktop: { mediaId: string; alt: string } | null; mobile: { mediaId: string; alt: string } | null } | null;
 };
 export type PublicProject = { id: string; slug: string; featured: boolean; sortOrder: number; content: ProjectContent };
 export type ProjectDraft = PublicProject & { version: number; publishedVersion: number | null; archived: boolean; updatedAt: string };
+export type ProjectCreationDraft = { title: string; slug: string; editedSlug: boolean; submission: {signature:string;key:string} | null };
+export type ProjectEditorDraft = { base: ProjectDraft; content: ProjectContent };
 export type ProjectImage = { id: string; bytes: number; width: number; height: number };
 export const categoryLabel = { WEBSITE: "Website", APP: "App", SYSTEM: "Bespoke system" };
-export const imageUrl = (id: string, privateImage = false) => `/api/${privateImage ? "admin/" : ""}media/${encodeURIComponent(id)}`;
+export const imageUrl = (id: string, privateImage = false, privateArea: "admin" | "team" = "admin") => `/api/${privateImage ? `${privateArea}/` : ""}media/${encodeURIComponent(id)}`;
 export class ApiError extends Error {
   constructor(public status: number, message: string, public fieldErrors: Record<string, string> = {}) { super(message); }
 }

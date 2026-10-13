@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX billing_refund_provider_id_idx ON billing_refund_request(provider_id);
+CREATE UNIQUE INDEX billing_refund_candidate_id_idx ON billing_refund_request(candidate_provider_id);

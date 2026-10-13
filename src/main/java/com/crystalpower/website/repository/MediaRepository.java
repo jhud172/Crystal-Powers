@@ -14,6 +14,7 @@ public class MediaRepository {
     private final org.springframework.jdbc.core.RowMapper<Media> mapper = (row, index) -> new Media(row.getObject("id", UUID.class), row.getObject("project_id", UUID.class), row.getString("storage_key"), row.getString("content_type"), row.getLong("bytes"), row.getInt("width"), row.getInt("height"));
     public Optional<Media> find(UUID id) { return database.query("SELECT * FROM project_media WHERE id = ?", mapper, id).stream().findFirst(); }
     public List<Media> list(UUID id) { return database.query("SELECT * FROM project_media WHERE project_id = ? ORDER BY created_at DESC", mapper, id); }
+    public void lockBudget() { database.queryForObject("SELECT id FROM project_media_budget WHERE id=1 FOR UPDATE",Integer.class); }
     public long storedBytes() { return database.queryForObject("SELECT COALESCE(SUM(bytes), 0) FROM project_media", Long.class); }
     public void insert(Media media) { database.update("INSERT INTO project_media (id, project_id, storage_key, content_type, bytes, width, height) VALUES (?, ?, ?, ?, ?, ?, ?)", media.id(), media.projectId(), media.key(), media.contentType(), media.bytes(), media.width(), media.height()); }
 }

@@ -20,7 +20,7 @@ Use for React, routing, component, hook, data, and styling changes under `fronte
 - Keep feature logic out of `Layout.tsx`.
 - Avoid large route files; extract when readability suffers.
 - Avoid global state unless the data is stable and shared.
-- Preserve lazy-loading boundaries, especially for `CrystalOpenerScene.tsx`.
+- Preserve lazy-loading boundaries, especially for the active `features/experience/ModelCanvas.tsx`.
 - Avoid circular imports.
 - Do not import Three.js through generic barrel files.
 - Do not create one global barrel that exports the entire frontend.
@@ -41,4 +41,3 @@ Use for React, routing, component, hook, data, and styling changes under `fronte
 ## Validation
 
 Run TypeScript/build checks when frontend source changes. Confirm routes still render and lazy chunks remain isolated.
-

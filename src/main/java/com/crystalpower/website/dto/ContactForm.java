@@ -3,8 +3,31 @@ package com.crystalpower.website.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
+import com.crystalpower.website.validation.ValidInquiry;
 
+@ValidInquiry
 public class ContactForm {
+
+    // Missing intent preserves the original website-enquiry contract.
+    @Pattern(regexp = "website|app|system|general|support", message = "Please choose a valid enquiry purpose.")
+    @NotBlank(message = "Please choose an enquiry purpose.")
+    private String intent = "website";
+
+    @Size(max = 160, message = "Project interest must be 160 characters or fewer.")
+    private String projectInterest;
+
+    public String getProjectInterest() { return projectInterest; }
+    public void setProjectInterest(String projectInterest) { this.projectInterest = projectInterest; }
+
+    @Size(max = 2048, message = "Website address must be 2048 characters or fewer.")
+    private String websiteAddress;
+
+    @Size(max = 1500, message = "Expected result must be 1500 characters or fewer.")
+    private String expectedResult;
+
+    @Size(max = 2500, message = "Steps must be 2500 characters or fewer.")
+    private String reproductionSteps;
 
     @NotBlank(message = "Please enter your first name.")
     @Size(max = 80, message = "First name must be 80 characters or fewer.")
@@ -22,14 +45,13 @@ public class ContactForm {
     private String phoneNumber;
 
     @NotBlank(message = "Please choose your preferred contact point.")
+    @Pattern(regexp = "Email|WhatsApp", message = "Please choose Email or WhatsApp for your reply.")
     @Size(max = 40, message = "Preferred contact point must be 40 characters or fewer.")
     private String preferredContactPoint;
 
-    @NotBlank(message = "Please choose a package.")
     @Size(max = 120, message = "Package selection must be 120 characters or fewer.")
     private String packageSelection;
 
-    @NotBlank(message = "Please choose a maintenance option.")
     @Size(max = 120, message = "Maintenance selection must be 120 characters or fewer.")
     private String maintenanceSelection;
 
@@ -45,6 +67,15 @@ public class ContactForm {
 
     @Size(max = 2500, message = "Extra information must be 2500 characters or fewer.")
     private String extraInformation;
+
+    public String getIntent() { return intent; }
+    public void setIntent(String intent) { this.intent = intent; }
+    public String getWebsiteAddress() { return websiteAddress; }
+    public void setWebsiteAddress(String websiteAddress) { this.websiteAddress = websiteAddress; }
+    public String getExpectedResult() { return expectedResult; }
+    public void setExpectedResult(String expectedResult) { this.expectedResult = expectedResult; }
+    public String getReproductionSteps() { return reproductionSteps; }
+    public void setReproductionSteps(String reproductionSteps) { this.reproductionSteps = reproductionSteps; }
 
     public String getFirstName() {
         return firstName;

@@ -1,11 +1,16 @@
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, Lightformer, MeshTransmissionMaterial, OrbitControls, useAnimations, useGLTF, useTexture } from "@react-three/drei";
-import { Suspense, useEffect, useMemo, useRef, type RefObject } from "react";
-import { BackSide, CanvasTexture, Color, Group, Object3D, Mesh, MeshBasicMaterial, MeshStandardMaterial, MeshPhysicalMaterial, SRGBColorSpace, LoopOnce } from "three";
+import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
+import { Environment, Lightformer, OrbitControls, useAnimations, useGLTF, useTexture } from "@react-three/drei";
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { BackSide, CanvasTexture, Color, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, MeshPhysicalMaterial, PerspectiveCamera, SRGBColorSpace, LoopOnce, TextureLoader } from "three";
 import type { OrbitControls as OrbitControlsType } from "three-stdlib";
 import type { ModelKind } from "./ModelStage";
 import { modelAnimationNames, selectAnimationName } from "./animationContract";
 import { advanceCrystalMotion } from "./crystalMotion";
+import { useExperience } from "./ExperienceContext";
+import { renderProfiles, resolveRenderTier, type RenderQuality, type RenderTier } from "./renderQuality";
+import { containedSceneFov, scenePresentation } from "./scenePresentation";
+import { PreparedScene } from "./PreparedScene";
+import { useEnvironmentPreparation } from "./useEnvironmentPreparation";
 
 export type CrystalInteraction = { yaw: number; pitch: number; hoverX: number; hoverY: number; palette: number; pulse: number; invalidate?: () => void };
 
@@ -30,7 +35,20 @@ function CanvasHealth({ onFailure }: Pick<Props, "onFailure">) {
   return null;
 }
 
+function PosterFraming({ model }: { model: ModelKind }) {
+  const { camera, size, invalidate } = useThree();
+  useLayoutEffect(() => {
+    if (!(camera instanceof PerspectiveCamera) || !size.width || !size.height) return;
+    const view = scenePresentation(model);
+    camera.fov = containedSceneFov(view.fov, view.posterWidth / view.posterHeight, size.width / size.height);
+    camera.updateProjectionMatrix();
+    invalidate();
+  }, [camera, model, size.width, size.height, invalidate]);
+  return null;
+}
+
 function ScreenTexture({ image, object }: { image: string; object: Group }) {
+  const { gl } = useThree();
   const original = useTexture(image);
   useEffect(() => {
     let aspect = 1.6;
@@ -44,6 +62,7 @@ function ScreenTexture({ image, object }: { image: string; object: Group }) {
     const scale = Math.min(canvas.width / source.width, canvas.height / source.height);
     context.drawImage(source, (canvas.width - source.width * scale) / 2, (canvas.height - source.height * scale) / 2, source.width * scale, source.height * scale);
     const texture = new CanvasTexture(canvas);
+    texture.anisotropy = Math.min(4, gl.capabilities.getMaxAnisotropy());
     texture.flipY = false;
     texture.colorSpace = SRGBColorSpace;
     texture.needsUpdate = true;
@@ -56,11 +75,12 @@ function ScreenTexture({ image, object }: { image: string; object: Group }) {
       }
     });
     return () => { for (const item of screens) item.mesh.material = item.original; material.dispose(); texture.dispose(); original.dispose(); useTexture.clear(image); };
-  }, [object, original]);
+  }, [object, original, gl]);
   return null;
 }
 
-function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angle, playing, reset, onReady, onFinished, interaction }: Pick<Props, "model" | "image" | "clip" | "pose" | "angle" | "playing" | "reset" | "onReady" | "onFinished" | "interaction">) {
+function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angle, playing, reset, onFinished, interaction, tier }: Pick<Props, "model" | "image" | "clip" | "pose" | "angle" | "playing" | "reset" | "onFinished" | "interaction"> & { tier: RenderTier }) {
+  const { invalidate } = useThree();
   // Original GLBs are uncompressed: do not initialise external Draco or WASM Meshopt decoders.
   const gltf = useGLTF(modelUrl(model), false, false);
   const object = useMemo(() => {
@@ -73,8 +93,8 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
           if (material instanceof MeshPhysicalMaterial && material.transmission > 0 && model !== "observatory") {
             material.thickness = 1.2;
             material.ior = 1.46;
-            material.envMapIntensity = 0.55;
-            material.transmission = 0.94;
+            material.envMapIntensity = model === "crystal" ? 1.4 : .55;
+            material.transmission = model === "crystal" ? .72 : .94;
             material.roughness = 0.07;
             material.clearcoat = 0.18;
             material.dispersion = 0.08;
@@ -84,6 +104,25 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
     });
     return clone;
   }, [gltf.scene, model]);
+  const transmissiveMaterials = useMemo(() => {
+    const items: { material: MeshPhysicalMaterial; transmission: number; roughness: number }[] = [];
+    object.traverse(child => {
+      if (!(child instanceof Mesh)) return;
+      for (const material of Array.isArray(child.material) ? child.material : [child.material]) {
+        if (material instanceof MeshPhysicalMaterial && material.transmission > 0) items.push({ material, transmission: material.transmission, roughness: material.roughness });
+      }
+    });
+    return items;
+  }, [object]);
+  useEffect(() => {
+    // Change material cost without replacing the object or restarting its authored animation.
+    for (const item of transmissiveMaterials) {
+      item.material.transmission = renderProfiles[tier].transmission ? item.transmission : 0;
+      item.material.roughness = renderProfiles[tier].transmission ? item.roughness : Math.max(.22, item.roughness);
+      item.material.needsUpdate = true;
+    }
+    invalidate();
+  }, [tier, transmissiveMaterials, invalidate]);
   const { actions, mixer } = useAnimations(gltf.animations, object);
   // Scrub a single authored path in either direction so reversals preserve the exact pose.
   const action = model === "observatory" ? actions[selectAnimationName(gltf.animations.map(item => item.name), "CrystalOpen")] : model === "crystal" || model === "laptop"
@@ -91,8 +130,6 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
     : undefined;
   const group = useRef<Group>(null);
   const hasPlayed = useRef(false);
-  const { invalidate } = useThree();
-  const announcedReady = useRef(false);
   const unfolding = useRef({ time: 0, speed: 0, finished: false });
   const gems = useMemo(() => {
     const items: { material: MeshStandardMaterial; colours: Color[] }[] = [];
@@ -171,7 +208,6 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
   }, [interaction, invalidate]);
 
   useFrame((_, delta) => {
-    if (!announcedReady.current) { announcedReady.current = true; onReady(); }
     const dt = Math.min(delta, 0.05);
     if (model === "observatory" && action && playing && !unfolding.current.finished) {
       const motion = unfolding.current;
@@ -207,41 +243,62 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
     } else if (group.current) group.current.rotation.y = angle;
     if (playing) invalidate();
   });
-  return <group ref={group}><group position={[0, model === "observatory" ? -2.15 : model === "crystal" ? -1.5 : -1.1, 0]}>
-    {model === "crystal" ? <CrystalTree object={object} /> : <primitive object={object} dispose={null} />}
+  return <group ref={group}><group position={model === "crystal" ? [-1.25, -1.5, .55] : [0, model === "observatory" ? -2.15 : -1.1, 0]}>
+    <primitive object={object} dispose={null} />
     {image && model !== "crystal" && model !== "observatory" && <ScreenTexture image={image} object={object} />}
   </group></group>;
 }
 
-function CrystalTree({ object }: { object: Object3D }) {
-  const glass = object instanceof Mesh && object.name !== "Obsidian_insert" && object.name !== "Satin_plinth" && ["Companion_cut", "Signature_crystal", "Small_cut"].includes(object.name);
-  return <primitive object={object} dispose={null}>
-    {glass && <MeshTransmissionMaterial resolution={256} samples={4} backside backsideResolution={128} backsideThickness={0.4} thickness={1.6} roughness={0.025} ior={1.46} chromaticAberration={0.025} anisotropicBlur={0} distortion={0} temporalDistortion={0} color="#eef6ff" envMapIntensity={1} />}
-    {object.children.map(child => <CrystalTree key={child.uuid} object={child} />)}
-  </primitive>;
-}
-
-function StudioScene(props: Props) {
+function StudioScene(props: Props & { quality: RenderQuality; onWidth: (width: number) => void }) {
+  const { gl, size, invalidate } = useThree();
+  const tier = resolveRenderTier(props.quality, size.width);
+  const profile = renderProfiles[tier];
+  const environment = useEnvironmentPreparation(gl, profile.environmentResolution, props.onFailure);
+  useEffect(() => {
+    gl.transmissionResolutionScale = profile.transmissionScale;
+    gl.domElement.dataset.renderTier = tier;
+    invalidate();
+  }, [gl, profile, tier, invalidate]);
+  useEffect(() => { props.onWidth(size.width); }, [size.width, props.onWidth]);
   const controls = useRef<OrbitControlsType>(null);
   useEffect(() => { controls.current?.reset(); }, [props.reset]);
   return <>
-    {props.model !== "observatory" && <color attach="background" args={[props.light ? "#f2f0eb" : "#0b1018"]} />}
-    <ambientLight intensity={props.light ? 0.45 : 0.25} />
-    <directionalLight position={[3, 5, 4]} intensity={1.5} />
-    <Environment resolution={256} frames={1}>
-      <mesh scale={30}><sphereGeometry args={[1, 32, 16]} /><meshBasicMaterial color={props.light ? "#747d8c" : "#30394f"} side={BackSide} /></mesh>
+    {/* Transparent stages inherit the page palette in every appearance. */}
+    <ambientLight intensity={props.model === "observatory" ? props.light ? .65 : .45 : props.light ? .45 : .25} />
+    <directionalLight position={[3, 5, 4]} intensity={props.model === "observatory" ? 2.4 : 1.5} />
+    {environment.ready && <Environment key={`${tier}-${props.light}`} resolution={profile.environmentResolution} frames={1}>
+      <mesh scale={30}><sphereGeometry args={[1, profile.sphereSegments, profile.sphereSegments / 2]} /><meshBasicMaterial color={props.model === "crystal" ? props.light ? "#cad2dd" : "#838ea1" : props.light ? "#747d8c" : "#30394f"} side={BackSide} /></mesh>
       <Lightformer form="rect" intensity={2} position={[0, 4, -3]} scale={[5, 2, 1]} rotation-x={Math.PI / 2} />
       <Lightformer form="rect" intensity={1.5} position={[-4, 1, 1]} scale={[1, 5, 1]} rotation-y={Math.PI / 2} color="#b6c8ff" />
-      <Lightformer form="rect" intensity={2} position={[4, 3, 2]} scale={[1, 4, 1]} rotation-y={-Math.PI / 2} color={props.light ? "#fff2df" : "#b5a5f5"} />
-    </Environment>
-    <ObjectModel key={props.model} {...props} />
+      {profile.rimLight && <Lightformer form="rect" intensity={2} position={[4, 3, 2]} scale={[1, 4, 1]} rotation-y={-Math.PI / 2} color={props.light ? "#fff2df" : "#b5a5f5"} />}
+    </Environment>}
+    <ObjectModel key={props.model} {...props} tier={tier} />
+    <PreparedScene environmentReady={environment.ready} onCompiled={environment.release} revision={`${tier}-${props.light}-${props.model}-${props.image || ""}`} onReady={props.onReady} onFailure={props.onFailure} />
     {!props.interaction && <OrbitControls ref={controls} enabled={props.model !== "observatory" || !props.playing} enablePan={false} enableZoom={false} minPolarAngle={Math.PI / 5} maxPolarAngle={Math.PI / 1.8} onStart={props.onInteraction} />}
   </>;
 }
 
 export default function ModelCanvas(props: Props) {
-  return <Canvas dpr={[1, 1.5]} frameloop={props.playing ? "always" : "demand"} camera={props.model === "observatory" ? { position: [3.6, 2.55, 9], fov: 30 } : { position: [3.6, 2.5, 7.5], fov: 34 }} gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}>
+  const { renderQuality } = useExperience();
+  // Resolve assets under the DOM error boundary before creating a renderer.
+  // R3F forwards even caught renderer-root load errors to window.reportError.
+  useGLTF(modelUrl(props.model), false, false);
+  return props.image ? <ImageReadyCanvas {...props} image={props.image} quality={renderQuality} /> : <SceneCanvas {...props} quality={renderQuality} />;
+}
+
+function ImageReadyCanvas(props: Props & { image: string; quality: RenderQuality }) {
+  useLoader(TextureLoader, props.image);
+  return <SceneCanvas {...props} />;
+}
+
+function SceneCanvas(props: Props & { quality: RenderQuality }) {
+  const [width, setWidth] = useState(0);
+  const profile = renderProfiles[resolveRenderTier(props.quality, width)];
+  const view = scenePresentation(props.model);
+  // Keep DPR in Canvas configuration: imperative setDpr can be overwritten on parent/size updates.
+  return <Canvas dpr={[1, profile.maxDpr]} frameloop={props.playing ? "always" : "demand"} camera={{ position: view.position, fov: view.fov }} gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}>
+    <PosterFraming model={props.model} />
     <CanvasHealth onFailure={props.onFailure} />
-    <Suspense fallback={null}><StudioScene {...props} /></Suspense>
+    <Suspense fallback={null}><StudioScene {...props} onWidth={setWidth} /></Suspense>
   </Canvas>;
 }
