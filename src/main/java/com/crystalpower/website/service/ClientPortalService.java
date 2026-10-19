@@ -47,7 +47,20 @@ public class ClientPortalService {
     }
     private static UUID parse(String value) { if(value.length()!=36)throw badCursor();try{UUID id=UUID.fromString(value);if(!id.toString().equalsIgnoreCase(value))throw badCursor();return id;}catch(IllegalArgumentException invalid){throw badCursor();} }
     private static ResponseStatusException badCursor() { return new ResponseStatusException(HttpStatus.BAD_REQUEST,"This update cursor is invalid. Return to the latest page."); }
-    @Transactional public UUID reply(Authentication auth,UUID request,UUID key,String body) { var actor=actor(auth); project(actor,request); String clean=body.strip(); if(clean.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Write a message before sending it."); var existing=clients.replySubmission(request,actor.id(),key,clean); if(existing.isPresent()) return existing.get(); return clients.reply(request,actor.id(),key,clean); }
+    @Transactional public UUID reply(Authentication auth,UUID request,UUID key,String body) {
+        var actor=actor(auth); project(actor,request);
+        String clean=body.strip();
+        if(clean.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Write a message before sending it.");
+        var existing=clients.replySubmission(key);
+        if(existing.isPresent()) {
+            var original=existing.get();
+            if(!original.requestId().equals(request) || !original.accountId().equals(actor.id()) || !original.body().equals(clean)) throw replyConflict();
+            return original.id();
+        }
+        try { return clients.reply(request,actor.id(),key,clean); }
+        catch(org.springframework.dao.DuplicateKeyException concurrentSubmission) { throw replyConflict(); }
+    }
+    private static ResponseStatusException replyConflict() { return new ResponseStatusException(HttpStatus.CONFLICT,"This submission key was already used for a different reply. Your message has not been sent again."); }
     @Transactional public SupportRepository.FileContent file(Authentication auth,UUID id) { var actor=actor(auth); UUID request=clients.fileRequest(actor.id(),actor.workspaceId(),id).orElseThrow(ClientPortalService::missing); project(actor,request); var file=support.file(actor.workspaceId(),id).orElseThrow(ClientPortalService::missing); if(!file.attachment().reviewState().equals("APPROVED") || !file.attachment().scanState().equals("CLEAN")) throw missing(); return file; }
     private static ResponseStatusException missing() { return new ResponseStatusException(HttpStatus.NOT_FOUND,"This client project, update or file is unavailable."); }
 }

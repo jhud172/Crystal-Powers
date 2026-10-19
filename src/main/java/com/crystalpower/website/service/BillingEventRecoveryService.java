@@ -22,7 +22,7 @@ public class BillingEventRecoveryService {
         try { var event=flow.event(id,false).orElseThrow();if(BillingEventProcessor.refundEvent(event.type()))refundEvents.process(id);else processor.process(id); }
         catch(RuntimeException failure) { try { store.failure(id); } catch(RuntimeException unavailable) { /* The committed inbox remains pending when the database is unavailable. */ } throw failure; }
     }
-    @Transactional(readOnly=true)
+    @Transactional
     public Page list(Authentication auth,String filter,String after) {
         access.resolve(auth).require(TeamPermission.MANAGE_BILLING);
         if(!List.of("ALL","DUE","WAITING","REVIEW").contains(filter))throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,"Choose a supported event filter.");

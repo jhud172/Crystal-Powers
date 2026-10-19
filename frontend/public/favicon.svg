@@ -1,1 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="14" fill="#0b1018"/><g transform="translate(12 8)" stroke="#e8e5dc"><path d="M20 2 35 13v22L20 46 5 35V13L20 2Z" stroke-width="1.8"/><path d="m20 2 7 15-7 29-7-29 7-15ZM5 13l8 4h14l8-4M5 35l15-9 15 9" stroke-width="1.2"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none"><rect width="128" height="128" rx="28" fill="#0b1018"/><g transform="translate(24 14) scale(.833333)">  <defs>
+    <linearGradient id="shell" x1="14" y1="12" x2="81" y2="108" gradientUnits="userSpaceOnUse"><stop stop-color="#d6ffff"/><stop offset=".35" stop-color="#84dbef"/><stop offset=".7" stop-color="#8c91ec"/><stop offset="1" stop-color="#e2caff"/></linearGradient>
+    <linearGradient id="core" x1="35" y1="34" x2="61" y2="90" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset=".5" stop-color="#a6f5ef"/><stop offset="1" stop-color="#7c7ddc"/></linearGradient>
+  </defs>
+  <path fill="url(#shell)" fill-rule="evenodd" d="M48 4C54 4 86 43 86 59S55 116 48 116 10 75 10 59 42 4 48 4Zm0 15C43 19 24 48 24 59S43 101 48 101 72 70 72 59 53 19 48 19Z"/>
+  <path d="M48 31C51 31 62 51 62 60S51 91 48 91 34 69 34 60 45 31 48 31Z" fill="url(#core)"/>
+  <path d="M48 5C42 12 16 44 15 58" stroke="#efffff" stroke-opacity=".8" stroke-width="1.5" stroke-linecap="round"/>
+</g></svg>

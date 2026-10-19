@@ -80,8 +80,8 @@ export function MessageAttachments({ channelId, messageId, ownerId, memberId, ca
     <p>Private to people with access to this channel. Images: JPEG, PNG, GIF, WebP. Videos: MP4, WebM, MOV. Five active files and 15 MB total per message.</p>
     <OwnerError message={error} />{notice && <p role="status" className="admin-notice">{notice}</p>}{loading && <p role="status">Loading attachment status…</p>}
     {mustReload && <p>The latest status must be reloaded before another action. Your selected file and retry key remain in this panel.</p>}
-    <div><button className="admin-secondary" disabled={disabled || working || loading} onClick={reload}>Refresh attachment status</button><button className="admin-text-button" disabled={disabled || working} onClick={onClose}>Close attachments</button></div>
-    {inactive && <p>The message was removed or its channel is archived. Download, upload, scan and approval stay blocked. Moderators with file-edit permission can remove retained bytes here.</p>}
+    <div className="team-history-nav"><button className="admin-secondary" disabled={disabled || working || loading} onClick={reload}>Refresh attachment status</button><button className="admin-text-button" disabled={disabled || working} onClick={onClose}>Close attachments</button></div>
+    {inactive && <p>The message was removed, or its channel or group is archived. Download, upload, scan and approval stay blocked. Moderators with file-edit permission can remove retained bytes here.</p>}
     {canUpload && !inactive && <form className="admin-form" onSubmit={event => void upload(event)}><fieldset disabled={blocked}><legend>Add a file to your message</legend><label>Reference image or video<input ref={input} type="file" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime" onChange={event => {
       const selected = event.target.files?.[0] || null;
       if (selected && (!selected.size || selected.size > 15 * 1024 * 1024)) { setError("Choose a non-empty file under 15 MB."); event.target.value = ""; setFile(null); uploadKey.current = null; return; }

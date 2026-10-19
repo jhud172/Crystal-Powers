@@ -16,6 +16,7 @@ public class ClientRepository {
     public record Project(UUID id, String subject, String state, int progress, String nextStep, OffsetDateTime updatedAt) {}
     public record ProjectAnchor(UUID id,OffsetDateTime createdAt) {}
     public record Message(UUID id, String author, String body, String direction, OffsetDateTime createdAt) {}
+    public record ReplySubmission(UUID id, UUID requestId, UUID accountId, String body) {}
     private final JdbcTemplate db;
     private final RowMapper<Account> accountRow = (r, n) -> new Account(r.getObject("id", UUID.class), r.getObject("workspace_id", UUID.class), r.getString("email"), r.getString("display_name"), r.getString("password_hash"), r.getString("state"), r.getInt("credentials_version"));
     private final RowMapper<Project> projectRow = (r,n) -> new Project(r.getObject("id", UUID.class), r.getString("subject"), r.getString("state"), r.getInt("progress"), r.getString("next_step"), r.getObject("updated_at", OffsetDateTime.class));
@@ -68,7 +69,7 @@ public class ClientRepository {
         if(before!=null){where="AND (r.created_at<? OR (r.created_at=? AND r.id<?)) ";args.add(before.createdAt());args.add(before.createdAt());args.add(before.id());}
         return db.query(REPLIES+where+"ORDER BY r.created_at DESC,r.id DESC LIMIT 51",messageRow,args.toArray());
     }
-    public Optional<UUID> replySubmission(UUID request, UUID account, UUID key, String body) { return db.query("SELECT id FROM client_reply WHERE request_id=? AND account_id=? AND submission_key=? AND body=?", (r,n) -> r.getObject("id", UUID.class), request, account, key, body).stream().findFirst(); }
+    public Optional<ReplySubmission> replySubmission(UUID key) { return db.query("SELECT id,request_id,account_id,body FROM client_reply WHERE submission_key=?", (r,n) -> new ReplySubmission(r.getObject("id", UUID.class),r.getObject("request_id",UUID.class),r.getObject("account_id",UUID.class),r.getString("body")), key).stream().findFirst(); }
     public UUID reply(UUID request, UUID account, UUID key, String body) { UUID id = UUID.randomUUID(); db.update("INSERT INTO client_reply(id,request_id,account_id,submission_key,body) VALUES (?,?,?,?,?)", id, request, account, key, body); db.update("UPDATE support_request SET updated_at=CURRENT_TIMESTAMP WHERE id=?", request); return id; }
     public boolean share(UUID request, UUID message) { return db.update("UPDATE support_message SET portal_visible=TRUE WHERE request_id=? AND id=? AND kind='CLIENT'", request, message) == 1; }
     public List<SupportRepository.Event> history(UUID request) { return db.query("SELECT id,event,detail,created_at FROM support_event WHERE request_id=? AND customer_visible=TRUE ORDER BY created_at DESC,id DESC LIMIT 100", (r,n) -> new SupportRepository.Event(r.getObject("id", UUID.class),r.getString("event"),r.getString("detail"),true,r.getObject("created_at",OffsetDateTime.class)), request); }

@@ -1,0 +1,8 @@
+{
+  "manifest_version": 3,
+  "name": "Crystal Powers isolated zoom QA",
+  "version": "1.0",
+  "permissions": ["tabs"],
+  "host_permissions": ["http://127.0.0.1:8084/*"],
+  "background": { "service_worker": "worker.js" }
+}

@@ -58,25 +58,17 @@ print(json.dumps({"pairs": len(results), "minimumRawForegroundOverlap": min(item
 print("LIVE_POSTER_MATCH_PASS: independent actual pixels for all five models, appearances, poses and three frame ratios")
 
 if "--native" in sys.argv:
+    # The selected hero now uses DOM Liquid Light art. Project stills deliberately
+    # show the real screenshot first, rather than posing as a live-device render.
+    # Native delivery and source optical comparisons are different evidence.
     native_folder = ROOT / ".codex-runtime/qa/scene-delivery-pc"
     native_report = json.loads((native_folder / "report.json").read_text(encoding="utf-8"))
-    assert not native_report.get("failure") and not native_report["errors"]
-    assert len(native_report["checks"]) == 144 and len(native_report["pairs"]) == 20
-    native_results = []
-    for pair in native_report["pairs"]:
-        key = pair["key"]
-        with Image.open(native_folder / f"{key}-live.png") as raw_live, Image.open(native_folder / f"{key}-poster.png") as raw_still:
-            live, still = raw_live.convert("RGB"), raw_still.convert("RGB")
-            assert live.size == still.size, f"Native surface size changed: {key}"
-            background = Image.new("RGB", live.size, live.getpixel((0, 0)))
-            # Native screenshots are already composited onto the actual page appearance.
-            # This is a colour diagnostic; source alpha checks above own silhouette proof.
-            masks = [ImageChops.difference(image, background).convert("L").point(lambda value: 255 if value > 10 else 0) for image in (live, still)]
-            union = ImageChops.lighter(*masks)
-            difference = ImageChops.difference(live.filter(ImageFilter.GaussianBlur(1)), still.filter(ImageFilter.GaussianBlur(1)))
-            error = sum(ImageStat.Stat(difference, union).mean) / 3
-            assert error <= 8, f"Native appearance mismatch: {key}: {error}"
-            native_results.append({"key": key, "perceptualMeanChannelErrorOf255": error})
-    (native_folder / "native-colour-comparison.json").write_text(json.dumps(native_results, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"actualFiveThemePosePairs": len(native_results), "maximumNativeColourErrorOf255": max(item["perceptualMeanChannelErrorOf255"] for item in native_results)}))
-    print("NATIVE_POSTER_COLOUR_PASS: actual packaged five-theme pose pairs")
+    assert native_report.get("formatVersion") == 2, "Refresh current scene delivery; old Aurora page evidence is historical."
+    assert not native_report.get("failure") and not native_report["errors"] and native_report["apiWrites"] == []
+    assert len(native_report["checks"]) == 244
+    views = native_report["deviceViews"]
+    expected = {(theme, width, model) for theme in ("Dark", "Light", "Warm dark", "Fresh light", "Warm light") for width in (768, 1440) for model in ("laptop", "monitor", "phone")}
+    assert len(views) == len(expected) == 30
+    assert {(view["theme"], view["width"], view["model"]) for view in views} == expected
+    assert all(view["renderTier"] == "standard" and view["frame"]["width"] > 0 and view["frame"]["height"] > 0 for view in views)
+    print("NATIVE_SCENE_DELIVERY_PASS: shipped image hashes/current Liquid Light routes and 30 labelled device fixture views; optical pixel proof is the source matrix above")

@@ -11,7 +11,7 @@ import java.util.UUID;
 @Repository
 public class TeamAttachmentRepository {
     public record File(UUID id,UUID channelId,long messageId,UUID authorOwnerId,UUID authorTeamId,String filename,String contentType,long sizeBytes,String reviewState,String reviewNote,String scanState,OffsetDateTime scannedAt,OffsetDateTime removedAt,int version) {}
-    public record QueueFile(File attachment,String channelName,boolean channelArchived,boolean messageRemoved,OffsetDateTime createdAt) {}
+    public record QueueFile(File attachment,String channelName,boolean channelArchived,boolean groupArchived,boolean messageRemoved,OffsetDateTime createdAt) {}
     public record Submission(UUID id,String fingerprint) {}
     private static final String METADATA="id,channel_id,message_id,author_owner_id,author_team_id,filename,content_type,size_bytes,review_state,review_note,scan_state,scanned_at,removed_at,version";
     private final JdbcTemplate db;
@@ -23,11 +23,11 @@ public class TeamAttachmentRepository {
     private String queueWhere(List<UUID> visible,String state,boolean inactive,List<Object> args){
         args.addAll(visible);String where=" WHERE a.channel_id IN ("+String.join(",",java.util.Collections.nCopies(visible.size(),"?"))+")";
         if(state.equals("REMOVED"))where+=" AND a.removed_at IS NOT NULL";else{where+=" AND a.removed_at IS NULL AND a.review_state=?";args.add(state);}
-        if(inactive)where+=" AND (c.archived=TRUE OR m.deleted=TRUE)";
+        if(inactive)where+=" AND (c.archived=TRUE OR m.deleted=TRUE OR EXISTS (SELECT 1 FROM team_group g WHERE g.id=c.group_id AND g.workspace_id=c.workspace_id AND g.archived=TRUE))";
         return where;
     }
-    private String queueSelect(){return "SELECT "+java.util.Arrays.stream(METADATA.split(",")).map(name->"a."+name).collect(java.util.stream.Collectors.joining(","))+",c.name AS channel_name,c.archived AS channel_archived,m.deleted AS message_removed,a.created_at FROM team_message_attachment a JOIN team_channel c ON c.id=a.channel_id JOIN team_message m ON m.channel_id=a.channel_id AND m.id=a.message_id";}
-    private final RowMapper<QueueFile> queueRow=(r,n)->new QueueFile(row.mapRow(r,n),r.getString("channel_name"),r.getBoolean("channel_archived"),r.getBoolean("message_removed"),r.getObject("created_at",OffsetDateTime.class));
+    private String queueSelect(){return "SELECT "+java.util.Arrays.stream(METADATA.split(",")).map(name->"a."+name).collect(java.util.stream.Collectors.joining(","))+",c.name AS channel_name,c.archived AS channel_archived,EXISTS (SELECT 1 FROM team_group g WHERE g.id=c.group_id AND g.workspace_id=c.workspace_id AND g.archived=TRUE) AS group_archived,m.deleted AS message_removed,a.created_at FROM team_message_attachment a JOIN team_channel c ON c.id=a.channel_id JOIN team_message m ON m.channel_id=a.channel_id AND m.id=a.message_id";}
+    private final RowMapper<QueueFile> queueRow=(r,n)->new QueueFile(row.mapRow(r,n),r.getString("channel_name"),r.getBoolean("channel_archived"),r.getBoolean("group_archived"),r.getBoolean("message_removed"),r.getObject("created_at",OffsetDateTime.class));
     public Optional<QueueFile> queueAnchor(List<UUID> visible,String state,boolean inactive,UUID id){if(visible.isEmpty())return Optional.empty();var args=new java.util.ArrayList<Object>();String where=queueWhere(visible,state,inactive,args)+" AND a.id=?";args.add(id);return db.query(queueSelect()+where,queueRow,args.toArray()).stream().findFirst();}
     public List<QueueFile> queue(List<UUID> visible,String state,boolean inactive,QueueFile after){if(visible.isEmpty())return List.of();var args=new java.util.ArrayList<Object>();String where=queueWhere(visible,state,inactive,args);if(after!=null){where+=" AND (a.created_at>? OR (a.created_at=? AND a.id>?))";args.add(after.createdAt());args.add(after.createdAt());args.add(after.attachment().id());}return db.query(queueSelect()+where+" ORDER BY a.created_at,a.id LIMIT 51",queueRow,args.toArray());}
     public boolean rename(UUID id,int version,String name){return db.update("UPDATE team_message_attachment SET filename=?,version=version+1 WHERE id=? AND version=? AND removed_at IS NULL AND scan_state<>'SCANNING'",name,id,version)==1;}

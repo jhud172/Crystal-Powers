@@ -1,6 +1,6 @@
 # Crystal Powers 2.0 — asset provenance and export review
 
-Current follow-on: [POSTER_LIVE_REVIEW_2_0.md](POSTER_LIVE_REVIEW_2_0.md) resolves the local poster/live mismatch with actual-renderer transparent captures, shared framing and native five-theme verification. Audit133/108; physical/hosted/full acceptance remains separate. Original review below retains its dated evidence.
+Current follow-on: [POSTER_LIVE_REVIEW_2_0.md](POSTER_LIVE_REVIEW_2_0.md) resolves the local poster/live mismatch with actual-renderer transparent captures, shared framing and native five-theme verification. Current16October3D-03 acceptance is recorded there; physical/hosted/full acceptance remains separate. Original review below retains its dated evidence.
 
 ## Implementation brief
 

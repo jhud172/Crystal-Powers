@@ -24,6 +24,16 @@ public class TeamIdentityRepository {
     public Optional<Credentials> credentials(UUID id, boolean lock) { return database.query("SELECT * FROM team_account WHERE id = ?" + (lock ? " FOR UPDATE" : ""), credentialsMapper, id).stream().findFirst(); }
     public void setAuthenticator(UUID id, String encrypted) { database.update("UPDATE team_account SET encrypted_totp = ? WHERE id = ?", encrypted, id); }
     public void acceptAuthenticator(UUID id, long step, int nextVersion) { database.update("UPDATE team_account SET mfa_enabled = TRUE, last_totp_step = ?, credentials_version = ? WHERE id = ?", step, nextVersion, id); }
+    public int changePassword(UUID id, UUID workspace, int version, String hash, long step) {
+        return database.update("UPDATE team_account SET password_hash=?,last_totp_step=?,credentials_version=credentials_version+1,updated_at=CURRENT_TIMESTAMP WHERE id=? AND workspace_id=? AND credentials_version=? AND state='ACTIVE' AND mfa_enabled=TRUE",hash,step,id,workspace,version);
+    }
+    public int revokeSessions(UUID id, UUID workspace, int version, long step) {
+        return database.update("UPDATE team_account SET last_totp_step=?,credentials_version=credentials_version+1,updated_at=CURRENT_TIMESTAMP WHERE id=? AND workspace_id=? AND credentials_version=? AND state='ACTIVE' AND mfa_enabled=TRUE",step,id,workspace,version);
+    }
+    public int replaceAuthenticator(UUID id, UUID workspace, int version, String encrypted, long step) {
+        return database.update("UPDATE team_account SET encrypted_totp=?,last_totp_step=?,credentials_version=credentials_version+1,updated_at=CURRENT_TIMESTAMP WHERE id=? AND workspace_id=? AND credentials_version=? AND state='ACTIVE' AND mfa_enabled=TRUE",encrypted,step,id,workspace,version);
+    }
+    public void invalidateInvitations(UUID account) { database.update("UPDATE team_invitation SET used_at=CURRENT_TIMESTAMP WHERE account_id=? AND used_at IS NULL",account); }
     public void auditMember(UUID account, String event) { database.update("INSERT INTO team_audit (id, workspace_id, actor_team_id, event, resource_id) SELECT ?, workspace_id, ?, ?, ? FROM team_account WHERE id = ?", UUID.randomUUID(), account, event, account, account); }
     public Optional<UUID> workspace(UUID owner) { return database.query("SELECT id FROM team_workspace WHERE owner_id = ?", (row, index) -> row.getObject("id", UUID.class), owner).stream().findFirst(); }
     public UUID workspaceOwner(UUID workspace) { return database.queryForObject("SELECT owner_id FROM team_workspace WHERE id = ?", UUID.class, workspace); }

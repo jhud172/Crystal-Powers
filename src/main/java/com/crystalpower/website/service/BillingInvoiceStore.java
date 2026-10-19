@@ -25,9 +25,12 @@ public class BillingInvoiceStore {
     private final BillingLedgerService ledger;
     private final StripeGateway stripe;
     private final ClientRepository clients;
-    public BillingInvoiceStore(TeamAccessService access,SupportRepository requests,BillingRepository bills,BillingFlowRepository flow,BillingInvoiceRepository invoices,BillingLedgerService ledger,StripeGateway stripe,ClientRepository clients) { this.access=access;this.requests=requests;this.bills=bills;this.flow=flow;this.invoices=invoices;this.ledger=ledger;this.stripe=stripe;this.clients=clients; }
+    private final TeamIdentityRepository teams;
+    public BillingInvoiceStore(TeamAccessService access,SupportRepository requests,BillingRepository bills,BillingFlowRepository flow,BillingInvoiceRepository invoices,BillingLedgerService ledger,StripeGateway stripe,ClientRepository clients,TeamIdentityRepository teams) { this.access=access;this.requests=requests;this.bills=bills;this.flow=flow;this.invoices=invoices;this.ledger=ledger;this.stripe=stripe;this.clients=clients;this.teams=teams; }
     private BillingFlowRepository.Intent authorised(Authentication auth,UUID request,UUID bill,boolean write) {
-        var actor=access.resolve(auth);actor.require(TeamPermission.READ_SUPPORT);if(write)actor.require(TeamPermission.MANAGE_BILLING);requests.request(actor.workspaceId(),request,false).orElseThrow(BillingInvoiceStore::missing);
+        var actor=access.resolve(auth);actor.require(TeamPermission.READ_SUPPORT);
+        if(write){actor.require(TeamPermission.MANAGE_BILLING);teams.lockWorkspace(actor.workspaceId());actor=access.resolveLocked(auth);actor.require(TeamPermission.READ_SUPPORT);actor.require(TeamPermission.MANAGE_BILLING);}
+        requests.request(actor.workspaceId(),request,false).orElseThrow(BillingInvoiceStore::missing);
         var draft=bills.draft(bill).orElseThrow(BillingInvoiceStore::missing);var intent=flow.intent(bill,write).orElseThrow(BillingInvoiceStore::missing);
         if(!draft.workspaceId().equals(actor.workspaceId()) || !draft.requestId().equals(request) || intent.liveMode()!=stripe.liveMode())throw missing();return intent;
     }
@@ -42,12 +45,14 @@ public class BillingInvoiceStore {
     private JobView finishRows(Lease lease,JsonNode page,Runnable recheck) {
         var job=invoices.job(lease.invoice(),true).orElseThrow(BillingInvoiceStore::missing);
         if(job.version()!=lease.version() || !lease.token().equals(job.token()) || !job.state().equals("RUNNING") || job.leaseUntil()==null || job.leaseUntil().isBefore(OffsetDateTime.now(ZoneOffset.UTC)))throw conflict();
-        var rows=page.path("data");String cursor=lease.cursor();Set<String> seen=new HashSet<>();
+        var rows=page.path("data");
+        if(!"list".equals(page.path("object").asText()) || !rows.isArray() || rows.size()>2 || !page.path("has_more").isBoolean())throw conflict();
+        String cursor=lease.cursor();Set<String> seen=new HashSet<>();
         for(var row:rows) {
             String id=row.path("id").asText(),kind=row.path("payment").path("type").asText(),state=row.path("status").asText();
-            if(!id.matches("inpay_[A-Za-z0-9]+") || !seen.add(id) || id.equals(lease.cursor()) || !"invoice_payment".equals(row.path("object").asText()) || !lease.invoice().equals(BillingCheckoutStore.reference(row.path("invoice"))) || !row.path("livemode").isBoolean() || row.path("livemode").asBoolean()!=stripe.liveMode() || !"gbp".equals(row.path("currency").asText()) || !Set.of("open","paid","canceled").contains(state) || !Set.of("payment_intent","payment_record","charge").contains(kind))throw conflict();
+            if(id.length()>100 || !id.matches("inpay_[A-Za-z0-9]+") || !seen.add(id) || id.equals(lease.cursor()) || !"invoice_payment".equals(row.path("object").asText()) || !lease.invoice().equals(BillingCheckoutStore.reference(row.path("invoice"))) || !row.path("livemode").isBoolean() || row.path("livemode").asBoolean()!=stripe.liveMode() || !"gbp".equals(row.path("currency").asText()) || !Set.of("open","paid","canceled").contains(state) || !Set.of("payment_intent","payment_record","charge").contains(kind))throw conflict();
             long requested=money(row,"amount_requested");Long paid=row.path("amount_paid").isNull() ? null : money(row,"amount_paid");if(state.equals("paid") && paid==null)throw conflict();
-            String reference=BillingCheckoutStore.reference(row.path("payment").path(kind));if(reference==null || !reference.matches(kind.equals("payment_intent") ? "pi_[A-Za-z0-9]+" : "[A-Za-z0-9_]{1,100}"))throw conflict();
+            String reference=BillingCheckoutStore.reference(row.path("payment").path(kind));if(reference==null || reference.length()>100 || !reference.matches(kind.equals("payment_intent") ? "pi_[A-Za-z0-9]+" : "[A-Za-z0-9_]{1,100}"))throw conflict();
             if(kind.equals("charge"))ledger.legacyCharge(lease.bill(),reference,"INVOICE_PAYMENT:"+id,lease.invoice(),paid==null ? 0 : paid);
             if(kind.equals("payment_intent"))ledger.payment(lease.bill(),reference,"INVOICE_PAYMENT:"+id,lease.invoice(),paid==null ? 0 : paid);
             invoices.allocation(id,lease.invoice(),kind,reference,state,requested,paid);cursor=id;
@@ -55,7 +60,7 @@ public class BillingInvoiceStore {
         if(page.path("has_more").asBoolean() && rows.isEmpty())throw conflict();recheck.run();invoices.finish(lease.invoice(),lease.token(),cursor,page.path("has_more").asBoolean());return view(invoices.job(lease.invoice(),false).orElseThrow());
     }
     @Transactional public void fail(Lease lease) { invoices.fail(lease.invoice(),lease.token()); }
-    @Transactional(readOnly=true) public Object page(Authentication auth,UUID request,UUID bill,String kind,String after) {
+    @Transactional public Object page(Authentication auth,UUID request,UUID bill,String kind,String after) {
         authorised(auth,request,bill,false);if(after!=null && (after.length()>100 || !after.matches("(in_|inpay_)[A-Za-z0-9]+")))throw conflict();
         if(kind.equals("JOBS")){if(after!=null && invoices.job(after,false).filter(job->job.billId().equals(bill)).isEmpty())throw missing();var rows=invoices.jobs(bill,after);boolean more=rows.size()>50;var items=(more ? rows.subList(0,50) : rows).stream().map(BillingInvoiceStore::view).toList();return new Page<>(items,more ? items.get(items.size()-1).invoiceId() : null);}
         if(!kind.equals("ALLOCATIONS"))throw conflict();if(after!=null && !invoices.hasAllocation(bill,after))throw missing();var rows=invoices.allocations(bill,after);boolean more=rows.size()>50;var items=more ? rows.subList(0,50) : rows;return new Page<>(items,more ? items.get(items.size()-1).id() : null);
@@ -70,7 +75,7 @@ public class BillingInvoiceStore {
     // Internal worker entry points: never exposed by an HTTP controller and never mint a user/owner principal.
     @Transactional public Lease beginSystem(String invoice,UUID bill,int version) {
         var intent=workerIntent(bill);var job=invoices.job(invoice,true).filter(value->value.billId().equals(bill)).orElseThrow(BillingInvoiceStore::missing);
-        var now=OffsetDateTime.now(ZoneOffset.UTC);if(job.failures()>=10 || job.retryAfter().isAfter(now))throw conflict();UUID token=UUID.randomUUID();if(!invoices.lease(invoice,version,token,now))throw conflict();
+        var now=OffsetDateTime.now(ZoneOffset.UTC);if(!invoices.dueNow(invoice,version))throw conflict();UUID token=UUID.randomUUID();if(!invoices.lease(invoice,version,token,now))throw conflict();
         return new Lease(bill,invoice,job.cursor(),token,version+1,flow.customer(intent.accountId(),intent.liveMode()).orElseThrow(BillingInvoiceStore::conflict),intent.subscriptionId());
     }
     @Transactional public JobView finishSystem(Lease lease,JsonNode page) { workerIntent(lease.bill());return finishRows(lease,page,()->workerIntent(lease.bill())); }

@@ -23,7 +23,7 @@ public class InvitationEmailStore {
     private final InvitationEmailRepository deliveries;
     private final TeamRoleResolver roles;
     public InvitationEmailStore(TeamAccessService access,TeamIdentityRepository teams,ClientRepository clients,SupportRepository support,InvitationEmailRepository deliveries,TeamRoleResolver roles){this.access=access;this.teams=teams;this.clients=clients;this.support=support;this.deliveries=deliveries;this.roles=roles;}
-    private TeamAccessService.Actor actor(Authentication auth,Kind kind){var actor=access.resolve(auth);teams.lockWorkspace(actor.workspaceId());actor=access.resolve(auth);actor.require(kind==Kind.TEAM ? TeamPermission.MANAGE_MEMBERS : TeamPermission.MANAGE_CLIENTS);return actor;}
+    private TeamAccessService.Actor actor(Authentication auth,Kind kind){var actor=access.resolve(auth);teams.lockWorkspace(actor.workspaceId());actor=access.resolveLocked(auth);actor.require(kind==Kind.TEAM ? TeamPermission.MANAGE_MEMBERS : TeamPermission.MANAGE_CLIENTS);return actor;}
     private Target target(TeamAccessService.Actor actor,Kind kind,UUID resource,int version,String hash){
         if(kind==Kind.TEAM){
             var member=teams.credentials(resource,true).orElseThrow(InvitationEmailStore::missing).member();

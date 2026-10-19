@@ -1,0 +1,106 @@
+/* Shared surfaces and feedback: public storytelling and dense private work use
+   the same materials, with distinct layouts owned by their feature styles. */
+body.theme-changing .studio-shell *, body.theme-changing .studio-shell *::before, body.theme-changing .studio-shell *::after { transition: none !important; }
+.studio-shell {
+  --studio-panel-radius: 22px;
+  --studio-panel-fill: color-mix(in srgb, var(--studio-raised) 48%, var(--studio-bg));
+  --studio-highlight: color-mix(in srgb, var(--studio-signal) 8%, transparent);
+  --studio-panel-shadow: 0 16px 44px color-mix(in srgb, var(--studio-bg) 30%, transparent);
+}
+.studio-shell :is(.studio-button, .admin-primary, .liquid-primary) {
+  position: relative;
+  isolation: isolate;
+  gap: 20px;
+  min-height: 48px;
+  padding: 13px 22px;
+  border: 1px solid var(--studio-text);
+  border-radius: var(--studio-action-radius);
+  background: var(--studio-text);
+  color: var(--studio-button-text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  transition: background var(--studio-motion-short), border-color var(--studio-motion-short), transform var(--studio-motion-short) var(--studio-ease), box-shadow var(--studio-motion-short);
+}
+.studio-shell :is(.admin-secondary, .stage-controls button, .case-lightbox button, .team-history-nav button) {
+  min-height: 44px;
+  border: 1px solid var(--studio-control-line);
+  border-radius: 12px;
+  background: var(--studio-control-fill);
+  color: var(--studio-text);
+  transition: background var(--studio-motion-short), border-color var(--studio-motion-short), transform var(--studio-motion-short) var(--studio-ease);
+}
+.studio-shell :is(.studio-button, .admin-primary, .admin-secondary, .stage-controls button):disabled {
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.studio-shell .stage-controls {
+  padding: 6px;
+  gap: 6px;
+  border: 1px solid var(--studio-line);
+  border-radius: 18px;
+  background: var(--studio-bg);
+  max-width: calc(100% - 30px);
+}
+.studio-shell .studio-text-link { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.studio-shell :is(.studio-device-tabs, .enquiry-purpose) { flex-wrap: wrap; gap: 6px; }
+.studio-shell .studio-device-tabs { padding: 5px; border: 1px solid var(--studio-line); border-radius: 16px; width: fit-content; max-width: 100%; }
+.studio-shell .studio-device-tabs button { border: 1px solid transparent; border-radius: 11px; padding-inline: 14px; }
+.studio-shell .studio-device-tabs button[aria-pressed="true"] { background: var(--studio-raised); border-color: var(--studio-control-line); color: var(--studio-text); }
+.studio-shell :is(.admin-notice, .admin-error, .admin-preview-banner, .enquiry-feedback, .enquiry-complete) {
+  border-radius: var(--studio-control-radius);
+  background: var(--studio-panel-fill);
+  overflow-wrap: anywhere;
+}
+.studio-shell .case-lightbox { border-radius: var(--studio-panel-radius); box-shadow: var(--studio-elevation); }
+.studio-shell .case-lightbox::backdrop { background: color-mix(in srgb, var(--studio-bg) 85%, transparent); }
+.studio-shell .case-lightbox[open] { animation: liquid-panel-arrive 180ms var(--studio-ease); }
+.studio-shell .admin-password-control { border-radius: var(--studio-control-radius); }
+.studio-shell .admin-password-control button { border-radius: 0 var(--studio-control-radius) var(--studio-control-radius) 0; }
+.studio-shell .team-sidebar nav button { min-height: 44px; border: 1px solid transparent; border-radius: 12px; }
+.studio-shell .team-sidebar nav button[aria-current] { border-color: var(--studio-accent); font-weight: 600; }
+.studio-shell .team-workspace { border-radius: var(--studio-panel-radius); }
+.studio-shell :is(.team-group-list > li, .team-pinned-messages) { border-radius: 16px; background: var(--studio-panel-fill); }
+.studio-shell :is(.studio-appearance-panel, .studio-mobile-menu, .brand-experience) { box-shadow: var(--studio-panel-shadow); }
+.studio-shell :is(button, a, input, select, textarea, summary) { scroll-margin-block: 120px 32px; }
+@keyframes liquid-panel-arrive { from { opacity: .85; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (hover: hover) and (pointer: fine) {
+  .studio-shell :is(.studio-button, .admin-primary, .liquid-primary):hover:not(:disabled) {
+    background: var(--studio-accent);
+    border-color: var(--studio-accent);
+    color: var(--studio-button-text);
+    box-shadow: 0 4px 18px var(--studio-highlight);
+  }
+  .studio-shell :is(.admin-secondary, .stage-controls button, .case-lightbox button, .team-history-nav button):hover:not(:disabled) { background: var(--studio-control-hover); border-color: var(--studio-accent); }
+  .studio-shell .team-sidebar nav button:not([aria-current]):hover { border-color: var(--studio-line); background: var(--studio-bg); }
+  .studio-shell[data-motion="full"] :is(.studio-button, .admin-primary, .admin-secondary, .liquid-primary):active:not(:disabled) { transform: translateY(1px); }
+}
+@media (max-width: 760px) {
+  .studio-shell { --studio-panel-radius: 16px; }
+  .studio-shell .stage-controls { bottom: 12px; right: 12px; max-width: calc(100% - 24px); }
+  .studio-shell .stage-controls button { padding-inline: 12px; }
+  .studio-shell .studio-actions { flex-wrap: wrap; gap: 16px 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-shell .case-lightbox[open] { animation: none; }
+  .studio-shell :is(.studio-button, .admin-primary, .admin-secondary, .liquid-primary):active { transform: none; }
+}
+@media (prefers-contrast: more) {
+  body[data-theme] .studio-shell {
+    --studio-line: var(--studio-control-line);
+    --studio-panel-fill: var(--studio-bg);
+    --studio-control-fill: var(--studio-bg);
+    --studio-panel-shadow: none;
+  }
+  .studio-shell :is(.studio-header, .studio-footer, .brand-experience, .studio-appearance-panel, .studio-mobile-menu) {
+    background: var(--studio-bg);
+    backdrop-filter: none;
+  }
+  .studio-shell :is(button, a, input, textarea, select, summary):focus-visible { outline-width: 3px; }
+}
+@media (forced-colors: active) {
+  .studio-shell :is(.studio-button, .admin-primary, .liquid-primary, .admin-secondary, .stage-controls button) { border-color: ButtonText; }
+  .studio-shell .studio-device-tabs button[aria-pressed="true"] { outline: 2px solid Highlight; outline-offset: -3px; }
+}

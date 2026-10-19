@@ -1,16 +1,18 @@
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import { Environment, Lightformer, OrbitControls, useAnimations, useGLTF, useTexture } from "@react-three/drei";
-import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { BackSide, CanvasTexture, Color, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, MeshPhysicalMaterial, PerspectiveCamera, SRGBColorSpace, LoopOnce, TextureLoader } from "three";
 import type { OrbitControls as OrbitControlsType } from "three-stdlib";
 import type { ModelKind } from "./ModelStage";
 import { modelAnimationNames, selectAnimationName } from "./animationContract";
 import { advanceCrystalMotion } from "./crystalMotion";
 import { useExperience } from "./ExperienceContext";
-import { renderProfiles, resolveRenderTier, type RenderQuality, type RenderTier } from "./renderQuality";
+import { renderProfiles, type RenderQuality, type RenderTier } from "./renderQuality";
 import { containedSceneFov, scenePresentation } from "./scenePresentation";
 import { PreparedScene } from "./PreparedScene";
 import { useEnvironmentPreparation } from "./useEnvironmentPreparation";
+import { useAdaptiveRenderQuality } from "./useAdaptiveRenderQuality";
+import { RenderPerformanceProbe } from "./RenderPerformanceProbe";
 
 export type CrystalInteraction = { yaw: number; pitch: number; hoverX: number; hoverY: number; palette: number; pulse: number; invalidate?: () => void };
 
@@ -249,9 +251,9 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
   </group></group>;
 }
 
-function StudioScene(props: Props & { quality: RenderQuality; onWidth: (width: number) => void }) {
+function StudioScene(props: Props & { tier: RenderTier; onWidth: (width: number) => void }) {
   const { gl, size, invalidate } = useThree();
-  const tier = resolveRenderTier(props.quality, size.width);
+  const tier = props.tier;
   const profile = renderProfiles[tier];
   const environment = useEnvironmentPreparation(gl, profile.environmentResolution, props.onFailure);
   useEffect(() => {
@@ -293,12 +295,16 @@ function ImageReadyCanvas(props: Props & { image: string; quality: RenderQuality
 
 function SceneCanvas(props: Props & { quality: RenderQuality }) {
   const [width, setWidth] = useState(0);
-  const profile = renderProfiles[resolveRenderTier(props.quality, width)];
+  const [ready, setReady] = useState(false);
+  const { tier, onSample } = useAdaptiveRenderQuality(props.quality, width);
+  const profile = renderProfiles[tier];
+  const onReady = useCallback(() => { setReady(true); props.onReady(); }, [props.onReady]);
   const view = scenePresentation(props.model);
   // Keep DPR in Canvas configuration: imperative setDpr can be overwritten on parent/size updates.
   return <Canvas dpr={[1, profile.maxDpr]} frameloop={props.playing ? "always" : "demand"} camera={{ position: view.position, fov: view.fov }} gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}>
     <PosterFraming model={props.model} />
     <CanvasHealth onFailure={props.onFailure} />
-    <Suspense fallback={null}><StudioScene {...props} onWidth={setWidth} /></Suspense>
+    <RenderPerformanceProbe enabled={ready && props.playing} onSample={onSample} />
+    <Suspense fallback={null}><StudioScene {...props} tier={tier} onReady={onReady} onWidth={setWidth} /></Suspense>
   </Canvas>;
 }

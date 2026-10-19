@@ -22,13 +22,16 @@ public class BillingCheckoutService {
                 if(!status.checkoutState().equals("OPEN")) throw new ResponseStatusException(HttpStatus.CONFLICT,"Checkout status changed. Refresh this payment request before trying again.");
                 String url=stripe.trustedCheckoutUrl(stripe.session(plan.attempt().sessionId()));
                 if(url==null) throw new ResponseStatusException(HttpStatus.CONFLICT,"Checkout closed while its status was refreshed. Check this request before retrying.");
+                store.confirmAccess(auth,bill);
                 return url;
             }
             String customer=plan.customer();
             if(customer==null) customer=store.saveCustomer(plan.client().id(),plan.intent().liveMode(),stripe.createCustomer(plan.client().id(),plan.client().email(),plan.client().displayName()));
             var result=stripe.checkout(bill,plan.attempt().id(),plan.draft().amountPence(),plan.draft().title(),customer,plan.draft().purpose().equals("MONTHLY"),plan.attempt().expiresAt());
-            store.session(plan.attempt().id(),result); return result.url();
+            store.session(plan.attempt().id(),result);
+            // Retain the provider result for reconciliation even if access changed during IO.
+            store.confirmAccess(auth,bill);return result.url();
         } finally { store.release(plan.attempt().id()); }
     }
-    public String portal(Authentication auth,UUID bill) { stripe.requireConnected(); return stripe.customerPortal(store.portalCustomer(auth,bill),UUID.randomUUID()); }
+    public String portal(Authentication auth,UUID bill) { stripe.requireConnected();String url=stripe.customerPortal(store.portalCustomer(auth,bill),UUID.randomUUID());store.confirmAccess(auth,bill);return url; }
 }

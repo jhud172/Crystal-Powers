@@ -7,3 +7,31 @@
 .liquid-draft-check input { width: 18px; }
 .liquid-draft-controls pre { grid-column: 1 / -1; max-width: 100%; overflow: auto; padding: 16px; background: var(--studio-raised); font-size: 12px; }
 @media (max-width: 760px) { .liquid-draft-controls { grid-template-columns: 1fr; } }
+
+.liquid-draft-toolbar { padding: 1.5rem var(--studio-gutter); display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; border-bottom: 1px solid var(--studio-line); }
+.liquid-draft-toolbar > p { flex-basis: 100%; margin: 0; }
+.liquid-draft-toolbar .studio-device-tabs { flex-wrap: wrap; margin: 0; }
+.liquid-draft-toolbar .studio-text-link { margin-left: auto; }
+.liquid-draft-adjustments > summary { min-height: 48px; cursor: pointer; padding: 1rem var(--studio-gutter); border-bottom: 1px solid var(--studio-line); }
+.design-reference-note, .design-reference-notice { padding: 1rem; border-left: 2px solid var(--studio-accent); color: var(--studio-muted); }
+.design-reference-notice { margin: 1rem var(--studio-gutter); }
+.design-reference-screens figure { margin: 1.5rem 0; }
+.design-reference-screens img { display: block; width: 100%; height: auto; border: 1px solid var(--studio-line); border-radius: 1rem; }
+.design-reference-screens [data-device=mobile] img { max-width: 390px; margin-inline: auto; }
+.design-case-reference .studio-project-cover img { display: block; width: 100%; height: auto; }
+.design-reference .studio-page-lead { max-width: 65ch; }
+.design-reference .enquiry-form { max-width: 760px; margin-block: 2rem; }
+.design-reference .field-input { width: 100%; min-height: 48px; padding: .75rem; color: var(--studio-text); background: var(--studio-bg); border: 1px solid var(--studio-control-line); border-radius: .5rem; }
+.reference-hint { color: var(--studio-muted); font-size: .875rem; }
+.reference-error { color: var(--studio-error); }
+.reference-success { color: var(--studio-success); }
+.reference-choices { border: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 1rem; margin-block: 2rem; }
+.reference-choices legend { margin-bottom: 1rem; }
+.reference-choice { display: flex; align-items: center; gap: .75rem; min-height: 48px; padding: .75rem 1rem; border: 1px solid var(--studio-control-line); cursor: pointer; }
+.reference-choice input { width: 20px; height: 20px; accent-color: var(--studio-accent); }
+.reference-choice:has(:checked) { background: var(--studio-raised); border-color: var(--studio-accent); }
+.reference-disclosure { margin-block: 2rem; border-block: 1px solid var(--studio-line); padding-block: 1rem; }
+.reference-disclosure summary { min-height: 44px; cursor: pointer; }
+.reference-states { border-top: 1px solid var(--studio-line); padding-top: 1rem; }
+.reference-badge { display: inline-flex; padding: .5rem .75rem; border: 1px solid var(--studio-line); border-radius: .5rem; }
+@media (max-width: 760px) { .liquid-draft-toolbar .studio-text-link { margin-left: 0; } .liquid-draft-toolbar .studio-device-tabs { width: 100%; } .liquid-draft-toolbar .studio-device-tabs button { flex: 1 1 9rem; } }

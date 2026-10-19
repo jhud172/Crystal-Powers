@@ -21,7 +21,7 @@ public class StripeWebhookController {
         if(body.length>262144) throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,"The payment event exceeded the accepted size.");
         var event=stripe.verifyEvent(body,signature);
         String id=event.path("id").asText(),type=event.path("type").asText(),object=event.path("data").path("object").path("id").asText();
-        if(!type.matches("[a-z_.]{1,150}") || !object.matches("[A-Za-z0-9_]{1,100}") || !event.path("created").isIntegralNumber()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"This payment event reference is invalid.");
+        if(!event.path("type").isTextual() || !event.path("data").path("object").path("id").isTextual() || !type.matches("[a-z_.]{1,150}") || !object.matches("[A-Za-z0-9_]{1,100}") || !event.path("created").isIntegralNumber() || !event.path("created").canConvertToLong() || event.path("created").asLong()<0 || event.path("created").asLong()>253402300799L) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"This payment event reference is invalid.");
         try { events.accept(id,type,object,event.path("created").asLong(),event.path("livemode").asBoolean()); }
         catch(DataIntegrityViolationException duplicate) { events.accept(id,type,object,event.path("created").asLong(),event.path("livemode").asBoolean()); }
         processor.process(id); return Map.of("received",true);

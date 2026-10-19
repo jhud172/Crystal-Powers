@@ -1,6 +1,16 @@
 # Crystal Powers 2.0 design system
 
-Working specification — 10 October 2026. This documents the implemented studio direction, not a whole-site accessibility certification. Public brand/copy remains Crystal Powers; only Clare’s Life Celebrations is approved real portfolio work. Public, owner and personal routes retain their existing contracts.
+Working specification — selected Liquid Light review, 16 October 2026. This documents the implemented studio direction, not a whole-site accessibility certification. Public brand/copy remains Crystal Powers; only Clare’s Life Celebrations is approved real portfolio work. Public, owner and personal routes retain their existing contracts.
+
+## Selected design review brief — 16 October 2026
+
+Visual thesis: warm ivory and coral light, large editorial typography and open compositions, with the original crystal/device work as an optional layer. All five existing appearances use the same semantic roles.
+
+Content plan: the Home composition establishes brand/offer/action; the actual Services builder proves a dense decision flow; the Clare case-study composition proves factual long-form content and responsive imagery; control states make keyboard, feedback and selection behaviour reviewable. The development reference must remain noindex, never publish a case study and never submit an enquiry.
+
+Interaction thesis: keep the reversible Liquid Light veil and immediate reduced-motion alternative; preserve native builder progress and error focus; use clear selected/hover/focus/disabled feedback. Add no decorative motion library or new public route.
+
+The current reference lives at frontend/design/observatory.html and is development-only. Earlier prototype verifier expectations are historical; the current verifier must inspect the selected compositions and actual shared tokens. Whole-site contrast, assistive/physical devices, commercial/privacy facts and production content/publication remain separate acceptance gates.
 
 ## Implementation brief
 
@@ -40,7 +50,7 @@ All five appearances retain their stable IDs: futuristic (Dark), clean (Light), 
 | Badge | Text conveys status; colour is supplementary | Published/private/archived/pending are distinct words; never infer publication from appearance |
 | Loading / error / success | Honest loading text and reserved image/geometry; status or alert as appropriate | Explain correction/retry/next step; retain input on failure; success follows actual accepted response |
 
-Actual owners: `FormFields`/`EnquiryForm`/`ScopeFields`, `PasswordField`/`OwnerError`, `ProjectDashboard`/`ProjectEditor`, `ProjectGallery`, `CollaborationChapters`, `Layout` and `CrystalOpening`/`ModelStage`. The design reference demonstrates states; it does not replace real server-flow evidence.
+Actual owners: `FormFields`/`EnquiryForm`/`ScopeFields`, `PasswordField`/`OwnerError`, `ProjectDashboard`/`ProjectEditor`, `ProjectGallery`, `CollaborationChapters`, `Layout`, `BrandIdentity`, `LiquidLightHero` and the separate optional `ModelStage`. The design reference demonstrates states; it does not replace real server-flow evidence.
 
 ## Responsive composition rules
 
@@ -53,9 +63,9 @@ Actual owners: `FormFields`/`EnquiryForm`/`ScopeFields`, `PasswordField`/`OwnerE
 
 ## Representative compositions
 
-`/design/observatory.html` is a Vite development entry with Home, Services builder, case-study and control-state reference. It is not mounted by `App` or part of the default public build. Aurora stills are the real original asset, with the live experience linked separately. The case-study sample explicitly labels original studio demonstration artwork; no fake client outcomes or metrics. Its design-only selections never submit an enquiry. Current production Home/Services/Work/cases/Studio/Contact/Support use the same semantic tokens with their own layouts.
+`/design/observatory.html` is a Vite development entry with Home, Services builder, case-study and control-state reference. It is not mounted by `App` or part of the default public build. Home reuses the selected Liquid Light hero; Services reuses the actual builder. The case-study composition reads the approved Clare content JSON and exact approved desktop/mobile captures, with explicit development-only labelling. It creates no public project or new claim of results. Its design-only selections never submit an enquiry. Current production Home/Services/Work/cases/Studio/Contact/Support use the same semantic tokens with their own layouts.
 
-Founder content has a complete portrait-free alternative: James's initial/name, direct collaboration/process and an original Aurora artefact with factual description. No stock or invented founder portrait is needed; an approved portrait can be added later without making this composition incomplete.
+Founder content has a complete portrait-free alternative: James's initial/name, direct collaboration/process and the selected Liquid Light artwork with factual description. No stock or invented founder portrait is needed; an approved portrait can be added later without making this composition incomplete.
 
 ## Customer-facing package naming decision
 
@@ -71,3 +81,11 @@ Retain the existing descriptive display titles in 2.0. They explain the starting
 | Custom Quote | Tailored project scope |
 
 This is a display-name decision, not a new commercial scope/price/retention/support promise. CONTENT-03 and operational content gates remain separate. Current connected enquiry verification covers the legacy wire contract and visible selections/review.
+
+## Selected-design acceptance — 16 October 2026
+
+The current development reference passes 334 browser checks across four compositions, all five appearances and 320/390/768/1024/1440/1920 px. Coverage includes semantic token presence, representative text/action/field/focus contrast, disabled invariance, native keyboard selections/disclosures, error focus, explicit local-only success, 200% text reflow at 320 px, approved mobile image geometry and zero API mutations/page errors. Light Home and mobile controls plus Dark Home/Services/case screenshots were reviewed. Tall element screenshots can capture sticky headers over content; actual viewport geometry was checked before diagnosing a layout failure.
+
+This accepts DS-01–04 foundation/reference scope before accepting remaining page work. It does not retroactively claim drafts preceded already implemented pages or accept whole-site contrast, screen readers, physical zoom/devices, private workflows or production Clare publication. Earlier prototype evidence retains its dated scope.
+
+`verify-design-browser.cjs` initially needed lazy-image completion and accessible-name/scoped-link selector corrections; the final suite passes without weakening product requirements. Production build/reachability checks find no unresolved/unreachable source and keep the reference development-only. The current packaged Home returns 200; both `/design/observatory.html` and `/design/approved-clare-mobile.jpg` return 404. Production bundle and jar identity remain unchanged by this development-only work. Full release automation passes 95 H2 tests with zero failures/errors/skips, asset contracts, frontend build and packaging.

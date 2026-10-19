@@ -62,16 +62,28 @@ public class OwnerService {
         return owner;
     }
     public Owner owner(UUID id) { return owners.byId(id).orElseThrow(OwnerService::unauthorised); }
+    @Transactional
     public String enrolmentSecret(UUID id) {
-        Owner owner = owner(id);
+        return enrolmentSecret(id, owner(id).credentialsVersion(), Instant.now().getEpochSecond() + 300);
+    }
+
+    @Transactional
+    public String enrolmentSecret(UUID id, int version, long expiresAt) {
+        Owner owner = owners.lock(id).orElseThrow(OwnerService::unauthorised);
+        requireChallenge(owner, version, expiresAt);
         if (owner.mfaEnabled()) throw new ResponseStatusException(HttpStatus.CONFLICT, "An authenticator is already enrolled.");
         return vault.decrypt(owner.encryptedTotp());
     }
 
     @Transactional
     public Verification verify(UUID id, int credentialsVersion, String code) {
+        return verify(id, credentialsVersion, code, Instant.now().getEpochSecond() + 300);
+    }
+
+    @Transactional
+    public Verification verify(UUID id, int credentialsVersion, String code, long expiresAt) {
         Owner owner = owners.lock(id).orElseThrow(OwnerService::unauthorised);
-        if (owner.credentialsVersion() != credentialsVersion) throw unauthorised();
+        requireChallenge(owner, credentialsVersion, expiresAt);
         var acceptedStep = totp.verify(vault.decrypt(owner.encryptedTotp()), code, owner.lastTotpStep(), Instant.now());
         boolean recovery = false;
         if (acceptedStep.isEmpty() && owner.mfaEnabled()) {
@@ -90,6 +102,11 @@ public class OwnerService {
     public boolean valid(OwnerPrincipal principal) {
         return owners.byId(principal.id()).filter(owner -> owner.mfaEnabled() && owner.credentialsVersion() == principal.credentialsVersion()).isPresent();
     }
+    /** A mutation's final authority check must read and retain the locked row. */
+    @Transactional(propagation=org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public boolean validLocked(OwnerPrincipal principal) {
+        return owners.lock(principal.id()).filter(owner -> owner.mfaEnabled() && owner.credentialsVersion() == principal.credentialsVersion()).isPresent();
+    }
     public List<String> newRecoveryCodes(UUID id) {
         List<String> codes = new ArrayList<>();
         owners.clearRecovery(id);
@@ -105,6 +122,9 @@ public class OwnerService {
     public static void validatePassword(String password) {
         int bytes = password.getBytes(StandardCharsets.UTF_8).length;
         if (password.length() < 12 || bytes > 72) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use at least 12 characters and no more than 72 UTF-8 bytes for your password.");
+    }
+    private static void requireChallenge(Owner owner, int version, long expiresAt) {
+        if (owner.credentialsVersion() != version || expiresAt <= Instant.now().getEpochSecond()) throw unauthorised();
     }
     private static ResponseStatusException unauthorised() { return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The sign-in details are invalid or the session has expired."); }
 }

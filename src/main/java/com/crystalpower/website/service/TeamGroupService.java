@@ -20,11 +20,11 @@ public class TeamGroupService {
     private final TeamIdentityRepository accounts;
     private final TeamChannelRepository channels;
     public TeamGroupService(TeamAccessService access,TeamGroupRepository groups,TeamIdentityRepository accounts,TeamChannelRepository channels){this.access=access;this.groups=groups;this.accounts=accounts;this.channels=channels;}
-    @Transactional(readOnly=true) public List<View> list(Authentication auth){var actor=access.resolve(auth);actor.require(TeamPermission.READ_CHANNELS);boolean admin=actor.permissions().contains(TeamPermission.MANAGE_GROUPS);var visible=visibleIds(actor);return groups.list(actor.workspaceId()).stream().filter(g->admin || visible.contains(g.id())).map(g->view(g,false)).toList();}
-    @Transactional(readOnly=true) public View detail(Authentication auth,UUID id){var actor=access.resolve(auth);actor.require(TeamPermission.MANAGE_GROUPS);return view(groups.group(actor.workspaceId(),id,false).orElseThrow(TeamGroupService::missing),true);}
-    @Transactional(readOnly=true) public List<EligibleMember> eligible(Authentication auth){var actor=access.resolve(auth);actor.require(TeamPermission.MANAGE_GROUPS);return accounts.members(actor.workspaceId()).stream().filter(m->m.state().equals("ACTIVE")).map(m->new EligibleMember(m.id(),m.displayName(),m.role().name())).toList();}
+    @Transactional public List<View> list(Authentication auth){var actor=access.resolve(auth);actor.require(TeamPermission.READ_CHANNELS);boolean admin=actor.permissions().contains(TeamPermission.MANAGE_GROUPS);var visible=visibleIds(actor);return groups.list(actor.workspaceId()).stream().filter(g->admin || visible.contains(g.id())).map(g->view(g,false)).toList();}
+    @Transactional public View detail(Authentication auth,UUID id){var actor=access.resolve(auth);actor.require(TeamPermission.MANAGE_GROUPS);return view(groups.group(actor.workspaceId(),id,false).orElseThrow(TeamGroupService::missing),true);}
+    @Transactional public List<EligibleMember> eligible(Authentication auth){var actor=access.resolve(auth);actor.require(TeamPermission.MANAGE_GROUPS);return accounts.members(actor.workspaceId()).stream().filter(m->m.state().equals("ACTIVE")).map(m->new EligibleMember(m.id(),m.displayName(),m.role().name())).toList();}
     @Transactional public View save(Authentication auth,UUID id,int version,String name,String description,boolean archived,List<UUID> members){
-        var actor=access.resolve(auth);actor.require(TeamPermission.MANAGE_GROUPS);accounts.lockWorkspace(actor.workspaceId());actor=access.resolve(auth);actor.require(TeamPermission.MANAGE_GROUPS);
+        var actor=access.resolve(auth);actor.require(TeamPermission.MANAGE_GROUPS);accounts.lockWorkspace(actor.workspaceId());actor=access.resolveLocked(auth);actor.require(TeamPermission.MANAGE_GROUPS);
         String clean=name.strip(),key=clean.toLowerCase(Locale.ROOT);if(clean.isBlank() || clean.length()>80 || key.length()>80 || clean.codePoints().anyMatch(Character::isISOControl) || description.length()>500 || members.size()>500 || members.stream().anyMatch(java.util.Objects::isNull) || members.stream().distinct().count()!=members.size())throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Check the group name, description and member selection.");
         java.util.Set<UUID> retained=java.util.Set.of();
         if(id!=null){groups.group(actor.workspaceId(),id,true).orElseThrow(TeamGroupService::missing);retained=new java.util.HashSet<>(groups.members(id));}
@@ -35,6 +35,12 @@ public class TeamGroupService {
         groups.replaceMembers(group.id(),members);channels.audit(actor.workspaceId(),actor.ownerId(),actor.memberId(),id==null ? "GROUP_CREATED" : "GROUP_CHANGED",group.id());return view(group,true);
     }
     public boolean allows(TeamAccessService.Actor actor,UUID groupId){if(groupId==null)return true;var group=groups.group(actor.workspaceId(),groupId,false).orElse(null);return group!=null && !group.archived() && (actor.permissions().contains(TeamPermission.MANAGE_GROUPS) || (actor.memberId()!=null && groups.member(groupId,actor.memberId())));}
+    // Retention cleanup can address archived groups without reopening ordinary access.
+    public boolean allowsCleanup(TeamAccessService.Actor actor,UUID groupId){
+        if(groupId==null)return true;
+        if(actor.permissions().contains(TeamPermission.MANAGE_GROUPS))return groups.group(actor.workspaceId(),groupId,false).isPresent();
+        return allows(actor,groupId);
+    }
     public java.util.Set<UUID> visibleIds(TeamAccessService.Actor actor){return groups.visibleIds(actor.workspaceId(),actor.memberId(),actor.permissions().contains(TeamPermission.MANAGE_GROUPS));}
     public void requireAssignable(TeamAccessService.Actor actor,UUID groupId){if(groupId==null)return;actor.require(TeamPermission.MANAGE_GROUPS);if(!allows(actor,groupId))throw missing();}
     private View view(TeamGroupRepository.Group group,boolean admin){return new View(group.id(),group.name(),group.description(),group.archived(),group.version(),admin ? groups.members(group.id()) : List.of());}

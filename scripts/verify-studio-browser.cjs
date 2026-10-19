@@ -37,7 +37,8 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
     for (const width of [390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.locator('.founder-art').scrollIntoViewIfNeeded();
-      check(`Aurora still loads at ${width}`, await page.locator('.founder-art img').evaluate(image => image.complete && image.naturalWidth > 0));
+      check(`Selected Liquid Light still loads at ${width}`, await page.locator('.founder-art img').evaluate(image => image.complete && image.naturalWidth > 0));
+      check(`Studio identifies the selected original artwork at ${width}`, (await page.locator('.founder-art figcaption').innerText()).includes('Liquid Light'));
       await page.screenshot({ path: path.join(output, `about-${width}.png`), fullPage: true });
     }
     await page.getByRole('link', { name: 'Meet me with an idea ↗', exact: true }).click();

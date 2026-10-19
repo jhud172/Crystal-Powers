@@ -29,12 +29,36 @@ export function TeamMembers({ onBack, onSessionExpired, backLabel = "Back to pro
   useEffect(()=>{callbacks.current.onBusy?.(busy);},[busy]);
   useEffect(()=>{callbacks.current.onDirty?.(formDirty || profileDirty || !!invitation);},[formDirty,profileDirty,invitation]);
   useEffect(()=>()=>{callbacks.current.onBusy?.(false);callbacks.current.onDirty?.(false);},[]);
-  function fail(failure: unknown) { if (!live.current) return; setError((failure as Error).message); if (failure instanceof ApiError && failure.status === 401) onSessionExpired(); }
-  async function load() {const current=++listGeneration.current;listRequest.current?.abort();const abort=new AbortController();listRequest.current=abort;setLoading(true);try{const result=await api<Management>("/api/team/members/management",{signal:abort.signal});if(live.current && current===listGeneration.current){if(actorScope.current && actorScope.current!==result.actorScope){setInvitation(null);setFormDirty(false);setRolesOpen(false);creationForm.current?.reset();}actorScope.current=result.actorScope;setCreationRole(value=>result.creatableRoles.includes(value as Role) ? value : result.creatableRoles.includes("MEMBER") ? "MEMBER" : result.creatableRoles[0] || "");setManagement(result);setMembers(result.members.map(item=>item.member));}}catch(failure){if(current===listGeneration.current && !(failure instanceof DOMException && failure.name==="AbortError")){setManagement(null);if(failure instanceof ApiError && [401,403].includes(failure.status)){setMembers([]);setInvitation(null);setRolesOpen(false);}fail(failure);}}finally{if(live.current && current===listGeneration.current)setLoading(false);}}
+  function fail(failure: unknown) {
+    if (!live.current) return;
+    setError((failure as Error).message);
+    if(failure instanceof ApiError && [401,403,404].includes(failure.status)){setManagement(null);setMembers([]);setInvitation(null);setRolesOpen(false);}
+    if (failure instanceof ApiError && failure.status === 401) onSessionExpired();
+  }
+  async function load() {
+    const current=++listGeneration.current;listRequest.current?.abort();const abort=new AbortController();listRequest.current=abort;
+    setLoading(true);setError("");
+    try{
+      const result=await api<Management>("/api/team/members/management",{signal:abort.signal});
+      if(!live.current || abort.signal.aborted || current!==listGeneration.current)return;
+      if(actorScope.current && actorScope.current!==result.actorScope){setInvitation(null);setFormDirty(false);setRolesOpen(false);creationForm.current?.reset();}
+      // Never keep displaying an invitation for recovered, suspended or newly restricted access.
+      setInvitation(issued=>{
+        if(!issued)return null;
+        const currentMember=result.members.find(item=>item.member.id===issued.member.id);
+        return currentMember?.manageable && currentMember.member.state==="INVITED" && currentMember.member.credentialsVersion===issued.member.credentialsVersion ? issued : null;
+      });
+      actorScope.current=result.actorScope;
+      setCreationRole(value=>result.creatableRoles.includes(value as Role) ? value : result.creatableRoles.includes("MEMBER") ? "MEMBER" : result.creatableRoles[0] || "");
+      setManagement(result);setMembers(result.members.map(item=>item.member));
+    }catch(failure){
+      if(live.current && current===listGeneration.current && !abort.signal.aborted){setManagement(null);setMembers([]);setInvitation(null);fail(failure);}
+    }finally{if(live.current && current===listGeneration.current)setLoading(false);}
+  }
 
   useEffect(() => { live.current = true; void load(); return () => { live.current = false; ++listGeneration.current;listRequest.current?.abort(); }; }, []);
   async function create(form: HTMLFormElement) {
-    if (pending.current || busy) return;
+    if (pending.current || busy || loading || !management || !allowedRoles.includes(creationRole as Role)) return;
     pending.current = true; setBusy(true); setError(""); setInvitation(null);
     const data = new FormData(form);
     try {
@@ -43,13 +67,13 @@ export function TeamMembers({ onBack, onSessionExpired, backLabel = "Back to pro
     } catch (failure) { fail(failure); } finally { pending.current = false; if (live.current) setBusy(false); }
   }
   async function change(member: Member, role: Role, state: string) {
-    if (pending.current || busy || (state === "SUSPENDED" && !window.confirm(`Suspend ${member.displayName}? Their current sessions will end.`))) return;
+    if (pending.current || busy || loading || !manageable.has(member.id) || (role!==member.role && !allowedRoles.includes(role)) || (state === "SUSPENDED" && !window.confirm(`Suspend ${member.displayName}? Their current sessions will end.`))) return;
     pending.current = true; setBusy(true); setError("");
-    try { const result = await api<Member>(`/api/team/members/${member.id}`, { method: "PATCH", body: JSON.stringify({ role, state, expectedVersion: member.credentialsVersion }) }); if (live.current) setMembers(current => current.map(item => item.id === member.id ? result : item)); }
+    try { const result = await api<Member>(`/api/team/members/${member.id}`, { method: "PATCH", body: JSON.stringify({ role, state, expectedVersion: member.credentialsVersion }) }); if (live.current) {setMembers(current => current.map(item => item.id === member.id ? result : item));await load();} }
     catch (failure) { fail(failure); } finally { pending.current = false; if (live.current) setBusy(false); }
   }
   async function invitationAction(member: Member, action: "invitation" | "cancel" | "reset") {
-    if (pending.current || busy) return;
+    if (pending.current || busy || loading || !manageable.has(member.id)) return;
     if (action === "reset" && !window.confirm(`Reset access for ${member.displayName}? Their sessions, password and authenticator will be revoked. Verify their identity before sharing the new invitation.`)) return;
     if (action === "cancel" && !window.confirm(`Cancel the invitation for ${member.displayName}?`)) return;
     pending.current = true; setBusy(true); setError(""); setInvitation(null);
@@ -60,7 +84,7 @@ export function TeamMembers({ onBack, onSessionExpired, backLabel = "Back to pro
   }
   if (rolesOpen) return <TeamRoleProfiles members={members} onBack={() => {returnFromProfiles.current=true;setRolesOpen(false);}} onChanged={load} onExpired={onSessionExpired} onDirty={setProfileDirty} onBusy={setProfileBusy} />;
   return <section className="admin-panel"><button className="admin-text-button" disabled={busy} onClick={onBack}>{backLabel}</button><h1>Team members</h1><p>Create an account and choose its role. The recipient chooses their own password and sets up an authenticator. Managing or recovering another account requires permission for all of its retained grants; ask the owner if your role cannot do this.</p><OwnerError message={error} />
-    {canManageRoles && <button ref={roleProfilesButton} className="admin-secondary" disabled={busy} onClick={() => {if(formDirty && !window.confirm("Discard unsaved member details before opening role profiles?"))return;setFormDirty(false);setRolesOpen(true);}}>Manage custom role profiles</button>}
+    {canManageRoles && <button ref={roleProfilesButton} className="admin-secondary" disabled={busy || loading || !management} onClick={() => {if(formDirty && !window.confirm("Discard unsaved member details before opening role profiles?"))return;setFormDirty(false);setRolesOpen(true);}}>Manage custom role profiles</button>}
     {loading && <p role="status">Checking current member-management access…</p>}
     {!loading && management && !allowedRoles.length && <p>Your custom role cannot grant any full base role. Ask an authorised admin or the owner to provision the account.</p>}
     <form ref={creationForm} className="admin-form" onInput={()=>setFormDirty(true)} onSubmit={event => { event.preventDefault(); void create(event.currentTarget); }}><fieldset disabled={busy || loading || !allowedRoles.length}>

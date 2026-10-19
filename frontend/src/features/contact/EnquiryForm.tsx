@@ -5,13 +5,14 @@ import { enquiryIntents, useEnquiry } from "./EnquiryContext";
 import { ScopeFields } from "./ScopeFields";
 import { useFormFeedback } from "./useFormFeedback";
 import { maintenanceOptions, packages } from "../services/services";
+import { useNavigationProtection } from "../../app/NavigationProtection";
 
 type Feedback = { success: boolean; message: string; fieldErrors?: Record<string, string>; requestId?: string | null };
 const referenceTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "video/mp4", "video/webm", "video/quicktime"];
 const labels: Record<string, string> = { projectInterest: "Project reference", firstName: "Name", lastName: "Last name", email: "Email", phoneNumber: "Phone number", preferredContactPoint: "Contact method", message: "Message", intent: "Enquiry purpose", packageSelection: "Website starting point", maintenanceSelection: "Aftercare", otherAdditions: "Custom additions", websiteAddress: "Website address", expectedResult: "Expected result", reproductionSteps: "Steps to reproduce", referenceFiles: "Reference files" };
 
 export function EnquiryForm({ fromServices = false }: { fromServices?: boolean }) {
-  const { form, setForm, files, setFiles, sending, setSending, reset } = useEnquiry();
+  const { form, setForm, files, setFiles, sending, setSending, reset, submission, fileIdentity } = useEnquiry();
   const [status, setStatus] = useState<Feedback | null>(null);
   const [review, setReview] = useState(false);
   const [fileError, setFileError] = useState("");
@@ -21,8 +22,8 @@ export function EnquiryForm({ fromServices = false }: { fromServices?: boolean }
   const busy = useRef(false);
   const request = useRef<AbortController | null>(null);
   const mounted = useRef(true);
-  const submission = useRef<{ signature: string; key: string } | null>(null);
   const errors = status?.fieldErrors ?? {};
+  useNavigationProtection(sending,"Your enquiry is being sent. Leave before its result is confirmed? It may already have been received.");
   useFormFeedback(status);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; request.current?.abort(); setSending(false); }; }, [setSending]);
   useEffect(() => { if (review) reviewRef.current?.focus(); }, [review]);
@@ -54,10 +55,10 @@ export function EnquiryForm({ fromServices = false }: { fromServices?: boolean }
     Object.entries(payload).forEach(([name, value]) => body.append(name, value));
     files.forEach(file => body.append("referenceFiles", file));
     try {
-      const endpoint = fromServices || files.length ? "/api/services" : "/api/contact";
-      const signature = JSON.stringify([endpoint, payload, files.map(file => [file.name, file.type, file.size, file.lastModified])]);
-      if (!submission.current || submission.current.signature !== signature) submission.current = { signature, key: crypto.randomUUID() };
-      const response = await fetch(endpoint, { method: "POST", body, headers: { "Idempotency-Key": submission.current.key }, signal: controller.signal });
+      const signature = JSON.stringify([payload, files.map(file => [fileIdentity(file),file.name,file.type,file.size,file.lastModified])]);
+      if (!submission.current || submission.current.signature !== signature) submission.current = { signature, key: crypto.randomUUID(), endpoint:fromServices || files.length ? "/api/services" : "/api/contact" };
+      // An unchanged retry retains its original source/endpoint across Services and Contact.
+      const response = await fetch(submission.current.endpoint, { method: "POST", body, headers: { "Idempotency-Key": submission.current.key }, signal: controller.signal });
       const result = await response.json() as Feedback;
       if (!mounted.current) return;
       if (!response.ok || !result.success) setReview(false);

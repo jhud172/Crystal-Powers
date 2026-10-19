@@ -1,6 +1,6 @@
 # Company email setup for Crystal Powers 2.0
 
-The company address, domain, mailbox provider and legal operator are not supplied. Existing Resend/SMTP transports and enquiry contracts remain intact. Do not substitute an invented address or claim that a mailbox, DNS record or invitation delivery is live.
+James confirmed16October2026 that the legal/trading identity, public company email/domain, retention and included support terms are undecided. The actual mailbox/provider/administrators and approved operating facts remain unresolved. Existing Resend/SMTP transports and enquiry contracts remain intact. Do not substitute an invented address or claim that a mailbox, DNS record or invitation delivery is live.
 
 ## Setup and acceptance checklist
 
@@ -38,3 +38,13 @@ Team invitation snapshots now retain the issued member identity/revision for sta
 EmailTransport HTTPS response parsing now shares the original 15-second monotonic deadline through response-body reads, closes the stream at the remaining deadline using a bounded daemon timer, enforces an 8 KiB receipt cap and checks a textual non-empty provider receipt ID. Timer/stream cleanup is explicit on success/failure. Existing SMTP phase timeouts and provider endpoint/from/reply-to/attachment contracts remain. This is source implementation; blocking-stream cancellation/timer behaviour needs final runtime verification.
 
 Changed TSX syntax and whitespace inspection passed. No Java/frontend build, migration, actual HTTP/provider/SMTP/email/account/browser action or tests ran. Final acceptance includes source compiled contracts, stalled/slow/truncated/oversized/malformed provider receipts, timer/stream cleanup, private account recipient/version/invitation/permission races, disabled settings/origin, checkbox reset, uncertain/status recovery, role-profile/new-member dirty/busy switching, client invitation replacement and all widths/themes/focus/keyboard. Mailbox/DNS/provider facts and real authorised delivery remain external release gates. No audit checkbox was accepted.
+
+## Support reply delivery checkpoint — 16 October 2026
+
+Saved replies, private portal sharing and sending email remain separate actions. Support email claims now have private UUID attempt tokens (V61); only the current unexpired attempt can record accepted/unconfirmed status. Late results cannot overwrite replacement attempts. A result for an already dispatched action can be audited after role revocation, but its response requires current request access. Stored recipient and server-escaped content are used; tokens are not returned in staff message JSON.
+
+FAILED means the provider outcome was not confirmed, not proof that no email arrived. The UI requires staff to check recipient/provider records before deliberately retrying; fresh in-progress attempts cannot retry, and interrupted attempts can be offered after15 minutes. Transport idempotency is not an exactly-once delivery guarantee. No real recipient was contacted.90-test H2/PostgreSQL suites and48 labelled support UI fixture checks pass; real mailbox/DNS/provider delivery, uncertain SMTP/provider recovery, V61 backup/old-writer acceptance and operating facts remain unresolved.
+
+## Enquiry notification recovery — 16 October 2026
+
+V62 gives each public enquiry notification a private attempt token. Stale/reclaimed/expired callbacks cannot overwrite a newer result; unconfirmed outcomes keep the saved request/reference. Identical retries preserve provider identity and do not duplicate requests/files.95-test H2/PostgreSQL suites pass, with deterministic mocked notification callbacks and actual disabled-mail HTTP receipt/recovery checks. Matched V62 token/data/media restoration passes locally. Real mailbox/DNS/provider/bounce/SMTP uncertainty and old-writer acceptance remain open; these checks sent no actual email.

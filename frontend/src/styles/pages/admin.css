@@ -6,12 +6,16 @@
 .admin-signin h1 { margin: 25px 0; }
 .admin-signin > p:not(.studio-eyebrow) { color: var(--studio-muted); margin-bottom: 30px; }
 .admin-form { display: grid; gap: 25px; }
+.team-auth-fields { min-width: 0; display: grid; gap: 25px; border: 0; padding: 0; margin: 0; }
 .admin-form label { display: grid; gap: 9px; font-size: 13px; }
 .admin-studio input:not([type=checkbox]):not([type=radio]):not([type=file]), .admin-studio textarea, .admin-studio select { width: 100%; padding: 13px 15px; border: 1px solid var(--studio-line); background: var(--studio-raised); border-radius: 0; color: var(--studio-text); font: inherit; min-height: 48px; }
 .admin-studio textarea { resize: vertical; }
 .admin-studio select option { background: var(--studio-bg); }
 .admin-studio input[type=checkbox], .admin-studio input[type=radio] { width: 17px; height: 17px; accent-color: var(--studio-accent); flex-shrink: 0; }
 .admin-form small { font-size: 11px; line-height: 1.7; color: var(--studio-muted); }
+/* Shared primary action used throughout owner, team and client workflows. */
+.studio-shell .admin-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: .75rem 1.25rem; border: 1px solid var(--studio-text); border-radius: var(--studio-action-radius, .75rem); background: var(--studio-text); color: var(--studio-button-text); font: inherit; font-size: .875rem; line-height: 1.4; text-align: center; cursor: pointer; }
+.studio-shell .admin-primary:disabled { opacity: .45; cursor: not-allowed; }
 .admin-secondary { display: inline-flex; justify-content: center; align-items: center; padding: 11px 18px; min-height: 44px; border: 1px solid var(--studio-line); background: transparent; font-size: 12px !important; }
 .admin-text-button { border: 0; border-bottom: 1px solid var(--studio-line); padding: 8px 0; min-height: 44px; background: transparent; font-size: 12px !important; }
 .admin-signin > .admin-text-button { margin-top: 25px; }
@@ -44,7 +48,7 @@
 .admin-editor-toolbar .studio-device-tabs { flex: 1; }
 .admin-editor-grid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 70px; align-items: start; }
 .admin-fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.admin-publish-panel { position: sticky; top: 25px; padding: 25px; border: 1px solid var(--studio-line); }
+.admin-publish-panel { position: relative; padding: 25px; border: 1px solid var(--studio-line); }
 .admin-publish-panel h2 { margin-top: 20px; font-size: 30px; }
 .admin-publish-panel ul { list-style: none; padding: 20px 0; margin: 0; font-size: 12px; color: var(--studio-muted); line-height: 2.2; }
 .admin-publish-panel > p:not(.studio-eyebrow) { font-size: 11px; color: var(--studio-muted); margin-bottom: 20px; }
@@ -122,7 +126,7 @@
 .admin-code-field { display: grid; gap: 9px; font-size: 13px; }
 .admin-password-control { display: flex; border: 1px solid var(--studio-line); background: var(--studio-raised); }
 .admin-studio .admin-password-control input { border: 0 !important; background: transparent !important; min-width: 0; }
-.admin-password-toggle { border: 0; border-left: 1px solid var(--studio-line); background: transparent; padding: 0 15px; min-height: 48px; min-width: 64px; font-size: 12px; }
+.admin-password-toggle { flex: 0 0 auto; border: 0; border-left: 1px solid var(--studio-line); background: transparent; padding: 0 15px; min-height: 48px; min-width: 64px; font-size: 12px; }
 .admin-password-control:focus-within { outline: 2px solid var(--studio-accent); outline-offset: 3px; }
 .owner-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); list-style: none; padding: 0; gap: 12px; margin: 30px 0; font-size: 11px; color: var(--studio-muted); }
 .owner-steps li { border-top: 2px solid var(--studio-line); padding-top: 10px; overflow-wrap: anywhere; }
@@ -149,7 +153,7 @@
 .admin-address-preview code { overflow-wrap: anywhere; }
 @media (max-width: 600px) { .admin-project-identity { align-items: start; gap: 15px; width: 100%; } .admin-project-thumbnail { width: 70px; height: 80px; } .admin-projects .admin-project-actions { gap: 12px; } .admin-title-button { font-size: 20px !important; } .admin-collection-controls > label, .admin-sort-field { width: 100%; } }
 
-.admin-editor-toolbar { position: sticky; top: 0; z-index: 10; background: var(--studio-bg); padding: 18px 0; border-block: 1px solid var(--studio-line); flex-wrap: wrap; }
+.admin-editor-toolbar { position: relative; z-index: 10; background: var(--studio-bg); padding: 18px 0; border-block: 1px solid var(--studio-line); flex-wrap: wrap; }
 .admin-toolbar-identity { width: 100%; font-size: 14px; overflow-wrap: anywhere; }
 .admin-toolbar-identity span { display: block; font-size: 11px; color: var(--studio-muted); margin-top: 8px; }
 .admin-readiness-link { display: grid; grid-template-columns: 16px 1fr; gap: 5px 8px; width: 100%; text-align: left; min-height: 48px; background: transparent; border: 0; border-bottom: 1px solid var(--studio-line); padding: 10px 0; font-size: 12px; line-height: 1.4; }
@@ -163,6 +167,17 @@
 .admin-publish-review p { font-size: 13px; line-height: 1.8; margin-bottom: 20px; overflow-wrap: anywhere; }
 .admin-review-actions { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 25px; }
 .admin-revisions time { font-size: 11px; color: var(--studio-muted); }
+@media (min-width: 761px) and (min-height: 721px) {
+  .admin-editor[data-measured-toolbar="true"] .admin-editor-toolbar { position: sticky; top: 0; }
+  .admin-editor[data-measured-toolbar="true"] .admin-publish-panel {
+    position: sticky;
+    top: calc(var(--admin-toolbar-height) + 16px);
+    max-height: calc(100dvh - var(--admin-toolbar-height) - 32px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .admin-editor[data-measured-toolbar="true"] :is(button, input, select, textarea, summary, a) { scroll-margin-block-start: calc(var(--admin-toolbar-height) + 24px); }
+}
 .owner-shell .admin-studio.studio-section { padding-top: 32px; padding-bottom: 56px; }
 .owner-shell .admin-topbar { padding-bottom: 18px; margin-bottom: 28px; gap: 14px 24px; }
 .owner-shell .admin-editor > h1 { font-size: clamp(28px, 3vw, 44px); }
@@ -178,3 +193,13 @@
 
 .admin-team-project-access { border-top: 1px solid var(--studio-line); margin-top: 28px; padding-top: 24px; }
 .admin-team-project-access h3 { font-size: 18px; margin-bottom: 14px; }
+
+.team-account-security { margin-top: 32px; border-top: 1px solid var(--studio-line); padding-top: 32px; }
+.team-security-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 20px; }
+.team-security-actions button[aria-pressed=true] { border-color: var(--studio-accent); background: var(--studio-raised); }
+.team-account-security .team-auth-fields legend { margin-bottom: 20px; font-size: 18px; }
+.team-account-security .admin-password-control { display: grid; grid-template-columns: minmax(0, 1fr) auto; border-color: var(--studio-control-line); border-radius: .5rem; }
+.team-account-security .admin-password-control input { width: 100%; min-width: 0; min-height: 48px; padding: 13px 15px; border: 0; background: transparent; color: var(--studio-text); font: inherit; }
+.team-account-security .admin-password-toggle { width: 64px; text-align: center; }
+.team-account-security .admin-code-field input { width: 100%; min-width: 0; min-height: 48px; padding: 13px 15px; border: 1px solid var(--studio-control-line); border-radius: .5rem; background: var(--studio-raised); color: var(--studio-text); font: inherit; }
+.team-account-security input:disabled { opacity: .6; cursor: not-allowed; }

@@ -20,7 +20,7 @@ public class BillingHistoryService {
     private final StripeGateway stripe;
     private final SupportRepository requests;
     public BillingHistoryService(TeamAccessService access,BillingRepository bills,BillingFlowRepository flow,BillingHistoryRepository history,StripeGateway stripe,SupportRepository requests) { this.access=access;this.bills=bills;this.flow=flow;this.history=history;this.stripe=stripe;this.requests=requests; }
-    @Transactional(readOnly=true) public Page page(Authentication auth,UUID request,UUID bill,String before) {
+    @Transactional public Page page(Authentication auth,UUID request,UUID bill,String before) {
         var actor=access.resolve(auth);actor.require(TeamPermission.READ_SUPPORT);requests.request(actor.workspaceId(),request,false).orElseThrow(BillingHistoryService::missing);var draft=bills.draft(bill).orElseThrow(BillingHistoryService::missing);
         if(!draft.workspaceId().equals(actor.workspaceId()) || !draft.requestId().equals(request))throw missing();
         var intent=flow.intent(bill,false).orElseThrow(BillingHistoryService::missing);if(intent.liveMode()!=stripe.liveMode())throw missing();Long cursor=null;

@@ -21,7 +21,7 @@ class TeamMemberAuthorityTests {
         var actor=new TeamAccessService.Actor(workspace,null,UUID.randomUUID(),"Delegated manager",LIMITED);
         var profiles=mock(TeamRoleProfileRepository.class);when(profiles.assigned(target)).thenReturn(Optional.empty());
         var authority=new TeamMemberAuthority(new TeamRoleResolver(profiles));
-        var access=mock(TeamAccessService.class);var auth=mock(Authentication.class);when(access.resolve(auth)).thenReturn(actor);
+        var access=mock(TeamAccessService.class);var auth=mock(Authentication.class);when(access.resolve(auth)).thenReturn(actor);when(access.resolveLocked(auth)).thenReturn(actor);
         var accounts=mock(TeamIdentityRepository.class);
         when(accounts.member(workspace,target)).thenReturn(Optional.of(new TeamIdentityRepository.Member(target,workspace,"admin@example.invalid","Administrator",TeamRole.ADMIN,"INVITED",0)));
         var service=new TeamMemberService(access,accounts,mock(OwnerRepository.class),authority);

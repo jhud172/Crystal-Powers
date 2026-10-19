@@ -25,30 +25,30 @@ public class TeamProjectService {
     private final com.fasterxml.jackson.databind.ObjectMapper json;
     public TeamProjectService(ProjectRepository projects,TeamAccessService access,ProjectService editing,TeamIdentityRepository identities,com.fasterxml.jackson.databind.ObjectMapper json) { this.projects=projects;this.access=access;this.editing=editing;this.identities=identities;this.json=json; }
     private TeamAccessService.Actor reader(Authentication auth) { var actor=access.resolve(auth);actor.require(TeamPermission.EDIT_PROJECTS);return actor; }
-    @Transactional(readOnly=true)
+    @Transactional
     public List<ProjectView> list(Authentication auth) { return projects.workspaceDrafts(reader(auth).workspaceId()); }
     public record Overview(String actorScope,List<ProjectView> projects) {}
-    @Transactional(readOnly=true)
+    @Transactional
     public Overview overview(Authentication auth) { var actor=reader(auth);return new Overview(actor.memberId()!=null ? "TEAM:"+actor.memberId() : "OWNER:"+actor.ownerId(),projects.workspaceDrafts(actor.workspaceId())); }
     public record Page(String actorScope,List<ProjectView> projects,String nextCursor,long total) {}
-    @Transactional(readOnly=true)
+    @Transactional
     public Page page(Authentication auth,String before) {
         var actor=reader(auth);ProjectRepository.ProjectAnchor cursor=null;
         if(before!=null){UUID id;try{id=UUID.fromString(before);if(!id.toString().equals(before))throw new IllegalArgumentException();}catch(IllegalArgumentException failure){throw missing();}cursor=projects.workspaceAnchor(actor.workspaceId(),id).orElseThrow(TeamProjectService::missing);}
         var rows=projects.workspacePage(actor.workspaceId(),cursor);boolean more=rows.size()>50;var items=more ? rows.subList(0,50) : rows;
         return new Page(actor.memberId()!=null ? "TEAM:"+actor.memberId() : "OWNER:"+actor.ownerId(),items,more ? items.get(items.size()-1).id().toString() : null,projects.workspaceTotal(actor.workspaceId()));
     }
-    @Transactional(readOnly=true)
+    @Transactional
     public ProjectService.RevisionPage revisionPage(Authentication auth,UUID id,Integer before) { draft(auth,id);return editing.revisionPage(id,before); }
-    @Transactional(readOnly=true)
+    @Transactional
     public ProjectView draft(Authentication auth,UUID id) { return projects.workspaceDraft(reader(auth).workspaceId(),id).orElseThrow(TeamProjectService::missing); }
     public record Detail(String actorScope,ProjectView project) {}
-    @Transactional(readOnly=true)
+    @Transactional
     public Detail detail(Authentication auth,UUID id) { var actor=reader(auth);return new Detail(actor.memberId()!=null ? "TEAM:"+actor.memberId() : "OWNER:"+actor.ownerId(),projects.workspaceDraft(actor.workspaceId(),id).orElseThrow(TeamProjectService::missing)); }
-    @Transactional(readOnly=true)
+    @Transactional
     public List<ProjectRepository.Revision> revisions(Authentication auth,UUID id) { draft(auth,id);return projects.revisions(id); }
     private TeamAccessService.Actor writer(Authentication auth,UUID id,boolean publishing) {
-        var actor=reader(auth);identities.lockWorkspace(actor.workspaceId());actor=reader(auth);if(publishing)actor.require(TeamPermission.PUBLISH_PROJECTS);
+        var actor=reader(auth);identities.lockWorkspace(actor.workspaceId());actor=access.resolveLocked(auth);actor.require(TeamPermission.EDIT_PROJECTS);if(publishing)actor.require(TeamPermission.PUBLISH_PROJECTS);
         var scope=projects.lockTeamScope(id).orElseThrow(TeamProjectService::missing);if(!actor.workspaceId().equals(scope.workspaceId()))throw missing();return actor;
     }
     @Transactional
@@ -57,7 +57,7 @@ public class TeamProjectService {
     private void recheck(Authentication auth,UUID id,boolean publishing) { var actor=reader(auth);if(publishing)actor.require(TeamPermission.PUBLISH_PROJECTS);projects.workspaceDraft(actor.workspaceId(),id).orElseThrow(TeamProjectService::missing); }
     @Transactional
     public ProjectView create(Authentication auth,UUID submissionKey,String slug,ProjectContent content) {
-        var actor=reader(auth);identities.lockWorkspace(actor.workspaceId());actor=reader(auth);
+        var actor=reader(auth);identities.lockWorkspace(actor.workspaceId());actor=access.resolveLocked(auth);actor.require(TeamPermission.EDIT_PROJECTS);
         if(submissionKey==null)throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"A project submission reference is required.");
         String fingerprint=fingerprint(slug,content);var existing=projects.creation(submissionKey);
         if(existing.isPresent()){
@@ -95,6 +95,8 @@ public class TeamProjectService {
     public Scope assign(Authentication auth,UUID id,boolean enabled,Instant expectedUpdatedAt) {
         var actor=access.resolve(auth);if(actor.ownerId()==null)throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Only the protected owner can change project workspace access.");
         identities.lockWorkspace(actor.workspaceId());
+        actor=access.resolveLocked(auth);
+        if(actor.ownerId()==null)throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Only the protected owner can change project workspace access.");
         var current=projects.lockTeamScope(id).orElseThrow(TeamProjectService::missing);
         if(current.workspaceId()!=null && !current.workspaceId().equals(actor.workspaceId()))throw missing();
         if(expectedUpdatedAt==null || !current.updatedAt().equals(expectedUpdatedAt))throw new ResponseStatusException(HttpStatus.CONFLICT,"This project changed. Reload before changing team access.");

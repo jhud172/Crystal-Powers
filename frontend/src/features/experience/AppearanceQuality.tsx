@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { RenderQuality } from "./renderQuality";
 
 const options = [
-  { value: "automatic", label: "Automatic", detail: "Balanced detail for this screen" },
+  { value: "automatic", label: "Automatic", detail: "Adapts detail during sustained animation" },
   { value: "low", label: "Lighter", detail: "Gentler reflections · uses less power" },
   { value: "standard", label: "Balanced", detail: "Rich materials and smooth exploration" },
   { value: "high", label: "Detailed", detail: "Sharper reflections · uses more power" },

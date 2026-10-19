@@ -101,7 +101,7 @@ Repeat backup verification regularly and rehearse restoration after schema or st
 
 ## Current 2.0 source additions - acceptance pending
 
-Source now contains V1-V60, not just the original three migrations. Team/client accounts, scoped channel conversations and attachments, support/client communication, delegated projects, billing/refund operations and invitation delivery are connected in source. None of this establishes that the current candidate has been compiled, migrated or accepted in production. The chronological source checkpoints formerly below are retained in [candidate/deployment history](archive/RELEASE_CANDIDATE_HISTORY_2026_10_12.md).
+Source now contains V1-V62, not just the original three migrations. Team/client accounts, scoped channel conversations and attachments, support/client communication, delegated projects, billing/refund operations and invitation delivery are connected in source. None of this establishes that the current candidate has been compiled, migrated or accepted in production. The chronological source checkpoints formerly below are retained in [candidate/deployment history](archive/RELEASE_CANDIDATE_HISTORY_2026_10_12.md).
 
 | Setting area | Current contract |
 | --- | --- |
@@ -117,6 +117,29 @@ Source now contains V1-V60, not just the original three migrations. Team/client 
 
 Use actual [.env.example](../.env.example) and application properties for variable names/defaults; do not expose real values. [Team scope](TEAM_HUB_2_0.md), [client operations](CLIENT_OPERATIONS_2_0.md) and [email setup](COMPANY_EMAIL_SETUP_2_0.md) describe feature contracts and outstanding real facts. [Current release readiness](RELEASE_CANDIDATE_2_0.md) owns the full verification and rollback sequence.
 
-Include all present owner/project/team/client/support/upload/billing/financial/refund tables in a matched private backup. New optional tables/columns are included by the current backup helper; earlier snapshots must not be described as containing later data. Rehearse V1-V60 migration, RLS/revokes, indexes, concurrency and database/media restore on disposable targets. An older V1-V3 application/jar is not a proven rollback against the new schema. Do not reset production history/data to make an old application start.
+Include all present owner/project/team/client/support/upload/billing/financial/refund tables in a matched private backup. New optional tables/columns are included by the current backup helper; earlier snapshots must not be described as containing later data. Rehearse V1-V62 migration, RLS/revokes, indexes, concurrency and database/media restore on disposable targets. An older V1-V3 application/jar is not a proven rollback against the new schema. Do not reset production history/data to make an old application start.
 
-No actual migration, scan, account/email/payment/refund/publication, DNS/provider or deployment operation occurred during this source-documentation reconciliation. Full build/tests remain deferred until implementation completion under James's instruction.
+No actual migration, scan, account/email/payment/refund/publication, DNS/provider or deployment operation occurred during this source-documentation reconciliation. That statement describes the earlier documentation-only checkpoint; current local build/test/recovery evidence is recorded below and in the release candidate document.
+
+## Current local notification/recovery evidence — 16 October 2026
+
+V61/V62 add private per-attempt reply/enquiry email tokens. Stop prior app writers before migrating/enabling these changes: an older writer does not honour the token completion guard. Existing data/history is preserved; an older application against this schema is not an accepted rollback.
+
+Full local H2/PostgreSQL suites95/0/0/0, V60→V62 preserved-data upgrade and matched45-table/116-row/database/media/schema/sequence restoration pass with the recorded jar. Both current and restored private browser-role boundaries pass, including a target deliberately given permissive default grants. Earlier owner-auth/device/provider/live evidence keeps its original package scope. No production deployment or real provider/email/payment action happened in this verification.
+
+The guarded local restore helper uses --no-acl, then explicitly revokes PUBLIC and existing anon/authenticated grants on the restored private tables/sequences. --no-acl alone does not prevent target default grants from exposing restored objects. For an operator-led real restore, verify effective grants and RLS before reopening traffic, preserving the intended backend access. The script still only restores into an empty crystal_restore_* target on127.0.0.1:55432 with a new media directory; it does not restore production automatically. Verify encryption keys separately and account for emails/payments completed outside the database before choosing a recovery point.
+
+
+## Disposable populated recovery lab
+
+`scripts/verify-populated-recovery.py` requires retained local current and fallback JARs, fresh `crystal_rebuild_test_recovery_*` / `crystal_restore_*` database names, PostgreSQL CLI tools and the owned server on127.0.0.1:55432. It creates new databases only, refuses occupied8084/output directories, stops only its own Java child, disables config imports/provider secrets/workers and keeps synthetic passwords/TOTP secrets in memory. It does not read `.env`. Repeating a run requires fresh names; it never drops/overwrites a database to make a test pass.
+
+Example using the retained19October artifacts (choose unused run/database names):
+
+```powershell
+python scripts/verify-populated-recovery.py --candidate .codex-runtime/qa/candidates/6ec0dbed08f7b1ccbd59db504c7d2336e1d1734111b09aba478cc70a3b13afcf.jar --rollback-candidate .codex-runtime/qa/candidates/rollback-hotfix-a86b477b15d6-6ec0dbed08f7.jar --source crystal_rebuild_test_recovery_20261019_03 --target crystal_restore_populated_20261019_03 --run populated-recovery-20261019-03
+```
+
+The fallback above is the previous frontend with a reviewed owner-read transaction hotfix backported by `prepare-rollback-candidate.py`. That helper permits only the explicit service-class allowlist, requires identical migrations/dependencies, verifies all other archive entries and preserves originals. It refuses existing output files; reuse the verified artifact/metadata rather than overwriting it. This local V62 compatibility proof is not an old-schema downgrade or approval to deploy the original unpatched prior candidate.
+
+Candidates/backups/evidence are ignored local artifacts and do not travel with a Git push. Reproduction elsewhere requires retained/rebuilt candidates and the local PostgreSQL lab. Do not commit those binaries or fixtures. Actual production recovery still uses its authorised database/media backup and separately retained original encryption key; provider, operating-fact and deployed acceptance remains governed by the release checklist.

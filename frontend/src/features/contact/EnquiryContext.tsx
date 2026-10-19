@@ -1,4 +1,4 @@
-import { createContext, Dispatch, PropsWithChildren, SetStateAction, useContext, useState } from "react";
+import { createContext, Dispatch, PropsWithChildren, SetStateAction, useContext, useRef, useState, type MutableRefObject } from "react";
 import { ContactFormState, initialContactForm } from "./FormFields";
 
 export const enquiryIntents = [
@@ -20,6 +20,8 @@ type Brief = {
   setFiles: Dispatch<SetStateAction<File[]>>;
   sending: boolean;
   setSending: Dispatch<SetStateAction<boolean>>;
+  submission: MutableRefObject<{signature:string;key:string;endpoint:string} | null>;
+  fileIdentity: (file:File) => string;
   reset: (keepIntent?: boolean) => void;
 };
 const EnquiryContext = createContext<Brief | null>(null);
@@ -29,7 +31,10 @@ export function EnquiryProvider({ children }: PropsWithChildren) {
   const [form, setForm] = useState(initialContactForm);
   const [files, setFiles] = useState<File[]>([]);
   const [sending, setSending] = useState(false);
-  return <EnquiryContext.Provider value={{ form, setForm, files, setFiles, sending, setSending, reset: (keepIntent = false) => { setForm(current => ({ ...initialContactForm, ...(keepIntent ? { intent: current.intent } : {}) })); setFiles([]); } }}>{children}</EnquiryContext.Provider>;
+  const submission=useRef<{signature:string;key:string;endpoint:string} | null>(null);
+  const fileIds=useRef(new WeakMap<File,string>());
+  function fileIdentity(file:File){let id=fileIds.current.get(file);if(!id){id=crypto.randomUUID();fileIds.current.set(file,id);}return id;}
+  return <EnquiryContext.Provider value={{ form, setForm, files, setFiles, sending, setSending, submission, fileIdentity, reset: (keepIntent = false) => { submission.current=null;fileIds.current=new WeakMap();setForm(current => ({ ...initialContactForm, ...(keepIntent ? { intent: current.intent } : {}) })); setFiles([]); } }}>{children}</EnquiryContext.Provider>;
 }
 
 export function useEnquiry() {

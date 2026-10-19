@@ -20,6 +20,10 @@
 @import "./pages/support-inbox.css";
 @import "./pages/navigation.css";
 @import "./pages/brand-identity.css";
+@import "./base/liquid-controls.css";
+@import "./base/liquid-surfaces.css";
+@import "./pages/liquid-composition.css";
+@import "./pages/workspace-design.css";
 
 html { scroll-behavior: smooth; }
 body { margin: 0; min-width: 320px; background: #0b1018; }

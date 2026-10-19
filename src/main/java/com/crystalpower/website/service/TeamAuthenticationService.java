@@ -37,9 +37,20 @@ public class TeamAuthenticationService {
     public Credentials current(UUID id, int version, boolean lock) {
         return teams.credentials(id, lock).filter(value -> value.member().state().equals("ACTIVE") && value.member().credentialsVersion() == version && roles.usable(value.member())).orElseThrow(TeamAuthenticationService::unauthorised);
     }
+    /** Match administrative workspace -> account write order, including audit foreign keys. */
+    public Credentials lockedCurrent(UUID id, int version) {
+        var candidate = current(id, version, false);
+        teams.lockWorkspace(candidate.member().workspaceId());
+        return current(id, version, true);
+    }
     @Transactional
     public String setup(UUID id, int version) {
-        Credentials current = current(id, version, true);
+        return setup(id, version, Instant.now().getEpochSecond() + 300);
+    }
+    @Transactional
+    public String setup(UUID id, int version, long expiresAt) {
+        Credentials current = lockedCurrent(id, version);
+        requireUnexpired(expiresAt);
         if (current.mfaEnabled()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "The authenticator is already configured.");
         if (current.encryptedTotp() == null) {
             String secret = totp.createSecret(); teams.setAuthenticator(id, vault.encrypt(secret)); return secret;
@@ -48,7 +59,12 @@ public class TeamAuthenticationService {
     }
     @Transactional
     public TeamPrincipal verify(UUID id, int version, String code) {
-        Credentials current = current(id, version, true);
+        return verify(id, version, code, Instant.now().getEpochSecond() + 300);
+    }
+    @Transactional
+    public TeamPrincipal verify(UUID id, int version, String code, long expiresAt) {
+        Credentials current = lockedCurrent(id, version);
+        requireUnexpired(expiresAt);
         if (current.encryptedTotp() == null) throw unauthorised();
         var step = totp.verify(vault.decrypt(current.encryptedTotp()), code, current.lastTotpStep(), Instant.now());
         if (step.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The authenticator code was not accepted. Try a new code.");
@@ -60,6 +76,9 @@ public class TeamAuthenticationService {
     }
     public boolean valid(TeamPrincipal principal) {
         return teams.credentials(principal.id(), false).filter(value -> value.mfaEnabled() && value.member().state().equals("ACTIVE") && value.member().credentialsVersion() == principal.credentialsVersion() && value.member().workspaceId().equals(principal.workspaceId()) && roles.usable(value.member())).isPresent();
+    }
+    private static void requireUnexpired(long expiresAt) {
+        if (expiresAt <= Instant.now().getEpochSecond()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sign in again to continue.");
     }
     private static ResponseStatusException unauthorised() { return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sign-in details were not accepted. Check them or ask your admin for help."); }
 }

@@ -11,20 +11,26 @@ export function ChannelPreferences({ channelId, disabled, onSaved, onExpired, on
   const [open, setOpen] = useState(false), [saved, setSaved] = useState<ChannelPreference | null>(null), [draft, setDraft] = useState<ChannelPreference | null>(null);
   const [loading, setLoading] = useState(false), [busy, setBusy] = useState(false), [error, setError] = useState(""), [notice, setNotice] = useState("");
   const live = useRef(true), pending = useRef(false), generation = useRef(0);
+  const request = useRef<AbortController | null>(null);
   const callbacks = useRef({ onDirty, onBusy }); callbacks.current = { onDirty, onBusy };
   const dirty = !!saved && !!draft && (saved.unreadBadges !== draft.unreadBadges || saved.mentionAlerts !== draft.mentionAlerts || saved.favourite !== draft.favourite);
   useNavigationProtection(dirty || busy, "Leave this channel and discard unsaved preferences or an unconfirmed save?");
   useEffect(() => { callbacks.current.onDirty(dirty); return () => callbacks.current.onDirty(false); }, [dirty]);
   useEffect(() => { callbacks.current.onBusy(busy); return () => callbacks.current.onBusy(false); }, [busy]);
   function fail(failure: unknown) { if (live.current) { setError((failure as Error).message); if (failure instanceof ApiError && failure.status === 401) onExpired(); } }
-  async function load(signal?: AbortSignal) {
+  async function load() {
+    request.current?.abort();
+    const abort = new AbortController(); request.current = abort;
     const current = ++generation.current; setLoading(true);
-    try { const result = await api<ChannelPreference>(`/api/team/settings/channels/${channelId}`, { signal }); if (live.current && current === generation.current) { setSaved(result); setDraft(result); setError(""); onSaved(result); } }
+    try { const result = await api<ChannelPreference>(`/api/team/settings/channels/${channelId}`, { signal: abort.signal }); if (live.current && current === generation.current) { setSaved(result); setDraft(result); setError(""); onSaved(result); } }
     catch (failure) { if (current === generation.current && !(failure instanceof DOMException && failure.name === "AbortError")) fail(failure); }
-    finally { if (live.current && current === generation.current) setLoading(false); }
+    finally { if (live.current && current === generation.current) setLoading(false); if (request.current === abort) request.current = null; }
   }
-  useEffect(() => { live.current = true; return () => { live.current = false; ++generation.current; }; }, []);
-  useEffect(() => { if (!open || saved) return; const abort = new AbortController(); void load(abort.signal); return () => { abort.abort(); ++generation.current; }; }, [open]);
+  useEffect(() => { live.current = true; return () => { live.current = false; request.current?.abort(); ++generation.current; }; }, []);
+  useEffect(() => {
+    if (!open) { request.current?.abort(); ++generation.current; setLoading(false); return; }
+    if (!saved) void load();
+  }, [open]);
   async function save() {
     if (pending.current || disabled || !draft || !saved) return;
     pending.current = true; setBusy(true); setError(""); setNotice(""); ++generation.current;

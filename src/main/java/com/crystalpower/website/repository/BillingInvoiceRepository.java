@@ -20,6 +20,9 @@ public class BillingInvoiceRepository {
         if(!existing.get().billId().equals(bill))throw new IllegalStateException("Invoice ownership changed");
         db.update("UPDATE billing_invoice_sync SET fingerprint=?,state='PENDING',cursor_id=NULL,lease_token=NULL,lease_until=NULL,failure_count=0,retry_after=CURRENT_TIMESTAMP,last_failure_at=NULL,version=version+1,updated_at=CURRENT_TIMESTAMP WHERE invoice_id=? AND fingerprint<>?",fingerprint,invoice,fingerprint);
     }
+    public boolean dueNow(String invoice,int version) {
+        return Boolean.TRUE.equals(db.queryForObject("SELECT COUNT(*)>0 FROM billing_invoice_sync WHERE invoice_id=? AND version=? AND failure_count<10 AND retry_after<=CURRENT_TIMESTAMP",Boolean.class,invoice,version));
+    }
     public boolean lease(String invoice,int version,UUID token,OffsetDateTime now) { return db.update("UPDATE billing_invoice_sync SET state='RUNNING',lease_token=?,lease_until=?,version=version+1,updated_at=CURRENT_TIMESTAMP WHERE invoice_id=? AND version=? AND (state IN ('PENDING','ERROR') OR (state='RUNNING' AND lease_until<?))",token,now.plusMinutes(5),invoice,version,now)==1; }
     public void finish(String invoice,UUID token,String cursor,boolean more) { if(db.update("UPDATE billing_invoice_sync SET state=?,cursor_id=?,lease_token=NULL,lease_until=NULL,failure_count=0,retry_after=CURRENT_TIMESTAMP,version=version+1,updated_at=CURRENT_TIMESTAMP WHERE invoice_id=? AND lease_token=?",more ? "PENDING" : "DONE",cursor,invoice,token)!=1)throw new IllegalStateException("Invoice lease changed"); }
     public void fail(String invoice,UUID token) {
@@ -35,7 +38,7 @@ public class BillingInvoiceRepository {
     }
     public boolean restart(String invoice,int version) { return db.update("UPDATE billing_invoice_sync SET state='PENDING',cursor_id=NULL,lease_token=NULL,lease_until=NULL,failure_count=0,retry_after=CURRENT_TIMESTAMP,last_failure_at=NULL,version=version+1,updated_at=CURRENT_TIMESTAMP WHERE invoice_id=? AND version=? AND (state<>'RUNNING' OR lease_until<CURRENT_TIMESTAMP)",invoice,version)==1; }
     public void allocation(String id,String invoice,String kind,String reference,String state,long requested,Long paid) {
-        int changed=db.update("UPDATE billing_invoice_allocation SET payment_kind=?,payment_reference=?,state=?,requested_pence=?,paid_pence=?,updated_at=CURRENT_TIMESTAMP WHERE allocation_id=? AND invoice_id=? AND payment_kind=? AND (payment_reference=? OR (payment_reference IS NULL AND ? IS NULL))",kind,reference,state,requested,paid,id,invoice,kind,reference,reference);
+        int changed=db.update("UPDATE billing_invoice_allocation SET payment_kind=?,payment_reference=?,state=?,requested_pence=?,paid_pence=?,updated_at=CURRENT_TIMESTAMP WHERE allocation_id=? AND invoice_id=? AND payment_kind=? AND payment_reference IS NOT DISTINCT FROM ?",kind,reference,state,requested,paid,id,invoice,kind,reference);
         if(changed==0)db.update("INSERT INTO billing_invoice_allocation(allocation_id,invoice_id,payment_kind,payment_reference,state,requested_pence,paid_pence) VALUES(?,?,?,?,?,?,?)",id,invoice,kind,reference,state,requested,paid);
     }
     public List<Job> jobs(UUID bill,String after) { return db.query("SELECT * FROM billing_invoice_sync WHERE bill_id=? AND invoice_id>? ORDER BY invoice_id LIMIT 51",jobs,bill,after==null ? "" : after); }

@@ -1,13 +1,13 @@
 import { BrandIdentity } from "../features/experience/BrandIdentity";
 import { PrivacyLink } from "../features/privacy/PrivacyPublication";
-import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, PropsWithChildren, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { NavLink, useLocation, useNavigationType } from "react-router-dom";
 import { defaultTheme, getThemeAssets, isThemeId, navItems, ThemeAssets, ThemeId, themes } from "../data/site";
 import { MotionScope } from "../features/experience/MotionScope";
 import { ExperienceProvider } from "../features/experience/ExperienceContext";
 import { useEffectsPreference } from "../hooks/useEffectsPreference";
 import { AppearanceQuality } from "../features/experience/AppearanceQuality";
-import { THREE_D_SCREEN_QUERY } from "../features/experience/renderQuality";
+import { THREE_D_SCREEN_QUERY } from "../features/experience/screenPolicy";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { RouteMetadata } from "./RouteMetadata";
 
@@ -39,19 +39,30 @@ export function Layout({ children, owner = false }: PropsWithChildren<{ owner?: 
   const menuButton = useRef<HTMLButtonElement>(null);
   const appearanceButton = useRef<HTMLButtonElement>(null);
   const main = useRef<HTMLElement>(null);
-  const firstRoute = useRef(true);
+  const previousPath = useRef<string | null>(null);
   const light = ["clean", "fresh", "summer-vibes"].includes(theme);
   const value = useMemo(() => ({ theme, assets: getThemeAssets(theme) }), [theme]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    // Commit related foreground/background roles together. Hover transitions
+    // otherwise interpolate an old surface under the new foreground colour.
+    document.body.classList.add("theme-changing");
     document.body.dataset.theme = theme;
     document.body.classList.add("theme-ready");
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", themes.find(item => item.id === theme)!.color);
     document.cookie = `crystal_theme=${encodeURIComponent(theme)}; Max-Age=31536000; Path=/; SameSite=Lax`;
+    let settledFrame = 0;
+    const firstFrame = requestAnimationFrame(() => { settledFrame = requestAnimationFrame(() => document.body.classList.remove("theme-changing")); });
+    return () => { cancelAnimationFrame(firstFrame); cancelAnimationFrame(settledFrame); document.body.classList.remove("theme-changing"); };
   }, [theme, light]);
   useEffect(() => {
+    // Query-only builder/history changes own their field and heading focus.
+    // A POP/PUSH change alone must not move it to the shared main element.
+    if (previousPath.current === location.pathname) return;
+    const firstRoute = previousPath.current === null;
+    previousPath.current = location.pathname;
     setMenuOpen(false); setAppearanceOpen(false);
-    if (firstRoute.current) { firstRoute.current = false; return; }
+    if (firstRoute) return;
     if (navigationType !== "POP") window.scrollTo({ top: 0, behavior: "instant" });
     main.current?.focus({ preventScroll: true });
   }, [location.pathname, navigationType]);
@@ -64,13 +75,23 @@ export function Layout({ children, owner = false }: PropsWithChildren<{ owner?: 
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
   }, [menuOpen, appearanceOpen]);
+  useEffect(() => {
+    if (!menuOpen && !appearanceOpen) return;
+    const outside = (event: PointerEvent) => {
+      if (!(event.target instanceof Node)) return;
+      if (appearanceOpen && !document.getElementById("appearance-panel")?.contains(event.target) && !appearanceButton.current?.contains(event.target)) setAppearanceOpen(false);
+      if (menuOpen && !document.getElementById("studio-mobile-menu")?.contains(event.target) && !menuButton.current?.contains(event.target)) setMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", outside);
+    return () => document.removeEventListener("pointerdown", outside);
+  }, [menuOpen, appearanceOpen]);
 
   return <SiteThemeContext.Provider value={value}><ExperienceProvider reduceEffects={reduceEffects} renderQuality={renderQuality}>
     <RouteMetadata />
     <MotionScope animateRoutes={!owner} className={`studio-shell${owner ? " owner-shell" : ""}`} data-appearance={light ? "light" : "dark"} data-reduced-effects={reduceEffects}>
       <a className="studio-skip" href="#main-content">Skip to content</a>
       <header className="studio-header">
-        {owner ? <NavLink to={location.pathname === "/team" || location.pathname.startsWith("/team/") ? "/team" : location.pathname === "/client" || location.pathname.startsWith("/client/") ? "/client" : owner ? "/admin" : "/"} className="studio-brand" aria-label={owner ? "Crystal Powers private workspace" : "Crystal Powers home"}><img className="brand-private-emblem" src="/branding/crystal-powers-emblem.webp" alt="" width={26} height={40} /><span>CRYSTAL<br />POWERS</span></NavLink> : <BrandIdentity />}
+        {owner ? <NavLink to={location.pathname === "/team" || location.pathname.startsWith("/team/") ? "/team" : location.pathname === "/client" || location.pathname.startsWith("/client/") ? "/client" : owner ? "/admin" : "/"} className="studio-brand" aria-label={owner ? "Crystal Powers private workspace" : "Crystal Powers home"}><img className="brand-private-emblem" src="/branding/crystal-powers-liquid-mark.svg" alt="" width={26} height={40} /><span>CRYSTAL<br />POWERS</span></NavLink> : <BrandIdentity />}
         {owner ? <p className="owner-workspace-label">Private workspace</p> : <nav className="studio-desktop-nav" aria-label="Primary navigation">{navItems.map(item => <NavLink key={item.href} to={item.href}>{item.label}</NavLink>)}</nav>}
         <div className="studio-header-actions">
           <div className="studio-appearance">

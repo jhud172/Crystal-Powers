@@ -25,9 +25,10 @@ public class RefundDraftService {
     private final BillingLedgerRepository ledger;
     private final RefundRepository refunds;
     private final StripeGateway stripe;
-    public RefundDraftService(TeamAccessService access,TeamIdentityRepository teams,SupportRepository support,BillingRepository bills,BillingFlowRepository flow,BillingLedgerRepository ledger,RefundRepository refunds,StripeGateway stripe) { this.access=access;this.teams=teams;this.support=support;this.bills=bills;this.flow=flow;this.ledger=ledger;this.refunds=refunds;this.stripe=stripe; }
+    private final BillingLedgerService reconciliation;
+    public RefundDraftService(TeamAccessService access,TeamIdentityRepository teams,SupportRepository support,BillingRepository bills,BillingFlowRepository flow,BillingLedgerRepository ledger,RefundRepository refunds,StripeGateway stripe,BillingLedgerService reconciliation) { this.access=access;this.teams=teams;this.support=support;this.bills=bills;this.flow=flow;this.ledger=ledger;this.refunds=refunds;this.stripe=stripe;this.reconciliation=reconciliation; }
     private Context context(Authentication auth,UUID request,UUID bill,boolean manage) {
-        var actor=access.resolve(auth);actor.require(TeamPermission.READ_SUPPORT);if(manage){actor.require(TeamPermission.MANAGE_BILLING);teams.lockWorkspace(actor.workspaceId());actor=access.resolve(auth);actor.require(TeamPermission.READ_SUPPORT);actor.require(TeamPermission.MANAGE_BILLING);}
+        var actor=access.resolve(auth);actor.require(TeamPermission.READ_SUPPORT);if(manage){actor.require(TeamPermission.MANAGE_BILLING);teams.lockWorkspace(actor.workspaceId());actor=access.resolveLocked(auth);actor.require(TeamPermission.READ_SUPPORT);actor.require(TeamPermission.MANAGE_BILLING);}
         support.request(actor.workspaceId(),request,manage).orElseThrow(RefundDraftService::missing);var draft=bills.draft(bill).orElseThrow(RefundDraftService::missing);
         if(!draft.workspaceId().equals(actor.workspaceId()) || !draft.requestId().equals(request))throw missing();var intent=flow.intent(bill,manage).orElseThrow(RefundDraftService::missing);if(intent.liveMode()!=stripe.liveMode())throw missing();return new Context(actor,intent);
     }
@@ -45,9 +46,11 @@ public class RefundDraftService {
     private Quote verify(Context context,UUID bill,String paymentId,long amount) {
         var actor=context.actor();var intent=context.intent();
         stripe.requireConnected();ledger.lockPayment(paymentId);var payment=refunds.payment(bill,intent.liveMode(),paymentId).orElseThrow(RefundDraftService::missing);String customer=flow.customer(intent.accountId(),intent.liveMode()).orElseThrow(RefundDraftService::review);
-        if(payment.chargeId()==null || !customer.equals(payment.customer()) || refunds.foreignLink(paymentId,actor.workspaceId(),intent.accountId(),intent.liveMode()))throw review();
+        boolean legacy=payment.kind().equals("CHARGE");
+        if(legacy)reconciliation.verifyLegacyInvoice(paymentId,customer,intent.liveMode());
+        if(payment.chargeId()==null || (legacy ? payment.customer()!=null && !customer.equals(payment.customer()) : !customer.equals(payment.customer())) || refunds.foreignLink(paymentId,actor.workspaceId(),intent.accountId(),intent.liveMode()))throw review();
         var charge=stripe.charge(payment.chargeId());String pi=BillingCheckoutStore.reference(charge.path("payment_intent"));
-        if(!payment.chargeId().equals(BillingCheckoutStore.reference(charge)) || !"charge".equals(charge.path("object").asText()) || !"gbp".equals(charge.path("currency").asText()) || !customer.equals(BillingCheckoutStore.reference(charge.path("customer"))) || !"succeeded".equals(charge.path("status").asText()) || !charge.path("disputed").isBoolean() || charge.path("disputed").asBoolean() || (payment.kind().equals("PAYMENT_INTENT") ? !paymentId.equals(pi) : !payment.kind().equals("CHARGE") || pi!=null || !paymentId.equals(payment.chargeId())))throw review();
+        if(!payment.chargeId().equals(BillingCheckoutStore.reference(charge)) || !"charge".equals(charge.path("object").asText()) || !"gbp".equals(charge.path("currency").asText()) || (legacy ? BillingCheckoutStore.reference(charge.path("customer"))!=null && !customer.equals(BillingCheckoutStore.reference(charge.path("customer"))) : !customer.equals(BillingCheckoutStore.reference(charge.path("customer")))) || !"succeeded".equals(charge.path("status").asText()) || !charge.path("disputed").isBoolean() || charge.path("disputed").asBoolean() || (payment.kind().equals("PAYMENT_INTENT") ? !paymentId.equals(pi) : !payment.kind().equals("CHARGE") || pi!=null || !paymentId.equals(payment.chargeId())))throw review();
         long captured=money(charge,"amount_captured"),refunded=money(charge,"amount_refunded"),charged=money(charge,"amount");if(captured>charged || refunded>captured || amount>captured-refunded)throw review();
         return new Quote(payment,captured,refunded,refunds.linkedBills(paymentId));
     }
@@ -62,7 +65,7 @@ public class RefundDraftService {
         if(!proposal.chargeId().equals(quote.payment().chargeId()) || proposal.capturedPence()!=quote.captured() || proposal.refundedPence()!=quote.refunded() || (quote.linkedBills()>1 && !sharedAccepted) || (proposal.reason().equals("fraudulent") && !fraudAccepted) || refunds.otherActive(proposal.chargeId(),proposal.liveMode(),id))throw review();
         context(auth,request,bill,true);var actor=context.actor();var lease=refunds.confirm(proposal,actor.ownerId(),actor.memberId());
         support.event(request,actor.ownerId(),actor.memberId(),"REFUND_CONFIRMED","An admin explicitly confirmed the recorded refund amount and charge. Provider submission remains a separate outcome.",false);
-        return new ExecutionPlan(request,bill,id,proposal.paymentId(),proposal.chargeId(),proposal.liveMode(),proposal.amountPence(),proposal.reason(),quote.payment().customer(),lease);
+        return new ExecutionPlan(request,bill,id,proposal.paymentId(),proposal.chargeId(),proposal.liveMode(),proposal.amountPence(),proposal.reason(),flow.customer(context.intent().accountId(),context.intent().liveMode()).orElseThrow(RefundDraftService::review),lease);
     }
     @Transactional
     public void validateExecution(Authentication auth,ExecutionPlan plan) {
@@ -79,7 +82,7 @@ public class RefundDraftService {
     @Transactional
     public ExecutionPlan reconciliationPlan(Authentication auth,UUID request,UUID bill,UUID id,int version,String providerId) {
         var context=context(auth,request,bill,true);var initial=refunds.proposal(bill,context.intent().liveMode(),id).orElseThrow(RefundDraftService::missing);ledger.lockPayment(initial.paymentId());var proposal=refunds.lock(bill,context.intent().liveMode(),id).orElseThrow(RefundDraftService::missing);var lease=refunds.execution(id).orElseThrow(RefundDraftService::review);
-        if(proposal.version()!=version || proposal.state().equals("DRAFT") || proposal.state().equals("CANCELLED") || providerId==null || !providerId.matches("re_[A-Za-z0-9]+") || providerId.length()>100 || (proposal.providerId()!=null && !proposal.providerId().equals(providerId)) || (proposal.state().equals("RUNNING") && lease.leaseUntil()!=null && lease.leaseUntil().isAfter(java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC))))throw review();
+        if(proposal.version()!=version || proposal.state().equals("DRAFT") || proposal.state().equals("CANCELLED") || providerId==null || !providerId.matches("re_[A-Za-z0-9]+") || providerId.length()>100 || (proposal.providerId()!=null && !proposal.providerId().equals(providerId)) || (proposal.candidateProviderId()!=null && !proposal.candidateProviderId().equals(providerId)) || (proposal.state().equals("RUNNING") && lease.leaseUntil()!=null && lease.leaseUntil().isAfter(java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC))))throw review();
         String customer=flow.customer(context.intent().accountId(),context.intent().liveMode()).orElseThrow(RefundDraftService::review);support.event(request,context.actor().ownerId(),context.actor().memberId(),"REFUND_RECONCILIATION_REQUESTED","An admin requested read-only verification of an existing provider refund. No replacement refund was requested.",false);
         return new ExecutionPlan(request,bill,id,proposal.paymentId(),proposal.chargeId(),proposal.liveMode(),proposal.amountPence(),proposal.reason(),customer,lease);
     }

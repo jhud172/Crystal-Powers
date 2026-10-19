@@ -1,3 +1,4 @@
+import { keepModalFocus } from "../../lib/dialogFocus";
 import type { ProjectEditorDraft } from "../portfolio/projectApi";
 import { ProjectRevisions } from "./ProjectRevisions";
 import { ChangeEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -23,6 +24,25 @@ export function ProjectEditor({ project, onUpdate, onBack, onSessionExpired, onD
   const [approved, setApproved] = useState(false);
   const reviewDialog = useRef<HTMLDialogElement>(null);
   const publishButton = useRef<HTMLButtonElement>(null);
+  const editorRoot = useRef<HTMLDivElement>(null);
+  const toolbar = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const root = editorRoot.current, bar = toolbar.current;
+    if (!root || !bar || typeof ResizeObserver !== "function") return;
+    // Keep the readiness panel and focused fields below the actual toolbar,
+    // including after text enlargement or wrapped action labels.
+    const measure = () => {
+      root.style.setProperty("--admin-toolbar-height", `${bar.getBoundingClientRect().height}px`);
+      root.dataset.measuredToolbar = "true";
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(bar); measure();
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--admin-toolbar-height");
+      delete root.dataset.measuredToolbar;
+    };
+  }, []);
   const lastReauthentication = useRef(reauthenticationVersion);
   useEffect(() => {
     if (reauthenticationVersion === lastReauthentication.current) return;
@@ -94,10 +114,10 @@ export function ProjectEditor({ project, onUpdate, onBack, onSessionExpired, onD
     try { const result = await api<ProjectDraft>(`${projectBase}/${project.id}/revisions/${version}/restore`, { method: "POST", body: JSON.stringify({ expectedVersion: project.version }) }); onUpdate(result); setContent(result.content); setNotice(`Revision ${version} restored as draft ${result.version}. Review it before publishing.`); }
     catch (failure) { fail(failure); } finally { setBusy(false); }
   }
-  return <div className="admin-editor">
+  return <div ref={editorRoot} className="admin-editor">
     <div className="admin-editor-heading"><button className="admin-text-button" disabled={busy} onClick={() => { if (!dirty || window.confirm("Leave this editor and discard unsaved edits?")) onBack(); }}>← All projects</button><div><span className="admin-status">{project.archived ? "Archived" : project.publishedVersion ? "Published" : "Private draft"}</span><span className="studio-soft"> / Draft {project.version}{dirty ? " · Unsaved changes" : " · Saved"}</span></div></div>
     <h1>{content.title || "Untitled project"}</h1><p className="studio-soft">/portfolio/{project.slug}</p>
-    <div className="admin-editor-toolbar"><p className="admin-toolbar-identity">{content.title || "Untitled project"}<span>{dirty ? "Unsaved changes" : `Saved draft ${project.version}`} / {project.publishedVersion ? `Public revision ${project.publishedVersion}` : "Private"}</span></p><div className="studio-device-tabs" role="group" aria-label="Editor sections">{["Details", "Images", "Story", "History", "Preview"].map(item => <button disabled={busy} key={item} aria-pressed={item === step} onClick={() => setStep(item)}>{item}</button>)}</div><button id="project-reload" className="admin-secondary" disabled={busy} onClick={reload}>Reload saved draft</button><button id="project-save" className="studio-button" disabled={busy || !dirty || conflict} onClick={save}>{busy ? "Working…" : "Save draft"}</button></div>
+    <div ref={toolbar} className="admin-editor-toolbar"><p className="admin-toolbar-identity">{content.title || "Untitled project"}<span>{dirty ? "Unsaved changes" : `Saved draft ${project.version}`} / {project.publishedVersion ? `Public revision ${project.publishedVersion}` : "Private"}</span></p><div className="studio-device-tabs" role="group" aria-label="Editor sections">{["Details", "Images", "Story", "History", "Preview"].map(item => <button disabled={busy} key={item} aria-pressed={item === step} onClick={() => setStep(item)}>{item}</button>)}</div><button id="project-reload" className="admin-secondary" disabled={busy} onClick={reload}>Reload saved draft</button><button id="project-save" className="studio-button" disabled={busy || !dirty || conflict} onClick={save}>{busy ? "Working…" : "Save draft"}</button></div>
     <OwnerError message={error} />{conflict && <p className="admin-preview-banner">Your edits are still in this page. Copy anything you need before loading the newer saved draft. Reload asks before replacing unsaved edits.</p>}{notice && <p className="admin-notice" role="status">{notice}</p>}
     {step === "Preview" ? <PrivateProjectPreview privateArea={privateArea} project={{ ...project, content }} onBack={() => { setStep("Details"); setFocusField("project-title"); }} /> : <div className="admin-editor-grid"><fieldset className="admin-form admin-editor-fields" disabled={busy}>
       {step === "Details" && <>
@@ -117,7 +137,7 @@ export function ProjectEditor({ project, onUpdate, onBack, onSessionExpired, onD
       {step === "History" && <ProjectRevisions base={`${projectBase}/${project.id}`} currentVersion={project.version} publishedVersion={project.publishedVersion} busy={busy} canRestore={accessArea!=="team" || !conflict} onRestore={restoreRevision} onFailure={fail}/>}
       {step === "Story" && ([['overview', 'The idea', 'Describe the original need, audience and agreed scope. For example: a clear place to explain services and enquire.'], ['approach', 'The approach', 'Explain the decisions you made and why: content, layout, accessibility, technology and collaboration. Describe the actual delivered work.'], ['outcome', 'The outcome', 'Describe what was delivered and how it helps people use the site. Include metrics or testimonials only when you have evidence and permission.']] as const).map(([key, label, hint]) => <label key={key}>{label}<textarea value={content[key]} onChange={event => update(key, event.target.value)} maxLength={8000} rows={8} /><small>{hint}</small></label>)}
     </fieldset><aside className="admin-publish-panel"><p className="studio-eyebrow">READY TO SHARE?</p><h2>From draft<br />to live.</h2><ul>{readiness.map(item => <li key={item.label}><button className="admin-readiness-link" disabled={busy} onClick={() => visit(item.section, item.field)}><span aria-hidden="true">{item.complete ? "✓" : "○"}</span>{item.label}<span className="admin-readiness-state">{item.complete ? "Ready" : item.label === "Latest changes saved" ? conflict ? "Reload required" : "Save needed" : "Add this"}</span></button></li>)}</ul><p>{canPublish ? "Review the preview and confirm that the project and its claims are yours to share." : "Your role can edit private drafts. Publication and changes to published visibility require a separate permission."}</p><button ref={publishButton} className="studio-button" disabled={busy || dirty || !ready || conflict || !canPublish} onClick={() => { setApproved(false); setPublishReview(true); }}>{project.publishedVersion ? "Publish this revision ↗" : "Publish project ↗"}</button>{project.publishedVersion && <button className="admin-text-button" disabled={busy || !canPublish || (accessArea==="team" && conflict)} onClick={() => action("unpublish")}>Unpublish project</button>}<button className="admin-text-button" disabled={busy || (accessArea==="team" && conflict) || (!canPublish && !!project.publishedVersion)} onClick={() => action(project.archived ? "restore" : "archive")}>{project.archived ? "Restore project" : "Archive project"}</button>{accessArea==="owner" && <ProjectTeamAccess project={project} disabled={busy || dirty || conflict} onUpdate={onUpdate} onBusy={setBusy} onExpired={onSessionExpired}/>}</aside></div>}
-    {publishReview && <dialog ref={reviewDialog} className="admin-publish-review" aria-labelledby="publish-review-title" onCancel={event => { event.preventDefault(); if (!busy) closeReview(); }}>
+    {publishReview && <dialog ref={reviewDialog} onKeyDown={keepModalFocus} className="admin-publish-review" aria-labelledby="publish-review-title" onCancel={event => { event.preventDefault(); if (!busy) closeReview(); }}>
       <p className="studio-eyebrow">PUBLICATION REVIEW</p><h2 id="publish-review-title">Publish saved revision {project.version}?</h2><p><strong>{project.content.title}</strong> at /portfolio/{project.slug}</p>
       <p>{project.publishedVersion ? `Visitors currently see revision ${project.publishedVersion}. This replaces it with saved revision ${project.version}.` : "This makes the saved project and its selected images public."}{project.archived && " Publishing also restores this archived project."}</p>
       <p>The public version includes the saved story, cover, {project.content.gallery.length} gallery {project.content.gallery.length === 1 ? "image" : "images"} and any assigned device screenshots. Unselected uploads remain private.</p>

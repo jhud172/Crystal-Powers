@@ -51,13 +51,13 @@ const check = (name, value = true) => { assert.ok(value, name); report.checks.pu
     await page.getByRole('combobox', { name: 'Preferred contact point', exact: true }).selectOption('Email');
     await page.locator('#message').fill('Local browser acceptance only; no external email delivery.');
     await page.locator('.enquiry-attachments summary').click();
-    const image = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==', 'base64');
+    const image = await fs.readFile(path.resolve('frontend/public/branding/favicon.png'));
     await page.locator('#referenceFiles').setInputFiles({ name: 'reference.png', mimeType: 'image/png', buffer: image });
     check('Upload shows filename', await page.getByRole('button', { name: 'Remove reference.png', exact: true }).isVisible());
     await page.getByRole('button', { name: 'Remove reference.png', exact: true }).click();
     check('Individual upload removal works', await page.getByRole('button', { name: 'Remove reference.png', exact: true }).count() === 0);
     await page.locator('#referenceFiles').setInputFiles({ name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('synthetic') });
-    check('Invalid upload type gets local guidance', (await page.locator('#referenceFiles-error').innerText()).includes('image or video'));
+    check('Invalid upload type lists the supported formats', (await page.locator('#referenceFiles-error').innerText()) === 'Choose JPEG, PNG, GIF, WebP, MP4, WebM or MOV files.');
     await page.locator('#referenceFiles').setInputFiles(Array.from({ length: 6 }, (_, index) => ({ name: `count-${index}.png`, mimeType: 'image/png', buffer: image })));
     check('Upload count limit is explained before submission', (await page.locator('#referenceFiles-error').innerText()).includes('five'));
     await page.locator('#referenceFiles').setInputFiles({ name: 'oversized.png', mimeType: 'image/png', buffer: Buffer.alloc(15 * 1024 * 1024 + 1) });
@@ -84,10 +84,23 @@ const check = (name, value = true) => { assert.ok(value, name); report.checks.pu
     await page.getByRole('button', { name: 'Review enquiry →', exact: true }).click();
     const delivered = page.waitForResponse(response => response.url().endsWith('/api/services') && response.request().method() === 'POST');
     await page.getByRole('button', { name: 'Send enquiry ↗', exact: true }).click();
-    const result = await (await delivered).json();
-    check('Real local SMTP-sink endpoint acknowledges enquiry and attachment', result.success === true);
+    const deliveryResponse=await delivered;
+    const result = await deliveryResponse.json();
+    report.localSubmission = result;
+    check('Disabled mail truthfully reports a persisted enquiry with an unconfirmed notification', deliveryResponse.status()===503 && result.success === false && typeof result.requestId === 'string' && result.message.includes('saved for the team') && result.message.includes('could not be confirmed'));
+    check('Notification failure preserves the brief and attachment', await page.locator('#firstName').inputValue() === 'Synthetic browser QA' && (await page.locator('.enquiry-attachments summary').innerText()).includes('1 selected'));
+    await page.getByRole('button', { name: 'Review enquiry →', exact: true }).click();
+    const retried = page.waitForResponse(response => response.url().endsWith('/api/services') && response.request().method() === 'POST');
+    await page.getByRole('button', { name: 'Send enquiry ↗', exact: true }).click();
+    const retryResult = await (await retried).json();
+    check('Actual notification retry reuses the persisted request rather than duplicating it', retryResult.requestId === result.requestId && retryResult.success === false);
+    // Success presentation is a labelled browser fixture; this does not claim provider delivery.
+    await page.route('**/api/services', route => route.fulfill({ json: { success: true, message: 'Synthetic browser success only.', requestId: result.requestId } }));
+    await page.getByRole('button', { name: 'Review enquiry →', exact: true }).click();
+    await page.getByRole('button', { name: 'Send enquiry ↗', exact: true }).click();
     await page.getByRole('heading', { name: 'A good beginning.', exact: true }).waitFor();
     await page.getByRole('button', { name: 'Start another enquiry ↗', exact: true }).click();
+    await page.unroute('**/api/services');
     check('Success clears personal details', await page.locator('#firstName').inputValue() === '');
     check('Success clears files', (await page.locator('.enquiry-attachments summary').innerText()).includes('0 selected'));
     await page.getByRole('button', { name: 'General question', exact: true }).click();
@@ -130,7 +143,15 @@ const check = (name, value = true) => { assert.ok(value, name); report.checks.pu
         if (route.startsWith('/contact')) {
           const renderedContrast = await page.locator('#firstName').evaluate(input => {
             const placeholder = getComputedStyle(input, '::placeholder'), field = getComputedStyle(input);
-            const rgb = value => value.match(/[\d.]+/g).slice(0, 3).map(Number);
+            // Resolve CSS Color 4 values (including colour-mix's color(srgb ...))
+            // through the browser rather than interpreting unit-range channels as bytes.
+            const context = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+            const rgb = value => {
+              context.clearRect(0, 0, 1, 1);
+              context.fillStyle = value;
+              context.fillRect(0, 0, 1, 1);
+              return Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3);
+            };
             const background = rgb(field.backgroundColor), alpha = Number(placeholder.opacity);
             const foreground = rgb(placeholder.color).map((value, index) => alpha * value + (1 - alpha) * background[index]);
             const luminance = colour => colour.map(value => value / 255).map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
@@ -144,6 +165,7 @@ const check = (name, value = true) => { assert.ok(value, name); report.checks.pu
     await page.goto(base + '/services?intent=website&step=0.5');
     check('Fractional builder URLs resolve to a safe step', await page.getByRole('heading', { name: 'What does your website need?', exact: true }).isVisible());
     await page.getByRole('button', { name: 'Continue →', exact: true }).click();
+    await page.waitForFunction(() => document.activeElement?.id === 'packageSelection');
     check('Step validation restores keyboard focus', await page.evaluate(() => document.activeElement.id) === 'packageSelection');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     check('OS reduced motion removes enquiry animation', await page.evaluate(() => getComputedStyle(document.querySelector('.enquiry-builder > h2')).animationName) === 'none');

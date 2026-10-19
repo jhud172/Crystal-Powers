@@ -1,3 +1,4 @@
+const inspectPrivateDesign = require('./lib/private-design-audit.cjs').createPrivateDesignAudit('owner-session');
 /* Explicit expiry/sign-in API fixtures; real server session invalidation runs in portfolio QA. */
 const {chromium}=require(process.env.CRYSTAL_PLAYWRIGHT_MODULE || 'playwright');
 const assert=require('node:assert/strict'); const fs=require('node:fs/promises'); const path=require('node:path');
@@ -37,6 +38,7 @@ const reply=(route,body,status=200)=>route.fulfill({status,contentType:'applicat
   auth=false;await page.getByRole('button',{name:'Save draft',exact:true}).click();const modal=page.getByRole('dialog',{name:'Sign in to continue.',exact:true});await modal.waitFor();
   check('Expired CSRF is checked against the session and opens reauthentication',saves===0&&await modal.getByText(/Your current draft stays in this tab/).isVisible());
   check('Modal focuses its explanation and retains all editor content',await page.locator('#session-heading').evaluate(e=>e===document.activeElement)&&await page.locator('#project-summary').inputValue()==='Unsaved draft held through expired-session sign-in.');
+  await inspectPrivateDesign(page,'Expired owner session recovery');
   for(const width of [320,390,768,1024,1440]){await page.setViewportSize({width,height:900});check(`Session dialog ${width}px fits and exposes both exit choices`,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)&&await modal.getByRole('button',{name:'Return to my draft',exact:true}).isVisible()&&await modal.getByRole('button',{name:'Discard and leave',exact:true}).isVisible());}
   await page.keyboard.press('Escape');await modal.waitFor({state:'hidden'});check('Escape returns to the retained draft and releases modal focus',await page.locator('#project-summary').inputValue().then(v=>v.startsWith('Unsaved draft'))&&await page.evaluate(()=>!document.activeElement.closest('dialog')));
   await page.locator('#project-summary').fill('Still editable in this tab.');await page.getByRole('button',{name:'Sign in again',exact:true}).click();await modal.getByLabel('Email address',{exact:true}).fill('session-ui-fixture@example.invalid');await modal.getByLabel('Password',{exact:true}).fill('synthetic-session-fixture-password');

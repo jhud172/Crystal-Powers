@@ -46,14 +46,17 @@ public class SupportIntakeService {
             receipt = store.save(key, java.util.HexFormat.of().formatHex(digest.digest()), form, payload, prepared, source);
         } catch (java.io.IOException failure) { throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "The enquiry could not be saved. Your details are still in the form; please try again."); }
         if (receipt.notificationState().equals("SENT")) return receipt.id();
-        if (!repository.claimNotification(receipt.id(), OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(15))) throw new ReceiptException(receipt.id(), "Your enquiry is saved. Its email notification is still being processed; please wait before retrying.");
-        try { notifications.sendInquiry(form, null, source, "enquiry-" + receipt.id()); repository.notification(receipt.id(), "SENT"); }
+        UUID attempt=UUID.randomUUID();
+        if (!repository.claimNotification(receipt.id(),attempt,OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(15))) throw new ReceiptException(receipt.id(), "Your enquiry is saved. Its email notification is still being processed; please wait before retrying.");
+        try { notifications.sendInquiry(form, null, source, "enquiry-" + receipt.id()); }
         catch (InquiryEmailService.InquiryEmailException failure) {
-            repository.notification(receipt.id(), "FAILED");
-            throw new ReceiptException(receipt.id(), "Your enquiry is saved for the team, but its email notification could not be sent. Your details remain here if you need to retry.");
+            if(!repository.finishNotification(receipt.id(),attempt,"FAILED",OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(15)))throw notificationChanged(receipt.id());
+            throw new ReceiptException(receipt.id(), "Your enquiry is saved for the team, but its email notification could not be confirmed. Keep your request reference when checking its progress.");
         }
+        if(!repository.finishNotification(receipt.id(),attempt,"SENT",OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(15)))throw notificationChanged(receipt.id());
         return receipt.id();
     }
+    private ReceiptException notificationChanged(UUID receipt){return new ReceiptException(receipt,"Your enquiry is saved. Its notification attempt changed or expired; keep this request reference and check its status before retrying.");}
     private String safeFilename(String original) {
         String name = original == null || original.isBlank() ? "reference-upload" : original.replaceAll("[\\\\/\\p{Cntrl}]", "_").strip();
         return name.substring(0, name.offsetByCodePoints(0, Math.min(255, name.codePointCount(0, name.length()))));

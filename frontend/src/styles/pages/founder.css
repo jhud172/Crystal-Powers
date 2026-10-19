@@ -36,3 +36,9 @@
 .liquid-founder .founder-art img { aspect-ratio: 3 / 2; object-fit: cover; }
 .liquid-founder .collaboration-chapter { border: 0; border-top: 1px solid var(--studio-control-line); background: transparent; padding-inline: 0; }
 @media (max-width: 900px) { .liquid-founder .founder-heading { padding-top: 40px; } }
+/* Content-sized choices also reflow when text is enlarged. */
+@media (max-width: 900px) {
+  .collaboration-selector { grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); }
+  .collaboration-selector button { grid-template-columns: 24px minmax(0, 1fr) 16px; }
+  .collaboration-selector button > span { overflow-wrap: anywhere; min-width: 0; }
+}

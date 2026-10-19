@@ -89,12 +89,18 @@ tasks.register('postgresTest', Test) {
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     useJUnitPlatform()
+    // A database can change independently of compiled test inputs. Never reuse
+    // a previous database's result or skip the disposable-target validation.
+    outputs.upToDateWhen { false }
+    outputs.cacheIf { false }
     def testUrl = providers.environmentVariable('PG_TEST_DATABASE_URL').orElse('')
     doFirst {
         if (!(testUrl.get() ==~ /jdbc:postgresql:\/\/127\.0\.0\.1:55432\/crystal_rebuild_test[a-z0-9_]*/)) {
             throw new GradleException('PG_TEST_DATABASE_URL must name a disposable crystal_rebuild_test database on 127.0.0.1:55432.')
         }
         systemProperty 'spring.datasource.url', testUrl.get()
+        // Test-local URL overrides must resolve to the same guarded PostgreSQL target.
+        systemProperty 'crystal.test.database-url', testUrl.get()
         systemProperty 'spring.datasource.username', providers.environmentVariable('PG_TEST_DATABASE_USERNAME').get()
         systemProperty 'spring.datasource.password', providers.environmentVariable('PG_TEST_DATABASE_PASSWORD').get()
     }

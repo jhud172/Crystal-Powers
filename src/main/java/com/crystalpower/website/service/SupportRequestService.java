@@ -24,7 +24,7 @@ public class SupportRequestService {
     public record Detail(Summary request, JsonNode brief, List<SupportRepository.Message> messages, List<SupportRepository.Event> events, List<SupportRepository.Attachment> attachments, boolean emailAvailable, String contactPreference, List<ClientRepository.Message> clientReplies) {}
     public record Overview(Summary request,JsonNode brief,List<SupportRepository.Attachment> attachments,boolean emailAvailable,String contactPreference,String actorScope,java.util.Set<TeamPermission> permissions) {}
     public record Page<T>(List<T> items,UUID nextCursor) {}
-    public record Delivery(SupportRepository.Request request, SupportRepository.Message message, boolean claimed) {}
+    public record Delivery(SupportRepository.Request request, SupportRepository.Message message, boolean claimed, UUID token, TeamAccessService.Actor actor) {}
     private final TeamAccessService access;
     private final SupportRepository repository;
     private final TeamIdentityRepository teams;
@@ -34,6 +34,11 @@ public class SupportRequestService {
     private final TeamRoleResolver roles;
     public SupportRequestService(TeamAccessService access, SupportRepository repository, TeamIdentityRepository teams, ObjectMapper json, EmailTransport mail, ClientRepository clients, TeamRoleResolver roles) { this.roles=roles; this.access = access; this.repository = repository; this.teams = teams; this.json = json; this.mail = mail; this.clients = clients; }
     private TeamAccessService.Actor reader(Authentication authentication) { var actor = access.resolve(authentication); actor.require(TeamPermission.READ_SUPPORT); repository.claimUnassigned(actor.workspaceId()); return actor; }
+    private TeamAccessService.Actor writer(Authentication authentication,TeamPermission permission) {
+        var actor=access.resolve(authentication);actor.require(TeamPermission.READ_SUPPORT);actor.require(permission);
+        teams.lockWorkspace(actor.workspaceId());actor=access.resolveLocked(authentication);actor.require(TeamPermission.READ_SUPPORT);actor.require(permission);
+        repository.claimUnassigned(actor.workspaceId());return actor;
+    }
     @Transactional
     public List<Summary> list(Authentication authentication, String state, UUID before) {
         var actor = reader(authentication); var cursor = before == null ? null : request(actor, before, false);
@@ -67,7 +72,7 @@ public class SupportRequestService {
     private static <T> Page<T> page(List<T> rows,java.util.function.Function<T,UUID> key) { boolean more=rows.size()>50;var page=more ? rows.subList(0,50) : rows;return new Page<>(page,more ? key.apply(page.get(page.size()-1)) : null); }
     @Transactional
     public Summary update(Authentication authentication, UUID id, int expectedVersion, String state, int progress, String nextStep, UUID assigned) {
-        var actor = reader(authentication); actor.require(TeamPermission.UPDATE_TRACKING); var current = request(actor, id, true);
+        var actor = writer(authentication,TeamPermission.UPDATE_TRACKING); var current = request(actor, id, true);
         if (assigned != null) {
             var member = teams.member(actor.workspaceId(), assigned).filter(value -> value.state().equals("ACTIVE") && roles.permissions(value).contains(TeamPermission.READ_SUPPORT)).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose an active team member who can handle enquiries."));
         }
@@ -79,7 +84,7 @@ public class SupportRequestService {
     }
     @Transactional
     public SupportRepository.Message addMessage(Authentication authentication, UUID id, UUID key, String kind, String body) {
-        var actor = reader(authentication); actor.require(TeamPermission.REPLY_SUPPORT); request(actor, id, true);
+        var actor = writer(authentication,TeamPermission.REPLY_SUPPORT); request(actor, id, true);
         var existing = repository.messageSubmission(key);
         if (existing.isPresent()) {
             var message = existing.get();
@@ -92,19 +97,31 @@ public class SupportRequestService {
     }
     @Transactional
     public Delivery claimDelivery(Authentication authentication, UUID id, UUID messageId) {
-        var actor = reader(authentication); actor.require(TeamPermission.REPLY_SUPPORT); var request = request(actor, id, true);
+        var actor = writer(authentication,TeamPermission.REPLY_SUPPORT); var request = request(actor, id, true);
         var message = repository.message(id, messageId).orElseThrow(SupportRequestService::missing);
         if (!message.kind().equals("CLIENT")) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Internal notes cannot be emailed to a client.");
-        if (message.deliveryState().equals("SENT")) return new Delivery(request, message, false);
+        if (message.deliveryState().equals("SENT")) return new Delivery(request, message, false, null, actor);
         var linked=clients.linked(actor.workspaceId(),id);
         if(linked.isPresent()) {
             var account=clients.account(linked.get().id(),true).orElseThrow(SupportRequestService::missing);
             if(clients.preferences(account.id()).contactPreference().equals("PORTAL_ONLY")) throw new ResponseStatusException(HttpStatus.CONFLICT,"This client has chosen portal-only support updates. Share the message in their client portal instead.");
         }
         if (!mail.configured()) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Company email is not configured. The client message is saved in the hub.");
-        if (!repository.claimDelivery(id, messageId, OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(15))) throw new ResponseStatusException(HttpStatus.CONFLICT, "This message is already being sent. Reload its status before trying again.");
-        repository.event(id, actor.ownerId(), actor.memberId(), "CLIENT_EMAIL_STARTED", "A client email was submitted for delivery.", false);
-        return new Delivery(request, message, true);
+        UUID token=UUID.randomUUID();
+        if (!repository.claimDelivery(id, messageId, token, OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(15))) throw new ResponseStatusException(HttpStatus.CONFLICT, "This message is already being sent. Reload its status before trying again.");
+        repository.event(id, actor.ownerId(), actor.memberId(), "CLIENT_EMAIL_STARTED", "An email attempt was reserved. Provider acceptance is recorded separately.", false);
+        return new Delivery(request, message, true, token, actor);
+    }
+    @Transactional
+    public void finishDelivery(Delivery delivery,boolean accepted) {
+        if(!delivery.claimed() || delivery.token()==null || !delivery.request().id().equals(delivery.message().requestId()) || !delivery.actor().workspaceId().equals(delivery.request().workspaceId()) || !repository.finishDelivery(delivery.request().id(),delivery.message().id(),delivery.token(),accepted ? "SENT" : "FAILED",OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(15)))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"The email outcome could not be recorded for this attempt. Reload its status before taking further action.");
+        // Record the result of an already dispatched action even if staff access
+        // changed in flight. Reading the receipt still requires current authority.
+        repository.event(delivery.request().id(),delivery.actor().ownerId(),delivery.actor().memberId(),accepted ? "CLIENT_EMAIL_ACCEPTED" : "CLIENT_EMAIL_UNCONFIRMED",accepted ? "The email provider accepted a client message; this does not confirm delivery or reading." : "The email outcome could not be confirmed. Check delivery before retrying.",false);
+    }
+    @Transactional public SupportRepository.Message deliveryMessage(Authentication auth,UUID requestId,UUID messageId) {
+        var actor=reader(auth);request(actor,requestId,false);return repository.message(requestId,messageId).orElseThrow(SupportRequestService::missing);
     }
     @Transactional
     public SupportRepository.FileContent download(Authentication authentication, UUID attachment) {
@@ -118,7 +135,7 @@ public class SupportRequestService {
     }
     @Transactional
     public void shareToPortal(Authentication authentication,UUID request,UUID message) {
-        var actor=reader(authentication); actor.require(TeamPermission.REPLY_SUPPORT); request(actor,request,true);
+        var actor=writer(authentication,TeamPermission.REPLY_SUPPORT); request(actor,request,true);
         var existing=repository.message(request,message).orElseThrow(SupportRequestService::missing);
         if(!existing.kind().equals("CLIENT")) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Internal notes cannot be shared to a client.");
         if(existing.portalVisible()) return;

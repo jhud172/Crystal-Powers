@@ -45,3 +45,15 @@
   .support-request-list button { min-height: 80px; border: 1px solid var(--studio-line); border-radius: .75rem; padding: 1rem; }
   .support-request-list button[aria-current] { border-inline-start: 3px solid var(--studio-accent); }
 }
+
+.support-request-detail .admin-form input:not([type=checkbox]):not([type=radio]), .support-request-detail .admin-form textarea { width: 100%; min-height: 48px; padding: .75rem; border: 1px solid var(--studio-control-line); border-radius: .5rem; background: var(--studio-bg); color: var(--studio-text); font: inherit; }
+.support-request-detail .admin-form textarea { min-height: 120px; resize: vertical; }
+.support-request-detail .admin-form select { min-height: 48px; border-radius: .5rem; }
+.support-request-detail :is(input,textarea,select):disabled { opacity: .6; cursor: not-allowed; }
+
+.client-contact-choices { min-width: 0; display: grid; gap: 12px; border: 0; padding: 0; }
+.client-contact-choices legend { max-width: 100%; margin-bottom: 16px; }
+.admin-form .client-contact-choices label { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 12px; border: 1px solid var(--studio-control-line); border-radius: .5rem; }
+.client-contact-choices input[type=radio] { flex: 0 0 18px; width: 18px; height: 18px; min-height: 0; margin: 0; accent-color: var(--studio-accent); }
+.client-contact-choices label:has(input:checked) { border-color: var(--studio-accent); background: var(--studio-raised); }
+.client-contact-choices label:has(input:focus-visible) { outline: var(--studio-focus-width) solid var(--studio-focus); outline-offset: var(--studio-focus-offset); }

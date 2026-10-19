@@ -1,0 +1,28 @@
+/* Editorial continuity, rather than a repeated card grid on every page. */
+.studio-shell:not(.owner-shell) :is(.studio-main, .studio-footer) { width: 100%; max-width: 1920px; margin-inline: auto; }
+.studio-shell .support-pathways > a { position: relative; padding: 28px 20px 24px; border: 1px solid var(--studio-line); border-top: 2px solid var(--studio-accent); border-radius: 4px 4px 20px 20px; background: var(--studio-panel-fill); }
+.studio-shell .support-pathways > a > .studio-text-link { margin-top: auto; }
+.studio-shell .support-pathways > a { display: flex; flex-direction: column; align-items: flex-start; }
+.studio-shell .support-preparation details { border-radius: 12px; padding-inline: 14px; margin-top: 10px; background: var(--studio-panel-fill); }
+.studio-shell .support-preparation details[open] { border-color: var(--studio-control-line); }
+.studio-shell .studio-service-row { padding-inline: 16px; border-radius: 12px; transition: background var(--studio-motion-short); }
+.studio-shell .studio-service-row:focus-visible { outline-offset: 2px; }
+.studio-shell .studio-empty { border: 1px solid var(--studio-line); border-radius: var(--studio-panel-radius); padding: clamp(24px, 4vw, 56px); background: var(--studio-panel-fill); }
+.studio-shell .work-filter-bar { gap: 20px; }
+.studio-shell .work-filter-bar .studio-device-tabs { margin-top: 0; }
+.studio-shell .studio-final { position: relative; isolation: isolate; overflow: hidden; background: var(--studio-panel-fill); }
+.studio-shell .studio-final::before { content: ""; position: absolute; z-index: -1; width: min(52vw, 650px); aspect-ratio: 1; top: -35%; right: -12%; border: 1px solid var(--studio-control-line); border-radius: 50%; opacity: .3; box-shadow: 0 0 0 36px var(--studio-highlight), 0 0 0 90px var(--studio-highlight); pointer-events: none; }
+.studio-shell .studio-footer a { text-underline-offset: .3em; }
+@media (hover: hover) and (pointer: fine) {
+  .studio-shell .support-pathways > a:hover { border-color: var(--studio-control-line); background: var(--studio-raised); }
+  .studio-shell .studio-service-row:hover { background: var(--studio-panel-fill); }
+}
+/* A decorative reading cue uses native scrolling, with no JS listeners. */
+@supports (animation-timeline: scroll()) {
+  .studio-shell:not(.owner-shell)[data-motion="full"] > .studio-header::after { content: ""; position: absolute; bottom: -1px; left: 22px; right: 22px; height: 2px; background: var(--studio-accent); transform: scaleX(0); transform-origin: left; animation: liquid-reading-progress linear both; animation-timeline: scroll(root block); pointer-events: none; }
+  @keyframes liquid-reading-progress { to { transform: scaleX(1); } }
+}
+@media (max-width: 760px) {
+  .studio-shell .studio-service-row { padding-inline: 0; }
+  .studio-shell .support-pathways > a { padding: 24px; margin-block: 8px; }
+}

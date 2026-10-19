@@ -6,9 +6,9 @@ type Message = { id: string; author: string; body: string; direction: "TEAM" | "
 type History = { id: string; detail: string; createdAt: string };
 type Row = Message | History;
 type Page = { items: Row[]; nextCursor: string | null };
-export function ClientUpdateFeed({ project, kind, revision, latestRevision = 0, disabled, onExpired }: {
+export function ClientUpdateFeed({ project, kind, revision, latestRevision = 0, disabled, onExpired, onUnavailable }: {
   project: string; kind: "conversation" | "history"; revision: number; latestRevision?: number;
-  disabled: boolean; onExpired: () => void;
+  disabled: boolean; onExpired: () => void; onUnavailable: () => void;
 }) {
   const [page, setPage] = useState<Page | null>(null), [cursor, setCursor] = useState<string | null>(null);
   const [history, setHistory] = useState<(string | null)[]>([]), [error, setError] = useState("");
@@ -25,7 +25,7 @@ export function ClientUpdateFeed({ project, kind, revision, latestRevision = 0, 
       if (moveFocus.current) { heading.current?.focus(); moveFocus.current = false; }
     }).catch((failure: unknown) => {
       if (current !== generation.current || failure instanceof DOMException && failure.name === "AbortError") return;
-      setError((failure as Error).message); setPage(null); if (failure instanceof ApiError && failure.status === 401) onExpired();
+      setError((failure as Error).message); setPage(null); if (failure instanceof ApiError) { if (failure.status === 401) onExpired(); else if ([403,404].includes(failure.status)) onUnavailable(); }
     }).finally(() => { if (current === generation.current) setLoading(false); });
     return () => { ++generation.current; abort.abort(); };
   }, [project, kind, cursor, revision, refresh]);

@@ -31,9 +31,9 @@ public class TeamAttachmentStore {
         return actor(auth,channel,message,false);
     }
     private TeamAccessService.Actor actor(Authentication auth,UUID channel,long message,boolean cleanup){
-        var actor=access.resolve(auth);teams.lockWorkspace(actor.workspaceId());actor=access.resolve(auth);actor.require(TeamPermission.READ_CHANNELS);if(cleanup)actor.require(TeamPermission.REVIEW_UPLOADS);
+        var actor=access.resolve(auth);teams.lockWorkspace(actor.workspaceId());actor=access.resolveLocked(auth);actor.require(TeamPermission.READ_CHANNELS);if(cleanup)actor.require(TeamPermission.REVIEW_UPLOADS);
         var current=channels.channel(actor.workspaceId(),channel,true).orElseThrow(TeamAttachmentStore::missing);
-        if((current.archived() && !cleanup) || !actor.audience(current.audience()) || !groups.allows(actor,current.groupId()) || (!cleanup && channels.message(channel,message,false).isEmpty()))throw missing();
+        if((current.archived() && !cleanup) || !actor.audience(current.audience()) || !(cleanup ? groups.allowsCleanup(actor,current.groupId()) : groups.allows(actor,current.groupId())) || (!cleanup && channels.message(channel,message,false).isEmpty()))throw missing();
         if(cleanup && files.list(channel,message).isEmpty())throw missing();
         return actor;
     }
@@ -58,9 +58,9 @@ public class TeamAttachmentStore {
     public record Queue(List<TeamAttachmentRepository.QueueFile> files,UUID nextCursor) {}
     @Transactional public Queue queue(Authentication auth,String state,boolean inactive,UUID after){
         if(!Set.of("PENDING","APPROVED","REJECTED","REMOVED").contains(state))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Choose a supported attachment queue.");
-        var actor=access.resolve(auth);teams.lockWorkspace(actor.workspaceId());actor=access.resolve(auth);actor.require(TeamPermission.READ_CHANNELS);actor.require(TeamPermission.REVIEW_UPLOADS);
+        var actor=access.resolve(auth);teams.lockWorkspace(actor.workspaceId());actor=access.resolveLocked(auth);actor.require(TeamPermission.READ_CHANNELS);actor.require(TeamPermission.REVIEW_UPLOADS);
         var candidates=new java.util.ArrayList<TeamChannelRepository.Channel>(channels.channels(actor.workspaceId()));candidates.addAll(channels.archivedChannels(actor.workspaceId()));
-        var current=actor;var visible=candidates.stream().filter(c->current.audience(c.audience()) && groups.allows(current,c.groupId())).map(TeamChannelRepository.Channel::id).toList();
+        var current=actor;var visible=candidates.stream().filter(c->current.audience(c.audience()) && (inactive ? groups.allowsCleanup(current,c.groupId()) : groups.allows(current,c.groupId()))).map(TeamChannelRepository.Channel::id).toList();
         var anchor=after==null ? null : files.queueAnchor(visible,state,inactive,after).orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT,"This queue cursor changed or is no longer available. Return to the first page."));
         var results=files.queue(visible,state,inactive,anchor);var page=results.stream().limit(50).toList();return new Queue(page,results.size()>50 ? page.get(page.size()-1).attachment().id() : null);
     }

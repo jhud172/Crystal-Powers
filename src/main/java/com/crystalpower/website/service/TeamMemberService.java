@@ -26,7 +26,7 @@ public class TeamMemberService {
     private final TeamMemberAuthority authority;
     private final SecureRandom random = new SecureRandom();
     public TeamMemberService(TeamAccessService access, TeamIdentityRepository teams, OwnerRepository owners,TeamMemberAuthority authority) { this.access = access; this.teams = teams; this.owners = owners;this.authority=authority; }
-    private TeamAccessService.Actor admin(Authentication authentication) { var actor = access.resolve(authentication); actor.require(TeamPermission.MANAGE_MEMBERS); teams.lockWorkspace(actor.workspaceId()); actor = access.resolve(authentication); actor.require(TeamPermission.MANAGE_MEMBERS); return actor; }
+    private TeamAccessService.Actor admin(Authentication authentication) { var actor = access.resolve(authentication); actor.require(TeamPermission.MANAGE_MEMBERS); teams.lockWorkspace(actor.workspaceId()); actor = access.resolveLocked(authentication); actor.require(TeamPermission.MANAGE_MEMBERS); return actor; }
     public record MemberAccess(Member member,boolean manageable) {}
     public record Management(String actorScope,List<MemberAccess> members,List<TeamRole> creatableRoles) {}
     @Transactional public Management management(Authentication auth){var actor=admin(auth);var members=teams.members(actor.workspaceId());var manageable=authority.manageableMembers(actor,members);return new Management(actor.memberId()==null ? "OWNER:"+actor.ownerId() : "TEAM:"+actor.memberId(),members.stream().map(member->new MemberAccess(member,manageable.contains(member.id()))).toList(),Arrays.stream(TeamRole.values()).filter(role->actor.permissions().containsAll(role.permissions())).toList());}

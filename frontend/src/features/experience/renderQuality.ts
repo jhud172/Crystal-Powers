@@ -1,13 +1,12 @@
 export type RenderTier = "low" | "standard" | "high";
 export type RenderQuality = "automatic" | RenderTier;
-// Both dimensions keep landscape phones on still artwork as well.
-export const THREE_D_SCREEN_QUERY = "(min-width: 768px) and (min-height: 600px)";
 
 export function isRenderQuality(value: unknown): value is RenderQuality {
   return value === "automatic" || value === "low" || value === "standard" || value === "high";
 }
 
-/** Automatic is a conservative layout policy, not a claim to identify a device's GPU. */
+/** Conservative initial tier. Automatic subsequently observes sustained active
+ * frame cadence through useAdaptiveRenderQuality; width alone is not GPU speed. */
 export function resolveRenderTier(preference: RenderQuality, stageWidth: number): RenderTier {
   return preference === "automatic" ? stageWidth <= 480 ? "low" : "standard" : preference;
 }

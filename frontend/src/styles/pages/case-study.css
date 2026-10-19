@@ -77,3 +77,48 @@
 }
 
 .case-lightbox header { flex-wrap: wrap; }
+
+/* Image inspection remains a native modal with a bounded, keyboard-scrollable
+   viewport. Only the image area expands at actual size, never the document. */
+html:has(.case-lightbox[open]) { overflow: hidden; scrollbar-gutter: stable; }
+.studio-shell .case-lightbox { margin: auto; overscroll-behavior: contain; }
+.case-lightbox header .studio-eyebrow { color: var(--studio-muted); font-size: 9px; margin-bottom: 5px; }
+.case-image-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--studio-line); }
+.case-image-tools p { flex: 1 1 220px; color: var(--studio-muted); font-size: 11px; line-height: 1.6; margin-inline-start: 8px; }
+.studio-shell .case-image-tools button[aria-pressed="true"] { border-color: var(--studio-accent); background: var(--studio-raised); }
+.case-image-viewport { display: grid; place-items: center; position: relative; height: min(52dvh, 580px); min-width: 0; max-width: 100%; overflow: auto; overscroll-behavior: contain; border: 1px solid var(--studio-line); border-radius: 14px; background: var(--studio-panel-fill, var(--studio-raised)); }
+.case-image-viewport > p { margin: 0; padding: 24px; max-width: 48ch; text-align: center; color: var(--studio-muted); font-size: 13px; }
+.case-image-viewport[aria-busy="true"] > p { position: absolute; inset: 0; display: grid; place-items: center; background: var(--studio-bg); z-index: 1; pointer-events: none; }
+.case-lightbox .case-image-viewport img { display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain; }
+.case-image-viewport[data-zoomed="true"] { display: block; }
+.case-lightbox .case-image-viewport[data-zoomed="true"] img { width: auto; height: auto; max-width: none; max-height: none; }
+.case-lightbox figcaption { color: var(--studio-muted); font-size: 12px; line-height: 1.7; margin-top: 12px; overflow-wrap: anywhere; }
+.case-gallery-thumbnails { display: flex; gap: 8px; max-width: 100%; overflow-x: auto; padding: 6px; margin: 0 -6px 16px; scroll-padding-inline: 6px; }
+.case-lightbox .case-gallery-thumbnails button { position: relative; flex: 0 0 92px; min-height: 70px; padding: 4px; border-radius: 10px; border-color: var(--studio-line); }
+.case-lightbox .case-gallery-thumbnails button[aria-current="true"] { border: 2px solid var(--studio-accent); box-shadow: inset 0 0 0 1px var(--studio-accent); }
+.case-lightbox .case-gallery-thumbnails img { display: block; width: 100%; height: 58px; object-fit: cover; object-position: top; border-radius: 5px; }
+.case-gallery-thumbnails button > span { position: absolute; bottom: 6px; right: 6px; border-radius: 4px; background: var(--studio-bg); color: var(--studio-text); font-size: 10px; padding: 0 4px; }
+.case-gallery-thumbnails .project-artwork-fallback { padding: 4px; min-height: 58px; }
+.case-gallery-thumbnails .project-artwork-fallback p { font-size: 9px; }
+.case-gallery-thumbnails .project-artwork-fallback p + p { display: none; }
+.case-lightbox footer { border-top: 1px solid var(--studio-line); padding-top: 14px; }
+.case-lightbox footer > p { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.liquid-case .case-gallery-grid figcaption { color: var(--studio-muted); font-size: 12px; padding-top: 12px; line-height: 1.7; }
+.liquid-case .case-gallery-grid button { border-color: var(--studio-control-line); }
+.liquid-case .case-gallery-grid button:focus-visible { outline-offset: 4px; }
+.liquid-case .case-chapter-nav a { border: 1px solid transparent; border-radius: 12px; padding: 8px 12px; }
+.liquid-case .case-story > div > section { scroll-margin-top: 130px; }
+@media (min-width: 1000px) {
+  .liquid-case .case-story aside { position: sticky; top: 132px; align-self: start; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .liquid-case .case-chapter-nav a:hover { border-color: var(--studio-line); background: var(--studio-panel-fill); }
+  .liquid-case .case-gallery-grid button:hover { border-color: var(--studio-accent); }
+}
+@media (max-width: 600px) {
+  .case-lightbox { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); }
+  .case-image-tools p { flex-basis: 100%; margin-inline-start: 0; }
+  .case-image-viewport { height: 43dvh; border-radius: 10px; }
+  .case-lightbox .case-gallery-thumbnails button { flex-basis: 76px; }
+  .case-lightbox footer { flex-wrap: wrap; }
+}

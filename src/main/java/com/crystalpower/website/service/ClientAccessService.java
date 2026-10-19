@@ -33,16 +33,43 @@ public class ClientAccessService {
     public ClientAccessService(ClientRepository clients, SupportRepository support, TeamIdentityRepository teams, TeamAccessService access, PasswordEncoder passwords) { this.clients=clients; this.support=support; this.teams=teams; this.access=access; this.passwords=passwords; this.dummyHash=passwords.encode(UUID.randomUUID().toString()); }
     @Transactional
     public Access status(Authentication auth, UUID request) { var actor=staff(auth,request); return clients.linked(actor.workspaceId(),request).map(c -> view(c,null)).orElse(null); }
-    private TeamAccessService.Actor staff(Authentication auth, UUID request) { var actor=access.resolve(auth); actor.require(TeamPermission.MANAGE_CLIENTS); teams.lockWorkspace(actor.workspaceId()); support.claimUnassigned(actor.workspaceId()); support.request(actor.workspaceId(),request,true).orElseThrow(ClientAccessService::missing); return actor; }
+    private TeamAccessService.Actor staff(Authentication auth, UUID request) {
+        var actor=access.resolve(auth);
+        actor.require(TeamPermission.READ_SUPPORT); actor.require(TeamPermission.MANAGE_CLIENTS);
+        teams.lockWorkspace(actor.workspaceId());
+        // A suspension or role change may have committed while this request waited.
+        actor=access.resolveLocked(auth);
+        actor.require(TeamPermission.READ_SUPPORT); actor.require(TeamPermission.MANAGE_CLIENTS);
+        support.claimUnassigned(actor.workspaceId());
+        support.request(actor.workspaceId(),request,true).orElseThrow(ClientAccessService::missing);
+        return actor;
+    }
     @Transactional
     public Access provision(Authentication auth, UUID request) {
+        return provision(auth,request,null,null);
+    }
+    @Transactional
+    public Access provision(Authentication auth,UUID request,Boolean expectedLinked,Integer expectedVersion) {
         var actor=staff(auth,request); var enquiry=support.request(actor.workspaceId(),request,true).orElseThrow(ClientAccessService::missing);
+        var linked=clients.linked(actor.workspaceId(),request);
+        if(expectedLinked!=null){
+            if(expectedLinked && expectedVersion==null || !expectedLinked && expectedVersion!=null)throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Confirm the current client-access state before linking or replacing an invitation.");
+            if(expectedLinked!=linked.isPresent() || expectedLinked && linked.orElseThrow().version()!=expectedVersion)throw new ResponseStatusException(HttpStatus.CONFLICT,"Client access changed. Refresh it before linking or replacing an invitation.");
+        }
         String email=enquiry.clientEmail().strip().toLowerCase(Locale.ROOT);
-        var account=clients.email(email).orElseGet(() -> clients.create(actor.workspaceId(),email,enquiry.clientName()));
+        var account=linked.orElseGet(()->clients.email(email).orElseGet(() -> clients.create(actor.workspaceId(),email,enquiry.clientName())));
         account=clients.account(account.id(),true).orElseThrow(ClientAccessService::missing);
         if (!account.workspaceId().equals(actor.workspaceId())) throw missing();
+        // Activation also locks the account, so repeat the supplied revision proof after that wait.
+        if(Boolean.TRUE.equals(expectedLinked) && account.version()!=expectedVersion)throw new ResponseStatusException(HttpStatus.CONFLICT,"Client access changed. Refresh it before replacing an invitation.");
+        if (account.state().equals("SUSPENDED")) throw new ResponseStatusException(HttpStatus.CONFLICT,"This client's access is suspended. Use account recovery explicitly before linking another project.");
+        if(linked.isPresent() && account.state().equals("ACTIVE"))return view(account,null);
         clients.bind(account.id(),request);
-        String token=account.state().equals("INVITED") ? invitation(account.id()) : null;
+        String token=null;
+        if(account.state().equals("INVITED")){
+            // Replacing a single-use link must change the revision shown to every admin.
+            clients.reset(account.id());token=invitation(account.id());account=clients.account(account.id(),false).orElseThrow();
+        }
         support.event(request,actor.ownerId(),actor.memberId(),"CLIENT_ACCESS_GRANTED","Client portal access was linked to this request. Any invitation must be delivered privately to its stored recipient.",false);
         return view(account,token);
     }

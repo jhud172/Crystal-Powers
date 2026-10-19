@@ -119,14 +119,27 @@ def backup(args):
 
 
 def restore_local(args):
-    verify(args.directory)
+    manifest = verify(args.directory)
     if os.environ.get("PGHOST") != "127.0.0.1" or os.environ.get("PGPORT") != "55432" or not re.fullmatch(r"crystal_restore_[a-z0-9_]+", os.environ.get("PGDATABASE", "")):
         raise ValueError("Automated restore is restricted to an empty crystal_restore_* database on 127.0.0.1:55432.")
     if sql("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public'") != "0":
         raise ValueError("Restore target must be empty. Existing data will not be overwritten.")
     if args.media_directory.exists():
         raise ValueError("Restore media directory must not exist.")
+    tables = manifest["tables"]
+    sequences = manifest["sequences"]
+    if not tables or any(table not in TABLES for table in tables) or any(not re.fullmatch(r"public\.[a-z_]+", sequence) for sequence in sequences):
+        raise ValueError("Unexpected private restore inventory.")
     pg("pg_restore", "--exit-on-error", "--no-owner", "--no-acl", "--dbname", os.environ["PGDATABASE"], str(args.directory / "database.dump"))
+    # --no-acl does not prevent the target owner's default grants from applying.
+    # Reinstate the application's browser-role boundary before reporting success.
+    browser_roles = json.loads(sql("SELECT COALESCE(json_agg(rolname ORDER BY rolname),'[]'::json) FROM pg_roles WHERE rolname IN ('anon','authenticated')"))
+    if any(role not in ("anon", "authenticated") for role in browser_roles):
+        raise ValueError("Unexpected browser role.")
+    grantees = ",".join(["PUBLIC", *browser_roles])
+    sql("REVOKE ALL ON TABLE " + ",".join("public." + table for table in tables) + " FROM " + grantees)
+    if sequences:
+        sql("REVOKE ALL ON SEQUENCE " + ",".join(sequences) + " FROM " + grantees)
     shutil.copytree(args.directory / "media", args.media_directory)
     print("PORTFOLIO_LOCAL_RESTORE_COMPLETE: start the local app with this database, media directory and the separately retained encryption key.")
 

@@ -43,6 +43,17 @@ public class BillingLedgerService {
         long amount=money(charge,"amount"),captured=money(charge,"amount_captured"),refunded=money(charge,"amount_refunded");if(captured>amount || refunded>captured || allocated<0 || allocated>captured || !java.util.Set.of("pending","succeeded","failed").contains(charge.path("status").asText()))throw unconfirmed();
         ledger.payment(id,"CHARGE",customer,intent.liveMode(),charge.path("status").asText(),amount,captured,id,captured,refunded,charge.path("disputed").asBoolean());if(ledger.receipt(id,id,intent.liveMode(),"succeeded".equals(charge.path("status").asText()) && captured>0 ? stripe.trustedReceiptUrl(charge) : null)!=1)throw unconfirmed();ledger.link(bill,id,allocation,invoiceId,allocated);
     }
+    /** Re-prove the invoice binding before accepting a customer-less legacy charge for a refund. */
+    public void verifyLegacyInvoice(String payment,String customer,boolean mode) {
+        var link=ledger.firstLink(payment).orElseThrow(BillingLedgerService::unconfirmed);
+        var intent=flow.intent(link.bill(),false).orElseThrow(BillingLedgerService::unconfirmed);
+        if(link.invoice()==null || intent.subscriptionId()==null || intent.liveMode()!=mode || mode!=stripe.liveMode()
+                || !customer.equals(flow.customer(intent.accountId(),mode).orElse(null)))throw unconfirmed();
+        var invoice=stripe.invoice(link.invoice());
+        if(!link.invoice().equals(reference(invoice)) || !"invoice".equals(invoice.path("object").asText())
+                || !customer.equals(reference(invoice.path("customer"))) || !"gbp".equals(invoice.path("currency").asText())
+                || !intent.subscriptionId().equals(reference(invoice.path("parent").path("subscription_details").path("subscription"))))throw unconfirmed();
+    }
     @Transactional public void adjustment(String kind,String id) {
         if(!java.util.Set.of("REFUND","DISPUTE").contains(kind))throw unconfirmed();
         JsonNode resource=kind.equals("REFUND") ? stripe.refund(id) : stripe.dispute(id);if(!id.equals(reference(resource)))throw unconfirmed();
@@ -60,7 +71,7 @@ public class BillingLedgerService {
         ledger.adjustment(id,payment,kind,resource.path("status").asText(),money(resource,"amount"));
     }
     private BillingFlowRepository.Intent authorised(Authentication auth,UUID request,UUID bill) { var actor=access.resolve(auth);actor.require(TeamPermission.READ_SUPPORT);requests.request(actor.workspaceId(),request,false).orElseThrow(BillingLedgerService::missing);var draft=bills.draft(bill).orElseThrow(BillingLedgerService::missing);var intent=flow.intent(bill,false).orElseThrow(BillingLedgerService::missing);if(!draft.workspaceId().equals(actor.workspaceId()) || !draft.requestId().equals(request) || intent.liveMode()!=stripe.liveMode())throw missing();return intent; }
-    @Transactional(readOnly=true) public Object page(Authentication auth,UUID request,UUID bill,String kind,String after) { var intent=authorised(auth,request,bill);if(after!=null && (!after.matches("(pi_|ch_|re_|dp_)[A-Za-z0-9]+") || after.length()>100))throw unconfirmed();if(kind.equals("PAYMENTS")){if(after!=null && !ledger.hasPayment(bill,intent.liveMode(),after))throw missing();var rows=ledger.payments(bill,intent.liveMode(),after);boolean more=rows.size()>50;var items=more ? rows.subList(0,50) : rows;return new Page<>(items,more ? items.get(items.size()-1).id() : null,intent.liveMode());}if(!kind.equals("ADJUSTMENTS"))throw unconfirmed();if(after!=null && !ledger.hasAdjustment(bill,intent.liveMode(),after))throw missing();var rows=ledger.adjustments(bill,intent.liveMode(),after);boolean more=rows.size()>50;var items=more ? rows.subList(0,50) : rows;return new Page<>(items,more ? items.get(items.size()-1).id() : null,intent.liveMode()); }
+    @Transactional public Object page(Authentication auth,UUID request,UUID bill,String kind,String after) { var intent=authorised(auth,request,bill);if(after!=null && (!after.matches("(pi_|ch_|re_|dp_)[A-Za-z0-9]+") || after.length()>100))throw unconfirmed();if(kind.equals("PAYMENTS")){if(after!=null && !ledger.hasPayment(bill,intent.liveMode(),after))throw missing();var rows=ledger.payments(bill,intent.liveMode(),after);boolean more=rows.size()>50;var items=more ? rows.subList(0,50) : rows;return new Page<>(items,more ? items.get(items.size()-1).id() : null,intent.liveMode());}if(!kind.equals("ADJUSTMENTS"))throw unconfirmed();if(after!=null && !ledger.hasAdjustment(bill,intent.liveMode(),after))throw missing();var rows=ledger.adjustments(bill,intent.liveMode(),after);boolean more=rows.size()>50;var items=more ? rows.subList(0,50) : rows;return new Page<>(items,more ? items.get(items.size()-1).id() : null,intent.liveMode()); }
     private static long money(JsonNode resource,String field) { var value=resource.path(field);if(!value.isIntegralNumber() || !value.canConvertToLong() || value.asLong()<0 || value.asLong()>9007199254740991L)throw unconfirmed();return value.asLong(); }
     private static String reference(JsonNode value) { return BillingCheckoutStore.reference(value); }
     private static ResponseStatusException missing() { return new ResponseStatusException(HttpStatus.NOT_FOUND,"These financial records are unavailable."); }

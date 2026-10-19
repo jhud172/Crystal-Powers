@@ -1,3 +1,4 @@
+import { keepModalFocus } from "../../lib/dialogFocus";
 import { useEffect, useRef, useState } from "react";
 import { api, clearCsrf } from "../portfolio/projectApi";
 import { OwnerError } from "./OwnerError";
@@ -21,7 +22,7 @@ export function OwnerReauthentication({ hasDraft, onResume, onClose, onLeave }: 
     if (busy || !window.confirm(hasDraft ? "Discard the unsaved edits held in this tab and leave for the public site? Your last saved draft will remain private; the public version stays as it is." : "Leave the owner studio for the public site?")) return;
     dialog.current?.close(); onLeave();
   }
-  return <dialog ref={dialog} className="admin-reauth" aria-labelledby="session-heading" aria-describedby="session-explanation" onCancel={event => { event.preventDefault(); if (!busy) onClose(); }}>
+  return <dialog ref={dialog} onKeyDown={keepModalFocus} className="admin-reauth" aria-labelledby="session-heading" aria-describedby="session-explanation" onCancel={event => { event.preventDefault(); if (!busy) onClose(); }}>
     <div className="admin-session-summary"><p className="studio-eyebrow">OWNER STUDIO / SESSION ENDED</p><h2 id="session-heading" ref={heading} tabIndex={-1}>Sign in to continue.</h2>
       <p id="session-explanation">{hasDraft ? "Your current draft stays in this tab while you sign in, including through a failed attempt. Refreshing or closing the tab will lose unsaved edits." : "Sign in again to make changes in the owner studio."} Nothing has been retried automatically. After signing in, review and retry the action yourself.</p>
       <div className="admin-session-actions"><button className="admin-secondary" disabled={busy} onClick={onClose}>{hasDraft ? "Return to my draft" : "Return to the studio"}</button><button className="admin-text-button" disabled={busy} onClick={leave}>{hasDraft ? "Discard and leave" : "Leave for the public site"}</button></div>

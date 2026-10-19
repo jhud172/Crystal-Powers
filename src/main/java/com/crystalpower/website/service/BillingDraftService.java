@@ -4,6 +4,7 @@ import com.crystalpower.website.repository.BillingRepository;
 import com.crystalpower.website.repository.SupportRepository;
 import com.crystalpower.website.repository.BillingFlowRepository;
 import com.crystalpower.website.repository.ClientRepository;
+import com.crystalpower.website.repository.TeamIdentityRepository;
 import com.crystalpower.website.security.TeamPermission;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -25,10 +26,17 @@ public class BillingDraftService {
     private final ClientRepository clients;
     private final StripeGateway stripe;
     private final BillingCheckoutStore checkout;
+    private final TeamIdentityRepository teams;
     private final com.crystalpower.website.repository.BillingHistoryRepository history;
-    public BillingDraftService(TeamAccessService access, SupportRepository support, BillingRepository billing, BillingFlowRepository flow, ClientRepository clients, StripeGateway stripe, BillingCheckoutStore checkout,com.crystalpower.website.repository.BillingHistoryRepository history) { this.access = access; this.support = support; this.billing = billing; this.flow=flow; this.clients=clients; this.stripe=stripe; this.checkout=checkout;this.history=history; }
+    public BillingDraftService(TeamAccessService access, SupportRepository support, BillingRepository billing, BillingFlowRepository flow, ClientRepository clients, StripeGateway stripe, BillingCheckoutStore checkout,com.crystalpower.website.repository.BillingHistoryRepository history,TeamIdentityRepository teams) { this.access = access; this.support = support; this.billing = billing; this.flow=flow; this.clients=clients; this.stripe=stripe; this.checkout=checkout;this.history=history;this.teams=teams; }
     private TeamAccessService.Actor actor(Authentication authentication, UUID request, boolean manage) {
-        var actor = access.resolve(authentication); actor.require(manage ? TeamPermission.MANAGE_BILLING : TeamPermission.READ_SUPPORT);
+        var actor = access.resolve(authentication); actor.require(TeamPermission.READ_SUPPORT);
+        if(manage){
+            actor.require(TeamPermission.MANAGE_BILLING);
+            // Match support/client/refund lock order and reject authority revoked during the wait.
+            teams.lockWorkspace(actor.workspaceId());actor=access.resolveLocked(authentication);
+            actor.require(TeamPermission.READ_SUPPORT);actor.require(TeamPermission.MANAGE_BILLING);
+        }
         support.claimUnassigned(actor.workspaceId());
         support.request(actor.workspaceId(), request, true).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This request is unavailable."));
         return actor;

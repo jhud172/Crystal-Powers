@@ -13,10 +13,9 @@ import java.util.UUID;
 @Service
 public class SupportReplyEmailService {
     private final SupportRequestService requests;
-    private final SupportRepository repository;
     private final EmailTransport mail;
     private final String replyTo;
-    public SupportReplyEmailService(SupportRequestService requests, SupportRepository repository, EmailTransport mail, @Value("${app.mail.reply-to:}") String replyTo) { this.requests = requests; this.repository = repository; this.mail = mail; this.replyTo = replyTo; }
+    public SupportReplyEmailService(SupportRequestService requests, EmailTransport mail, @Value("${app.mail.reply-to:}") String replyTo) { this.requests = requests; this.mail = mail; this.replyTo = replyTo; }
     public SupportRepository.Message send(Authentication authentication, UUID requestId, UUID messageId) {
         var delivery = requests.claimDelivery(authentication, requestId, messageId);
         if (!delivery.claimed()) return delivery.message();
@@ -26,11 +25,11 @@ public class SupportReplyEmailService {
             String text = "Hello " + request.clientName() + ",\n\n" + delivery.message().body() + "\n\nCrystal Powers\nRequest reference: " + request.id();
             String html = "<div style=\"font-family:system-ui,sans-serif;line-height:1.7;max-width:640px\">" + HtmlUtils.htmlEscape(text).replace("\r\n", "\n").replace("\r", "\n").replace("\n", "<br>") + "</div>";
             mail.send(new EmailTransport.Message(request.clientEmail(), replyTo.isBlank() ? null : replyTo, subject, html, List.of()), "support-reply-" + messageId);
-            repository.delivery(requestId, messageId, "SENT");
-            return repository.message(requestId, messageId).orElseThrow();
         } catch (EmailTransport.DeliveryException failure) {
-            repository.delivery(requestId, messageId, "FAILED");
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "The client message is saved, but its email could not be sent. Reload its status and retry when delivery is available.");
+            requests.finishDelivery(delivery, false);
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "The client message is saved, but its email outcome could not be confirmed. Check the recipient and provider delivery status before retrying; another email may be sent.");
         }
+        requests.finishDelivery(delivery, true);
+        return requests.deliveryMessage(authentication, requestId, messageId);
     }
 }

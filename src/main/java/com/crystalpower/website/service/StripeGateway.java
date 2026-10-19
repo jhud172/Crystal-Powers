@@ -145,8 +145,8 @@ public class StripeGateway {
                 if (part.matches("v1=[a-fA-F0-9]{64}")) verified |= MessageDigest.isEqual(expected, HexFormat.of().parseHex(part.substring(3)));
             }
             if (!verified) throw invalidSignature();
-            JsonNode event = json.readTree(body);
-            if (event == null || !event.path("id").asText().matches("evt_[A-Za-z0-9]+") || !event.path("livemode").isBoolean() || event.path("livemode").asBoolean() != liveMode || !API_VERSION.equals(event.path("api_version").asText())) throw invalidSignature();
+            JsonNode event = json.reader().with(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS).readTree(body);
+            if (event == null || !event.isObject() || !event.path("id").isTextual() || event.path("id").asText().length()>100 || !event.path("id").asText().matches("evt_[A-Za-z0-9]+") || !event.path("livemode").isBoolean() || event.path("livemode").asBoolean() != liveMode || !API_VERSION.equals(event.path("api_version").asText())) throw invalidSignature();
             return event;
         } catch (ResponseStatusException expected) { throw expected; }
         catch (Exception invalid) { throw invalidSignature(); }

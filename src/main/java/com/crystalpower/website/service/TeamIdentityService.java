@@ -38,6 +38,8 @@ public class TeamIdentityService {
         if (password.getBytes(StandardCharsets.UTF_8).length > 72) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a password of at most 72 UTF-8 bytes.");
         String digest = hash(token);
         var candidate = teams.invitation(digest).orElseThrow(TeamIdentityService::invalidInvitation);
+        var target = teams.credentials(candidate.accountId(),false).orElseThrow(TeamIdentityService::invalidInvitation);
+        teams.lockWorkspace(target.member().workspaceId());
         var account = teams.credentials(candidate.accountId(),true).orElseThrow(TeamIdentityService::invalidInvitation);
         var invitation = teams.lockInvitation(digest).orElseThrow(TeamIdentityService::invalidInvitation);
         if(!invitation.accountId().equals(account.member().id()) || !account.member().state().equals("INVITED")) throw invalidInvitation();

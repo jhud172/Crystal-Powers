@@ -1,3 +1,4 @@
+const inspectPrivateDesign = require('./lib/private-design-audit.cjs').createPrivateDesignAudit('owner-editor');
 /* One approved-Clare UI fixture. Actual private/public ownership runs separately in portfolio QA. */
 const {chromium}=require(process.env.CRYSTAL_PLAYWRIGHT_MODULE || 'playwright');
 const assert=require('node:assert/strict');const fs=require('node:fs/promises');const path=require('node:path');
@@ -12,9 +13,20 @@ const check=(name,value)=>{assert.ok(value,name);report.checks.push(name);};cons
  const frame=()=>page.frameLocator('.admin-preview-frame');const doc=()=>page.frames().find(f=>f.parentFrame());
  try{
   await page.route('**/api/admin/auth/session',r=>reply(r,{authenticated:true,email:'preview-ui-fixture@example.invalid',mfaRequired:false,enrolmentRequired:false,setupAvailable:false}));
-  await page.route('**/api/admin/projects',r=>reply(r,[project]));await page.route(/\/api\/admin\/projects\/[a-z0-9-]+(?:\/.*)?$/,r=>{if(r.request().method()!=='GET')writes++;return reply(r,new URL(r.request().url()).pathname.endsWith('/media')?ids.map((id,i)=>({id,width:i?390:1440,height:i?844:1000,bytes:80000})):project);});
+  await page.route('**/api/admin/projects',r=>reply(r,[project]));await page.route(/\/api\/admin\/projects\/[a-z0-9-]+(?:\/.*)?$/,r=>{if(r.request().method()!=='GET')writes++;if(new URL(r.request().url()).pathname.endsWith('/revisions/page'))return reply(r,{items:[{version:5,title:project.content.title,createdAt:project.updatedAt},{version:3,title:'Earlier approved copy',createdAt:project.updatedAt}],nextCursor:null,total:2});return reply(r,new URL(r.request().url()).pathname.endsWith('/media')?ids.map((id,i)=>({id,width:i?390:1440,height:i?844:1000,bytes:80000})):project);});
   await page.route('**/api/admin/media/*',r=>imageFail?r.fulfill({status:503,body:''}):r.fulfill({status:200,contentType:'image/jpeg',body:images[new URL(r.request().url()).pathname.endsWith(ids[1])?1:0]}));
-  await page.goto(base+'/admin',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:project.content.title,exact:true}).click();await page.locator('#project-summary').fill('Unsaved text visible only in this tab’s private preview.');await page.getByRole('button',{name:'Preview',exact:true}).click();await frame().getByRole('heading',{name:project.content.title,exact:true}).waitFor();
+  await page.goto(base+'/admin',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:project.content.title,exact:true}).click();await inspectPrivateDesign(page,'Owner editor details');if(process.env.CRYSTAL_PRIVATE_DESIGN_AUDIT==='1') {
+   for(const section of ['Images','Story','History']) {
+    await page.getByRole('group',{name:'Editor sections',exact:true}).getByRole('button',{name:section,exact:true}).click();
+    if(section==='History')await page.getByRole('heading',{name:/Revision 5/}).waitFor();
+    await inspectPrivateDesign(page,'Owner editor '+section.toLowerCase());
+   }
+   await page.getByRole('group',{name:'Editor sections',exact:true}).getByRole('button',{name:'Details',exact:true}).click();
+   await page.getByRole('button',{name:'Publish this revision ↗',exact:true}).click();
+   await page.locator('dialog:modal').waitFor();await inspectPrivateDesign(page,'Publication review before consent');
+   await page.getByRole('button',{name:'Keep as draft',exact:true}).click();
+  }await page.locator('#project-summary').fill('Unsaved text visible only in this tab’s private preview.');await page.getByRole('button',{name:'Preview',exact:true}).click();await frame().getByRole('heading',{name:project.content.title,exact:true}).waitFor();
+  await inspectPrivateDesign(page,'Owner private preview controls');
   check('Preview displays unsaved content without saving or changing the public revision',await frame().getByText('Unsaved text visible only in this tab’s private preview.',{exact:true}).isVisible()&&writes===0&&project.version===5&&project.publishedVersion===3);
   check('Opening preview focuses its heading clear of the sticky editor toolbar',await page.locator('.admin-preview-controls h2').evaluate(e=>e===document.activeElement&&e.getBoundingClientRect().top>=document.querySelector('.admin-editor-toolbar').getBoundingClientRect().bottom));
   check('Preview is an unshareable blank frame without draft data or app scripts in its source',await page.locator('.admin-preview-frame').getAttribute('src')==='about:blank'&&await page.locator('.admin-preview-frame').getAttribute('srcdoc')===null&&await frame().locator('script').count()===0);
@@ -43,6 +55,12 @@ const check=(name,value)=>{assert.ok(value,name);report.checks.push(name);};cons
   await page.getByRole('button',{name:'← Back to editor',exact:true}).click();check('Returning to editor preserves unsaved inputs and restores field focus',await page.locator('#project-summary').inputValue()==='Unsaved text visible only in this tab’s private preview.'&&await page.locator('#project-title').evaluate(e=>e===document.activeElement));
   imageFail=true;await page.getByRole('button',{name:'Preview',exact:true}).click();await page.getByRole('alert').waitFor();check('Private image failure gives an explicit safe retry with no draft loss',await page.getByText('A private preview image couldn’t load. Check your connection or sign in again through the editor, then reload this preview. Your edits are still here.',{exact:true}).isVisible());imageFail=false;await page.getByRole('button',{name:'Reload preview',exact:true}).click();await frame().locator('.studio-project-cover img').waitFor();await page.waitForFunction(()=>document.querySelector('iframe.admin-preview-frame')?.contentDocument.querySelector('.studio-project-cover img')?.naturalWidth>0);check('Reload preview recovers authenticated imagery without saving',await page.getByRole('alert').count()===0&&writes===0);
   await frame().getByRole('button',{name:'← Back to editor',exact:true}).click();check('Internal preview exit preserves content and owner metadata',await page.locator('#project-summary').inputValue()==='Unsaved text visible only in this tab’s private preview.'&&await page.title()==='Owner studio | Crystal Powers');
+  if(process.env.CRYSTAL_PRIVATE_DESIGN_AUDIT==='1') {
+   page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:'← All projects',exact:true}).click();await page.locator('.admin-dashboard-heading').waitFor();
+   await page.addInitScript(()=>{window.ResizeObserver=undefined;});await page.goto(base+'/admin');await page.getByRole('button',{name:project.content.title,exact:true}).click();await page.locator('#project-summary').waitFor();
+   await inspectPrivateDesign(page,'Owner editor without resize observation');
+   check('Missing ResizeObserver keeps the editor usable with ordinary scrolling',await page.locator('.admin-editor-toolbar').evaluate(el=>getComputedStyle(el).position!=='sticky')&&await page.locator('.admin-publish-panel').evaluate(el=>getComputedStyle(el).position!=='sticky'));
+  }
   check('No uncaught preview browser errors',report.errors.length===0);await fs.writeFile(path.join(output,'report.json'),JSON.stringify(report,null,2));console.log('PREVIEW_BROWSER_PASS:',report.checks.length,'checks; evidence:',output);
  }catch(error){report.failure=String(error);report.frames=await Promise.all(page.frames().map(async f=>({url:f.url(),body:await f.locator('body').innerText().catch(()=>''),styles:await f.locator('link[rel=stylesheet]').count()})));report.frameBounds=await page.locator('.admin-preview-frame').evaluate(e=>({style:e.getAttribute('style'),width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height,html:e.contentDocument?.body.innerHTML})).catch(()=>null);await fs.writeFile(path.join(output,'report.json'),JSON.stringify(report,null,2));throw error;}finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

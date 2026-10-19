@@ -53,7 +53,9 @@
 .enquiry-reset { border: 1px solid var(--studio-control-line); padding: 18px; }
 .enquiry-reset button { margin-right: 20px; }
 .enquiry-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); list-style: none; padding: 0; margin: 0 0 32px; gap: 10px; }
-.enquiry-steps button { display: flex; flex-direction: column; gap: 6px; align-items: start; width: 100%; text-align: left; padding: 12px 0; color: var(--studio-muted); border-bottom: 2px solid var(--studio-line); min-height: 44px; font-size: 12px; }
+.enquiry-steps button { display: flex; flex-direction: column; gap: 6px; align-items: start; width: 100%; text-align: left; padding: 12px 0; color: var(--studio-muted); border-bottom: 2px solid var(--studio-line); min-height: 44px; font-size: 12px; overflow-wrap: anywhere; }
+.enquiry-steps button > span { max-width: 100%; }
+@media (max-width: 640px) { .enquiry-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .enquiry-steps [aria-current="step"] button { color: var(--studio-accent); border-color: var(--studio-accent); }
 .enquiry-bespoke { padding: 36px 0 60px; max-width: 750px; }
 .enquiry-bespoke h2, .enquiry-aftercare h2, .support-preparation h2 { font-size: clamp(28px, 4vw, 48px); line-height: 1.15; margin: 20px 0; letter-spacing: -.04em; }

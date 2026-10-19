@@ -2,7 +2,7 @@
 .brand-crystal-button { position: relative; display: grid; place-items: center; width: 44px; height: 52px; padding: 4px; overflow: hidden; border: 0; border-radius: 10px; background: transparent; isolation: isolate; }
 .brand-crystal-button img { display: block; width: auto; height: 100%; max-width: 100%; object-fit: contain; transition: transform 500ms cubic-bezier(.22,1,.36,1); }
 .brand-home-link { display: block; min-height: 44px; align-content: center; }
-.brand-home-link > span { font-size: 15px; line-height: 1.05; letter-spacing: -.025em; font-weight: 650; }
+.brand-home-link > span { display: block; font-size: 15px; line-height: 1.05; letter-spacing: -.025em; font-weight: 650; }
 .brand-light-sweep { position: absolute; inset: -50%; pointer-events: none; background: linear-gradient(110deg,transparent 40%,#ecfaffb0 49%,transparent 58%); transform: translateX(-110%); opacity: 0; }
 @media (hover:hover) and (pointer:fine) {
   .brand-crystal-button:hover img { transform: scale(1.08) rotate(-7deg); }
@@ -31,6 +31,30 @@
 .brand-identity[data-footer="true"] .brand-crystal-button { width: 52px; height: 70px; }
 .brand-identity[data-footer="true"] .brand-home-link img { width: min(230px,48vw); height: auto; display: block; }
 .brand-identity[data-footer="true"] .brand-experience { top: auto; bottom: calc(100% + 12px); }
+.brand-variant-options { display: flex; flex-wrap: wrap; gap: 6px; padding: 5px; margin-top: 12px; border: 1px solid var(--studio-line); border-radius: 16px; background: var(--studio-raised); }
+.brand-variant-options button { flex: 1; min-height: 44px; padding: 8px 14px; border: 1px solid transparent; border-radius: 11px; font-size: 12px; color: var(--studio-muted); }
+.brand-variant-options button[aria-pressed="true"] { border-color: var(--studio-control-line); background: var(--studio-bg); color: var(--studio-text); }
+.brand-experience { max-height: calc(100dvh - 120px); overflow-y: auto; }
+.brand-scene[data-variant="liquid"] { height: clamp(180px, 27vh, 260px); background: radial-gradient(ellipse at center, color-mix(in srgb, var(--studio-accent) 12%, transparent), transparent 68%); }
+.brand-scene[data-variant="liquid"] > img { padding: 18px; }
+.brand-scene-caption { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; margin-bottom: 12px; }
+.brand-scene-caption strong { font-size: 20px; font-weight: 600; letter-spacing: -.04em; }
+.brand-scene-caption span { font-size: 11px; color: var(--studio-muted); }
+.brand-rotation-control { display: grid; grid-template-columns: auto minmax(80px, 1fr); align-items: center; gap: 16px; font-size: 11px; color: var(--studio-muted); }
+.brand-identity[data-footer="true"] .brand-home-link > span { font-size: clamp(22px, 3vw, 34px); line-height: 1.05; }
+.brand-finish-options { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; border: 0; padding: 0; margin-top: 16px; }
+.brand-finish-options legend { font-size: 11px; color: var(--studio-muted); padding-bottom: 6px; }
+.brand-finish-options button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--studio-line); border-radius: 12px; font-size: 12px; }
+.brand-finish-options button[aria-pressed="true"] { border-color: var(--studio-accent); background: var(--studio-raised); }
+.brand-finish-swatch { display: inline-block; flex: 0 0 14px; width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--studio-control-line); }
+.brand-finish-glacier { background: #91cce9; }
+.brand-finish-rose { background: #c997ae; }
+.brand-finish-pearl { background: #dce5ef; }
+.brand-view-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; margin-bottom: 12px; }
+.brand-view-controls > button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--studio-control-line); border-radius: 12px; font-size: 11px; }
+.brand-scene[data-variant="liquid"][data-finish="rose"] > img { filter: hue-rotate(130deg) saturate(.8); }
+.brand-scene[data-variant="liquid"][data-finish="pearl"] > img { filter: saturate(0) brightness(1.12); }
+@media (max-width: 480px) { .brand-view-controls { grid-template-columns: minmax(0, 1fr); } }
 @media(max-width:760px) {
   .studio-header .brand-identity { gap: 8px; }
   .studio-header .brand-home-link { flex-shrink: 0; }

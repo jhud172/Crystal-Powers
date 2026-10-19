@@ -4,7 +4,7 @@
 .team-sidebar nav button { display: block; width: 100%; padding: 10px 12px; text-align: left; border: 0; background: transparent; color: inherit; border-radius: 8px; overflow-wrap: anywhere; }
 .team-sidebar nav button[aria-current] { background: var(--studio-accent); color: var(--studio-bg); }.team-sidebar nav { margin-bottom: 24px; }
 .team-conversation { padding: clamp(20px, 3vw, 40px); min-width: 0; }.team-conversation header { border-bottom: 1px solid var(--studio-line); padding-bottom: 18px; }.team-conversation h2 { font-size: clamp(1.5rem, 3vw, 2.5rem); overflow-wrap: anywhere; }
-.team-messages { list-style: none; padding: 0; margin: 24px 0; max-height: 55vh; overflow-y: auto; overflow-wrap: anywhere; }.team-messages li { padding: 16px 0; border-bottom: 1px solid var(--studio-line); }.team-messages li > div { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; }.team-messages time, .team-messages small { font-size: .75rem; opacity: .8; }.team-messages p { white-space: pre-wrap; }
+.team-messages { list-style: none; padding: 0; margin: 24px 0; max-height: 55vh; overflow-y: auto; overflow-wrap: anywhere; }.team-messages li { padding: 16px 0; border-bottom: 1px solid var(--studio-line); }.team-messages li > div { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; }.team-messages time, .team-messages small { font-size: .75rem; color: var(--studio-muted); }.team-messages p { white-space: pre-wrap; }
 .team-composer { display: grid; gap: 12px; }.team-composer textarea { min-height: 100px; resize: vertical; width: 100%; padding: 16px; border: 1px solid var(--studio-line); border-radius: 12px; background: var(--studio-raised); color: inherit; }.team-composer button { justify-self: end; }.team-composer small { color: var(--studio-muted); }
 .team-member-list { list-style: none; padding: 0; }.team-member-list li { display: grid; gap: 10px; padding: 24px 0; border-bottom: 1px solid var(--studio-line); }.team-member-list label { display: grid; gap: 6px; }
 @media (max-width: 760px) { .team-workspace { grid-template-columns: 1fr; margin: 12px; }.team-sidebar { border-right: 0; border-bottom: 1px solid var(--studio-line); }.team-sidebar nav { display: flex; flex-wrap: wrap; gap: 12px; }.team-sidebar h2 { margin-top: 12px; }.team-messages { max-height: 50vh; } }
@@ -93,3 +93,21 @@
   .team-conversation { padding: 1.25rem; }
   .team-history-nav > button { flex: 1 1 9rem; }
 }
+
+/* Queue filters retain usable labels and touch targets in the private shell. */
+.team-upload-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; margin-block: 1.5rem; }
+.team-upload-filters > label { display: grid; gap: .5rem; flex: 1 1 15rem; min-width: 0; font-size: .875rem; }
+.team-upload-filters select { width: 100%; min-height: 48px; padding: .75rem; border: 1px solid var(--studio-control-line); background: var(--studio-raised); color: var(--studio-text); font: inherit; border-radius: .5rem; }
+.team-upload-filters select option { background: var(--studio-bg); }
+.team-upload-filters > .team-upload-inactive { display: flex; align-items: center; min-height: 48px; gap: .75rem; cursor: pointer; }
+.team-upload-inactive input { flex: 0 0 20px; width: 20px; height: 20px; accent-color: var(--studio-accent); }
+.team-upload-filters > button { flex: 0 1 auto; }
+
+.team-group-editor { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--studio-line); }
+.team-group-editor h3 { margin-bottom: 1.25rem; }
+.team-group-editor input:not([type=checkbox]), .team-group-editor textarea { width: 100%; min-height: 48px; border: 1px solid var(--studio-control-line); border-radius: .5rem; padding: .75rem; background: var(--studio-raised); color: var(--studio-text); font: inherit; }
+.team-group-editor textarea { min-height: 110px; resize: vertical; }
+.team-group-members { border: 1px solid var(--studio-line); border-radius: .5rem; padding: 1rem; }
+.team-group-members label { min-height: 44px; cursor: pointer; overflow-wrap: anywhere; }
+.team-group-members input, .team-group-archive input { width: 20px; height: 20px; flex: 0 0 20px; accent-color: var(--studio-accent); }
+.team-group-editor .team-group-archive { display: flex; align-items: center; min-height: 48px; gap: .75rem; cursor: pointer; }

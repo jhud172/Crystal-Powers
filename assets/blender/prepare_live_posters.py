@@ -24,7 +24,11 @@ report = json.loads((CAPTURES if args.promote or args.refresh_provenance else DE
 assert not report["errors"] and len(report["captures"]) == 12
 for file, digest in report["sourceHashes"].items():
     assert (ROOT / file).resolve().is_relative_to(ROOT)
-    assert sha(ROOT / file) == digest, f"Renderer/screen changed; regenerate photography first: {file}"
+    source = ROOT / file
+    # Git checkouts may use CRLF on Windows; line endings cannot change rendering.
+    source_digest = hashlib.sha256(source.read_bytes().replace(b"\r\n", b"\n")).hexdigest() if source.suffix in {".ts", ".tsx"} else sha(source)
+    # Older manifests recorded the checkout bytes; accept those exact originals too.
+    assert digest in {source_digest, sha(source)}, f"Renderer/screen changed; regenerate photography first: {file}"
 for model, digest in report["modelHashes"].items():
     assert model in {"crystal", "laptop", "monitor", "phone", "observatory"}
     assert sha(ROOT / f"frontend/public/models/{model}.glb") == digest, f"Model changed; regenerate photography first: {model}"

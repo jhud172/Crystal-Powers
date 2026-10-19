@@ -25,6 +25,8 @@ export function ModelStage({ model, image, imageAlt = "Project screenshot", titl
   const host = useRef<HTMLDivElement>(null);
   const launch = useRef<HTMLButtonElement>(null);
   const returnLaunchFocus = useRef(false);
+  const stageFocused = useRef(false);
+  const previouslyActive = useRef(false);
   const video = useRef<HTMLVideoElement>(null);
   const [visible, setVisible] = useState(false);
   const [angle, setAngle] = useState(0);
@@ -48,7 +50,11 @@ export function ModelStage({ model, image, imageAlt = "Project screenshot", titl
   };
   const close = () => { returnLaunchFocus.current = true; activate(null); setPlaying(false); };
   useLayoutEffect(() => {
-    if (!active && returnLaunchFocus.current) { returnLaunchFocus.current = false; launch.current?.focus(); }
+    if (!active && (returnLaunchFocus.current || previouslyActive.current && stageFocused.current)) {
+      returnLaunchFocus.current = false;
+      (launch.current ?? host.current)?.focus({ preventScroll: true });
+    }
+    previouslyActive.current = active;
   }, [active]);
   useEffect(() => {
     retryGeneration.current += 1;
@@ -90,7 +96,7 @@ export function ModelStage({ model, image, imageAlt = "Project screenshot", titl
     else player?.pause();
     return () => player?.pause();
   }, [film, threeDAllowed, visible, pageVisible, activeStage, ambientMotion, appearance]);
-  return <div ref={host} className={`model-stage ${className}`} data-active={active} data-ready={ready}>
+  return <div ref={host} tabIndex={-1} role="group" aria-label={title} className={`model-stage ${className}`} data-active={active} data-ready={ready} onFocusCapture={() => { stageFocused.current = true; }} onBlurCapture={event => { stageFocused.current = event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget); }}>
     {image && model !== "crystal" ? <div className={`stage-poster stage-project-poster stage-project-${model}`}><div className="stage-project-device"><img src={image} alt={imageAlt} loading="lazy" /></div></div> : <ScenePoster model={model} light={appearance === "light"} className="stage-poster stage-live-poster" sizes="(max-width: 700px) 100vw, 70vw" eager={model === "crystal"} alt={model === "crystal" ? "Faceted optical crystals on a polished metal plinth" : `Custom ${model} display`} />}
     {film && threeDAllowed && activeStage === null && ambientMotion && <video key={appearance} ref={video} className="stage-film" src={`/renders/crystal-${appearance}-orbit.mp4`} poster={`/renders/crystal-${appearance}.webp`} muted loop playsInline aria-label="Cinematic crystal orbit" onError={() => { setFilm(false); setFilmFailed(true); }} />}
     {active && visible && pageVisible && !failed && <div className="stage-canvas" tabIndex={0} role="region" aria-label={`${model} 3D view. Use left and right arrow keys to rotate. Press Escape to close.`} onKeyDown={event => {

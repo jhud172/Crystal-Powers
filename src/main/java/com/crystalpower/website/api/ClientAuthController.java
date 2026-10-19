@@ -16,6 +16,7 @@ import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
+import static com.crystalpower.website.security.AuthenticationSessions.*;
 
 @RestController
 @RequestMapping("/api/client/auth")
@@ -33,12 +34,21 @@ public class ClientAuthController {
     @GetMapping("/session") public Object session(Authentication auth) { if(auth!=null && auth.getPrincipal() instanceof ClientPrincipal) return Map.of("authenticated",true,"client",clients.resolve(auth)); return Map.of("authenticated",false); }
     @PostMapping("/activate") public Object activate(@Valid @RequestBody Activate body,HttpServletRequest request) { limiter.check("client-activate:"+request.getRemoteAddr(),10,900); clients.activate(body.token(),body.password()); return Map.of("success",true); }
     @PostMapping("/login") public Object login(@Valid @RequestBody Login body,HttpServletRequest request,HttpServletResponse response) {
-        limiter.check("client-login:"+request.getRemoteAddr(),10,900); var principal=clients.login(body.email(),body.password());
-        var previous=request.getSession(false); if(previous!=null) previous.invalidate(); request.getSession(true);
-        var context=SecurityContextHolder.createEmptyContext(); context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(principal,null,List.of(new SimpleGrantedAuthority("ROLE_CLIENT"))));
-        SecurityContextHolder.setContext(context); contexts.saveContext(context,request,response); csrf.saveToken(null,request,response); return Map.of("authenticated",true,"client",principal);
+        limiter.check("client-login:"+request.getRemoteAddr(),10,900);
+        var previous=request.getSession(true);
+        var principal=clients.login(body.email(),body.password());
+        return inSession(request,previous,()->{
+            previous.invalidate(); SecurityContextHolder.clearContext();
+            var current=request.getSession(true);
+            return inSession(request,current,()->{
+                var context=SecurityContextHolder.createEmptyContext(); context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(principal,null,List.of(new SimpleGrantedAuthority("ROLE_CLIENT"))));
+                var bound=existingSessionRequest(request,current);
+                contexts.saveContext(context,bound,response); csrf.saveToken(null,bound,response); SecurityContextHolder.setContext(context);
+                return Map.of("authenticated",true,"client",principal);
+            });
+        });
     }
-    @PostMapping("/logout") public Object logout(HttpServletRequest request) { var session=request.getSession(false); if(session!=null) session.invalidate(); SecurityContextHolder.clearContext(); return Map.of("success",true); }
+    @PostMapping("/logout") public Object logout(HttpServletRequest request) { endSession(request); return Map.of("success",true); }
     @GetMapping("/preferences") public Object preferences(Authentication auth) { return clients.preferences(auth); }
     @PatchMapping("/preferences") public Object preferences(Authentication auth,@Valid @RequestBody Preferences body,HttpServletRequest request) { limiter.check("client-preferences:"+request.getRemoteAddr(),30,60); return clients.preferences(auth,body.version(),body.contactPreference()); }
     @PostMapping("/password") public Object password(Authentication auth,@Valid @RequestBody Password body,HttpServletRequest request) { limiter.check("client-password:"+request.getRemoteAddr(),10,900); clients.changePassword(auth,body.currentPassword(),body.password()); return logout(request); }

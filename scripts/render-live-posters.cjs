@@ -10,7 +10,12 @@ const scenePhotographyFixture = require('./scene-photography-fixture.cjs');
   await fs.mkdir(output, { recursive: true });
   const report = { source: 'Original Crystal Powers GLBs photographed with the actual ModelCanvas; no external images/models', captures: [], errors: [], sourceHashes: {}, modelHashes: {} };
   const fixtureDocument = await scenePhotographyFixture(base);
-  for (const file of sourceFiles) report.sourceHashes[file] = crypto.createHash('sha256').update(await fs.readFile(file)).digest('hex');
+  for (const file of sourceFiles) {
+    const bytes = await fs.readFile(file);
+    // Match validation across LF/CRLF checkouts without normalising binary art.
+    const source = /\.tsx?$/.test(file) ? bytes.toString('utf8').replace(/\r\n/g, '\n') : bytes;
+    report.sourceHashes[file] = crypto.createHash('sha256').update(source).digest('hex');
+  }
   const browser = await chromium.launch({ headless: true, executablePath: process.env.CRYSTAL_BROWSER_EXECUTABLE });
   let debugPage;
   try {

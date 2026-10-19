@@ -3,7 +3,6 @@ import { LiquidLightArtwork } from "./LiquidLightArtwork";
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { NavLink } from "react-router-dom";
 import { useSiteTheme } from "../../app/Layout";
-import { useMotionPolicy } from "../../hooks/useMotionPolicy";
 import { imageUrl, type PublicProject } from "../portfolio/projectApi";
 import { useExperience } from "./ExperienceContext";
 
@@ -19,8 +18,8 @@ function LightVeil({ open, settings, reduceEffects, paused }: { open: boolean; s
   const timeline = useRef<Animation | null>(null);
   const [visible, setVisible] = useState(true);
   const [failed, setFailed] = useState(false);
-  const policy = useMotionPolicy(reduceEffects || settings.reduceEffects, "automatic");
-  const quiet = policy.reducedMotion || !policy.pageVisible || !visible;
+  const policy = useExperience();
+  const quiet = reduceEffects || settings.reduceEffects || policy.reducedMotion || !policy.pageVisible || !visible;
   useEffect(() => {
     if (!host.current || typeof IntersectionObserver !== "function") return;
     const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));

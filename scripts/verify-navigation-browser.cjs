@@ -26,9 +26,10 @@ const reply = (route, data) => route.fulfill({ status: 200, contentType: 'applic
     await page.route('**/api/admin/auth/session', route => reply(route, { authenticated: true, email: 'navigation-fixture@example.invalid', mfaRequired: false, enrolmentRequired: false, setupAvailable: false }));
     await page.route('**/api/admin/projects', route => reply(route, [project]));
     await page.route('**/api/admin/projects/*/media', route => reply(route, []));
+    await page.route('**/api/admin/projects/*/team-access', route => reply(route, {workspaceId:null,updatedAt:project.updatedAt}));
     await page.route('**/api/admin/account/recovery-codes', route => reply(route, { recoveryCodes: ['synthetic-navigation-code-one', 'synthetic-navigation-code-two'] }));
     await page.goto(base + '/admin?from=navigation-fixture'); await button('Account security').waitFor();
-    await page.getByRole('link', { name: 'Crystal Powers owner studio', exact: true }).click(); await page.waitForURL(base + '/admin');
+    await page.getByRole('link', { name: 'Crystal Powers private workspace', exact: true }).click(); await page.waitForURL(base + '/admin');
     await button('Account security').click(); await button('Recovery codes').click(); await page.getByLabel('Current password', { exact: true }).fill('synthetic-ui-password'); await page.getByLabel('Authenticator or recovery code', { exact: true }).fill('synthetic-ui-code'); await button('Replace recovery codes ↗').click(); await page.getByRole('heading', { name: 'Recovery codes replaced.', exact: true }).waitFor();
     await confirmNavigation(() => page.goBack());
     check('Declining Back preserves the current URL and one-time code display', new URL(page.url()).search === '' && await page.locator('.admin-recovery-codes code').count() === 2);
