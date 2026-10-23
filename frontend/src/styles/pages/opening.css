@@ -1,0 +1,39 @@
+/* Prism shares Liquid Light tokens; only the glass artwork has its own cool tint. */
+.prism-showcase { display:grid; grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr); align-items:center; gap:clamp(28px,5vw,88px); }
+.prism-introduction h2 { font-size:clamp(42px,5.6vw,88px); line-height:1.04; letter-spacing:-.055em; margin:24px 0; }
+.prism-introduction > p:last-child { max-width:35ch; color:var(--studio-muted); line-height:1.75; }
+.crystal-opening { min-width:0; width:100%; border:1px solid var(--studio-control-line); border-radius:24px; overflow:clip; background:radial-gradient(ellipse at 50% 32%,color-mix(in srgb,var(--studio-accent) 5%,var(--studio-bg)),var(--studio-bg) 72%); }
+.opening-caption { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; padding:22px 24px 0; font-size:10px; letter-spacing:.07em; color:var(--studio-muted); }
+.opening-caption a { color:var(--studio-text); text-underline-offset:4px; }
+.opening-surface { position:relative; width:100%; aspect-ratio:4/3; cursor:grab; touch-action:pan-y; user-select:none; border-radius:16px; }
+.opening-surface:active { cursor:grabbing; }
+.opening-surface:focus-visible { outline:2px solid var(--studio-accent); outline-offset:-5px; }
+.opening-poster,.opening-canvas { position:absolute; inset:0; pointer-events:none; }
+.opening-poster img { display:block; width:100%; height:100%; object-fit:contain; }
+.crystal-opening[data-ready="true"] .opening-poster { opacity:0; }
+.opening-canvas canvas { filter:drop-shadow(0 0 calc(3px + var(--prism-pulse,0)*5px) rgb(110 205 235 / .15)); }
+.opening-controls { padding:18px 24px 24px; border-top:1px solid var(--studio-control-line); }
+.opening-controls p { color:var(--studio-muted); font-size:12px; line-height:1.6; margin:0 0 14px; }
+.opening-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.opening-actions button { min-height:44px; padding:10px 14px; border:1px solid var(--studio-control-line); border-radius:10px; background:var(--studio-bg); color:var(--studio-text); font:inherit; font-size:12px; cursor:pointer; }
+.opening-actions button:hover { border-color:var(--studio-accent); }
+.opening-actions button:focus-visible,.prism-tabs button:focus-visible,.prism-link:focus-visible { outline:2px solid var(--studio-accent); outline-offset:3px; }
+.opening-actions button:disabled { opacity:.5; cursor:default; }
+.prism-projection { display:none; padding:0 24px 24px; }
+.prism-projection[data-visible="true"] { display:block; animation:prism-reveal .55s cubic-bezier(.22,1,.36,1) both; }
+.prism-beam { display:none; }
+.prism-hologram { padding:24px; border:1px solid var(--studio-control-line); border-radius:16px; background:var(--studio-raised); }
+.prism-signal { display:block; font-size:9px; letter-spacing:.12em; color:var(--studio-muted); margin-bottom:20px; line-height:1.7; }
+.prism-index { font-size:10px; color:var(--studio-muted); }
+.prism-hologram h2 { font-size:clamp(24px,2.4vw,36px); letter-spacing:-.04em; line-height:1.15; margin:12px 0; color:var(--studio-text); }
+.prism-hologram p { font-size:14px; line-height:1.7; color:var(--studio-muted); max-width:40ch; margin:0; }
+.prism-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:22px 0; }
+.prism-tabs button { min-height:44px; padding:10px 14px; border:1px solid var(--studio-control-line); border-radius:8px; background:var(--studio-bg); color:var(--studio-text); font:inherit; font-size:12px; cursor:pointer; }
+.prism-tabs button[aria-pressed="true"] { background:var(--studio-text); color:var(--studio-bg); border-color:var(--studio-text); }
+.prism-link { display:flex; justify-content:space-between; gap:16px; padding-top:18px; border-top:1px solid var(--studio-control-line); color:var(--studio-text); font-size:13px; line-height:1.6; text-underline-offset:4px; }
+.prism-copy { animation:prism-reveal .35s ease-out both; }
+@keyframes prism-reveal { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+@media(max-width:900px) { .prism-showcase { grid-template-columns:minmax(0,1fr); } .crystal-opening { max-width:760px; } }
+@media(max-width:480px) { .opening-caption { padding:18px 16px 0; } .opening-controls { padding:16px; } .prism-projection { padding:0 16px 16px; } .prism-hologram { padding:18px; } .opening-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .opening-actions button:first-child { grid-column:1/-1; } }
+@media(prefers-reduced-motion:reduce) { .prism-projection[data-visible="true"],.prism-copy { animation:none; } }
+.crystal-opening[data-reduced="true"] .prism-projection,.crystal-opening[data-reduced="true"] .prism-copy { animation:none; }

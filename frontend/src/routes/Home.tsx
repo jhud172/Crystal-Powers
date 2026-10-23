@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { usePublishedProjects } from "../features/portfolio/projectApi";
 import { FeaturedProjects } from "../features/portfolio/FeaturedProjects";
+import { CrystalOpening } from "../features/experience/CrystalOpening";
 import { LiquidLightHero } from "../features/experience/LiquidLightHero";
 import { CollaborationChapters } from "../features/studio/CollaborationChapters";
 
@@ -9,6 +10,10 @@ export function Home() {
   const selected = showcase.projects.find(project => project.featured);
   return <div className="studio-home">
     <LiquidLightHero project={selected} />
+    <section className="prism-showcase studio-section" aria-labelledby="prism-title">
+      <div className="prism-introduction"><p className="studio-eyebrow">LIGHT / FORM / INTERACTION</p><h2 id="prism-title">A different<br /><span className="studio-soft">perspective.</span></h2><p>A little space to explore. Open the prism, turn it in your hands and discover what we could create together.</p></div>
+      <CrystalOpening />
+    </section>
     <FeaturedProjects {...showcase} />
     <section id="studio-introduction" className="studio-introduction studio-section">
       <p className="studio-eyebrow">02 / WORK DIRECTLY WITH JAMES</p>

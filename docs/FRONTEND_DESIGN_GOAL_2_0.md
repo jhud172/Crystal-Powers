@@ -1,5 +1,14 @@
 # Crystal Powers 2.0 — immersive frontend design goal
 
+## Prism refinement — 23 October 2026
+
+Final correction gate: frontend production build passes; Prism browser24 + public shell75 + shared device-model24 = **123 scoped browser checks**, all passing with zero captured runtime errors. Actual WebGL context loss, fallback, retry and keyboard Escape/focus recovery pass. Asset and animation-contract scripts pass; GLB235,724 bytes,15 meshes/9,340 triangles. CSS171.43kB/30.16gzip, main133.04/39.06, deferred Three1,007.40/276.32; existing large-chunk warning remains. Backend/database/provider/device/deployed suites were not rerun for this frontend/asset-only batch. Browser evidence is built-preview/synthetic GETs, not a new packaged or production release. Reports/screenshots: `.codex-runtime/qa/prism-precision-20261023`, `liquid-shell-d2`, `device-quality-d1`.
+
+Remote `main` (`ea48e65`) brought the new Prism Gate and reviewed runtime-artifact cleanup into the completion branch. Resolved the deleted-opening/shared-renderer conflicts by retaining the 2.0 adaptive quality, preparation, resource ownership, image accessibility and Liquid Light hero, then integrating the refined prism as a deliberate homepage section.
+
+Rounded, slimmer optical corners and matching guides, simplified diamond aperture, calmer materials, 48 fps/2.5-second exact reversible quaternion hinge, responsive in-flow projection and explicit canvas activation are implemented. Editable Blender scenes, model and responsive posters regenerated locally with installed Blender 5.2.1. See [Prism Gate](PRISM_GATE.md) for motion specification, corrections, commands and current scoped evidence. Full 2.0/design/device/provider/deployed acceptance remains open; previous packaged-test evidence retains its original byte/revision scope.
+
+
 Requested by James on 19 October 2026. Status: **design implementation and acceptance in progress under the active2.0 goal. D1–D4 shared/public/private feature batches have scoped evidence below. The corrected consolidated regression gate passes256 tests per database,2,148 packaged browser checks,12 adaptive-policy checks and41 populated recovery checks. Broader D5 visual/device/release acceptance remains open.** This brief expands that goal's design scope. The app permits one unfinished goal per conversation; this is its dedicated design phase.
 
 ## Objective

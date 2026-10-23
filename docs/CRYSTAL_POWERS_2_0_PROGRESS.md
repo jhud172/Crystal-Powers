@@ -1,5 +1,14 @@
 # Crystal Powers 2.0 progress —12 October 2026
 
+## Prism refinement — 23 October 2026
+
+Final correction gate: frontend production build passes; Prism browser24 + public shell75 + shared device-model24 = **123 scoped browser checks**, all passing with zero captured runtime errors. Actual WebGL context loss, fallback, retry and keyboard Escape/focus recovery pass. Asset and animation-contract scripts pass; GLB235,724 bytes,15 meshes/9,340 triangles. CSS171.43kB/30.16gzip, main133.04/39.06, deferred Three1,007.40/276.32; existing large-chunk warning remains. Backend/database/provider/device/deployed suites were not rerun for this frontend/asset-only batch. Browser evidence is built-preview/synthetic GETs, not a new packaged or production release. Reports/screenshots: `.codex-runtime/qa/prism-precision-20261023`, `liquid-shell-d2`, `device-quality-d1`.
+
+Remote `main` (`ea48e65`) brought the new Prism Gate and reviewed runtime-artifact cleanup into the completion branch. Resolved the deleted-opening/shared-renderer conflicts by retaining the 2.0 adaptive quality, preparation, resource ownership, image accessibility and Liquid Light hero, then integrating the refined prism as a deliberate homepage section.
+
+Rounded, slimmer optical corners and matching guides, simplified diamond aperture, calmer materials, 48 fps/2.5-second exact reversible quaternion hinge, responsive in-flow projection and explicit canvas activation are implemented. Editable Blender scenes, model and responsive posters regenerated locally with installed Blender 5.2.1. See [Prism Gate](PRISM_GATE.md) for motion specification, corrections, commands and current scoped evidence. Full 2.0/design/device/provider/deployed acceptance remains open; previous packaged-test evidence retains its original byte/revision scope.
+
+
 ## Laptop handoff19October2026
 
 Private editor/admin/business batch finished: password toggle enlargement, measured/coordinated editor stickiness with compact/short/missing-observer fallback, and shared modal Tab/Shift+Tab loops. Final build/bootJar pass. Nine functional/rendered suites565 plus730 embedded private checks over16 states pass; current package `89de812ded2e78fcbb060693cd30e478c06927e1861b70e1682896713d3dc116`,146 matching frontend outputs and615 unchanged non-frontend entries. Previous backend/recovery evidence retains its exact-byte scope. The interrupted owner-session job was absent and its targeted rerun passed; no remaining executed failure in this batch. See [portable laptop handover](LAPTOP_HANDOVER_2_0.md) for branch/sync/setup/remaining gates and the design goal for scoped evidence. Full2.0 completion is still open.

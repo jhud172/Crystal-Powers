@@ -62,3 +62,7 @@ For preparation/lifecycle changes with freshly recaptured identical artwork, `py
 ## Selected 3D logo
 
 `build_logo.py` reconstructs James's selected concept04 as an original closed faceted prism and real extruded lettering. Editable source: `scenes/crystal-powers-logo-3d.blend`; transparent PNGs, self-contained GLB and construction metadata: `assets/branding/logo-3d/`. See that folder's README for geometry, materials, font provenance and render settings. Outputs do not replace website imagery automatically.
+
+## Precision Prism Gate
+
+`build_prism_gate.py` authors the four rounded optical corners and a five-pivot reversible projector, exporting original editable `.blend` scenes, embedded GLB and Cycles posters. `prepare_prism_gate.py` validates its 2.5-second/48 fps transform samples and inverse clips before generating WebP variants. See `docs/PRISM_GATE.md` for the current geometry, controls, lifecycle and scoped verification.

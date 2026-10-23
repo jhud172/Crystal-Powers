@@ -3,6 +3,7 @@ export const modelAnimationNames = {
   crystal: "CrystalTurn",
   laptop: "LaptopOpen",
   observatory: "CrystalOpen",
+  "prism-gate": "CrystalOpen",
 } as const;
 
 export const openingAnimationNames = { open: "CrystalOpen", close: "CrystalClose" } as const;
