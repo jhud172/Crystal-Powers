@@ -1,16 +1,18 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer, MeshTransmissionMaterial, OrbitControls, useAnimations, useGLTF, useTexture } from "@react-three/drei";
 import { Suspense, useEffect, useMemo, useRef, type RefObject } from "react";
-import { BackSide, CanvasTexture, Color, Group, Object3D, Mesh, MeshBasicMaterial, MeshStandardMaterial, MeshPhysicalMaterial, SRGBColorSpace, LoopOnce } from "three";
+import { BackSide, FrontSide, CanvasTexture, Color, Group, Object3D, Mesh, MeshBasicMaterial, MeshStandardMaterial, MeshPhysicalMaterial, SRGBColorSpace, LoopOnce } from "three";
 import type { OrbitControls as OrbitControlsType } from "three-stdlib";
 import type { ModelKind } from "./ModelStage";
 import { modelAnimationNames, selectAnimationName } from "./animationContract";
 import { advanceCrystalMotion } from "./crystalMotion";
+import { PRISM_PULSE_DURATION, prismPulseEnergy } from "./prismPulse";
 
 export type CrystalInteraction = { yaw: number; pitch: number; hoverX: number; hoverY: number; palette: number; pulse: number; invalidate?: () => void };
 
 type Props = { interaction?: RefObject<CrystalInteraction>; model: ModelKind; image?: string; clip?: "CrystalOpen" | "CrystalClose"; pose?: "open" | "closed"; light: boolean; angle: number; reset: number; playing: boolean; onInteraction: () => void; onFailure: () => void; onReady: () => void; onFinished: () => void };
-const modelUrl = (model: ModelKind) => `/models/${model}.glb${model === "observatory" ? "?v=aurora-02" : ""}`;
+const isOpening = (model: ModelKind) => model === "observatory" || model === "prism-gate";
+const modelUrl = (model: ModelKind) => `/models/${model}.glb${isOpening(model) ? "?v=prism-08" : ""}`;
 
 /** A rejected cached fetch must be evicted before an explicit retry. */
 export function clearModelCache(model: ModelKind, image?: string) {
@@ -70,7 +72,21 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
         child.material = Array.isArray(child.material) ? child.material.map((mat) => mat.clone()) : child.material.clone();
         const materials = Array.isArray(child.material) ? child.material : [child.material];
         for (const material of materials) {
-          if (material instanceof MeshPhysicalMaterial && material.transmission > 0 && model !== "observatory") {
+          if (material instanceof MeshPhysicalMaterial && model === "prism-gate" && (child.userData.role === "gate-corner" || child.userData.role === "projector-diamond")) {
+            // Thin optical glass around the coated quartz centre: retain reflections
+            // without volume refraction duplicating the foreground machined details.
+            material.thickness = 0;
+            material.ior = 1.46;
+            material.envMapIntensity = 1.0;
+            const isCorner = child.userData.role === "gate-corner";
+            material.transmission = isCorner ? 0.65 : 0;
+            material.metalness = isCorner ? 0 : 0.72;
+            material.roughness = 0.07;
+            material.clearcoat = isCorner ? 0.6 : 0.25;
+            material.clearcoatRoughness = 0.045;
+            material.dispersion = 0;
+            material.side = FrontSide;
+          } else if (material instanceof MeshPhysicalMaterial && material.transmission > 0 && model !== "observatory") {
             material.thickness = 1.2;
             material.ior = 1.46;
             material.envMapIntensity = 0.55;
@@ -86,14 +102,26 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
   }, [gltf.scene, model]);
   const { actions, mixer } = useAnimations(gltf.animations, object);
   // Scrub a single authored path in either direction so reversals preserve the exact pose.
-  const action = model === "observatory" ? actions[selectAnimationName(gltf.animations.map(item => item.name), "CrystalOpen")] : model === "crystal" || model === "laptop"
+  const action = isOpening(model) ? actions[selectAnimationName(gltf.animations.map(item => item.name), "CrystalOpen")] : model === "crystal" || model === "laptop"
     ? actions[selectAnimationName(gltf.animations.map(clip => clip.name), modelAnimationNames[model], true)]
     : undefined;
   const group = useRef<Group>(null);
   const hasPlayed = useRef(false);
-  const { invalidate } = useThree();
+  const { invalidate, gl } = useThree();
   const announcedReady = useRef(false);
   const unfolding = useRef({ time: 0, speed: 0, finished: false });
+  const pulse = useRef({ request: interaction?.current.pulse ?? 0, startedAt: -Infinity, initial: 0, energy: 0 });
+  const illuminated = useMemo(() => {
+    const materials: { material: MeshStandardMaterial; resting: number }[] = [];
+    if (model === "prism-gate") object.traverse(child => {
+      if (!(child instanceof Mesh)) return;
+      for (const material of Array.isArray(child.material) ? child.material : [child.material]) {
+        if (material instanceof MeshStandardMaterial && material.emissiveIntensity > 0 && material.emissive.getHex() !== 0)
+          materials.push({ material, resting: material.emissiveIntensity });
+      }
+    });
+    return materials;
+  }, [object, model]);
   const gems = useMemo(() => {
     const items: { material: MeshStandardMaterial; colours: Color[] }[] = [];
     object.traverse(child => {
@@ -108,20 +136,20 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
     });
     return items;
   }, [object]);
-  const core = useMemo(() => object.getObjectByName("LuminousCore") as Mesh | undefined, [object]);
+  const core = useMemo(() => (object.getObjectByName("Projector emitter") || object.getObjectByName("LuminousCore")) as Mesh | undefined, [object]);
   useEffect(() => {
     const finished = () => { if (model === "laptop") onFinished(); };
     mixer.addEventListener("finished", finished); return () => mixer.removeEventListener("finished", finished);
   }, [mixer, model, onFinished]);
   useEffect(() => {
-    if (model === "observatory") return;
+    if (isOpening(model)) return;
     hasPlayed.current = false;
     if (action) { action.reset().play(); action.time = model === "laptop" ? action.getClip().duration : 0; mixer.update(0); action.paused = true; }
     invalidate();
   }, [reset, model, action, mixer, invalidate]);
 
   useEffect(() => {
-    if (model === "observatory") return;
+    if (isOpening(model)) return;
     if (!action) return;
     if (model === "laptop") { action.setLoop(LoopOnce, 1); action.clampWhenFinished = true; }
     if (playing) {
@@ -141,7 +169,7 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
   }, [action, playing, model, invalidate, mixer]);
 
   useEffect(() => {
-    if (model !== "observatory" || !action) return;
+    if (!isOpening(model) || !action) return;
     action.setLoop(LoopOnce, 1);
     action.clampWhenFinished = true;
     action.play();
@@ -173,7 +201,7 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
   useFrame((_, delta) => {
     if (!announcedReady.current) { announcedReady.current = true; onReady(); }
     const dt = Math.min(delta, 0.05);
-    if (model === "observatory" && action && playing && !unfolding.current.finished) {
+    if (isOpening(model) && action && playing && !unfolding.current.finished) {
       const motion = unfolding.current;
       const direction = clip === "CrystalClose" ? -1 : 1;
       Object.assign(motion, advanceCrystalMotion(motion.time, motion.speed, direction, action.getClip().duration, delta));
@@ -196,20 +224,38 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
         gem.material.color.lerp(target, blend);
         if (Math.abs(gem.material.color.r - target.r) + Math.abs(gem.material.color.g - target.g) + Math.abs(gem.material.color.b - target.b) > .001) invalidate();
       }
-      motion.pulse = Math.max(0, motion.pulse - dt * .65);
-      const energy = Math.sin(motion.pulse * Math.PI);
-      if (core) {
-        core.scale.setScalar(1 + energy * .18);
-        if (core.material instanceof MeshStandardMaterial) core.material.emissiveIntensity = .45 + energy * 1.3;
+      if (model === "prism-gate") {
+        const now = performance.now() / 1000;
+        const state = pulse.current;
+        if (motion.pulse !== state.request) {
+          state.request = motion.pulse;
+          state.initial = state.energy;
+          state.startedAt = motion.pulse === 0 ? -Infinity : now;
+        }
+        const elapsed = now - state.startedAt;
+        const energy = prismPulseEnergy(elapsed, state.initial);
+        if (state.energy !== energy) {
+          for (const { material, resting } of illuminated) material.emissiveIntensity = resting * (1 + energy * 2.5);
+          gl.domElement.style.setProperty("--prism-pulse", energy.toFixed(4));
+          state.energy = energy;
+        }
+        if (elapsed < PRISM_PULSE_DURATION) invalidate();
+      } else {
+        motion.pulse = Math.max(0, motion.pulse - dt * .65);
+        const energy = Math.sin(motion.pulse * Math.PI);
+        if (core) {
+          core.scale.setScalar(1 + energy * .18);
+          if (core.material instanceof MeshStandardMaterial) core.material.emissiveIntensity = .45 + energy * 1.3;
+        }
+        group.current.scale.setScalar(1 + energy * .025);
+        if (motion.pulse > 0) invalidate();
       }
-      group.current.scale.setScalar(1 + energy * .025);
-      if (motion.pulse > 0) invalidate();
     } else if (group.current) group.current.rotation.y = angle;
     if (playing) invalidate();
   });
-  return <group ref={group}><group position={[0, model === "observatory" ? -2.15 : model === "crystal" ? -1.5 : -1.1, 0]}>
+  return <group ref={group}><group position={[0, isOpening(model) ? -2.15 : model === "crystal" ? -1.5 : -1.1, 0]}>
     {model === "crystal" ? <CrystalTree object={object} /> : <primitive object={object} dispose={null} />}
-    {image && model !== "crystal" && model !== "observatory" && <ScreenTexture image={image} object={object} />}
+    {image && model !== "crystal" && !isOpening(model) && <ScreenTexture image={image} object={object} />}
   </group></group>;
 }
 
@@ -225,22 +271,26 @@ function StudioScene(props: Props) {
   const controls = useRef<OrbitControlsType>(null);
   useEffect(() => { controls.current?.reset(); }, [props.reset]);
   return <>
-    {props.model !== "observatory" && <color attach="background" args={[props.light ? "#f2f0eb" : "#0b1018"]} />}
+    {!isOpening(props.model) && <color attach="background" args={[props.light ? "#f2f0eb" : "#0b1018"]} />}
     <ambientLight intensity={props.light ? 0.45 : 0.25} />
-    <directionalLight position={[3, 5, 4]} intensity={1.5} />
-    <Environment resolution={256} frames={1}>
+    <directionalLight position={[3, 5, 4]} intensity={props.model === "prism-gate" ? 0.7 : 1.5} />
+    <Environment resolution={props.model === "prism-gate" ? 512 : 256} frames={1}>
       <mesh scale={30}><sphereGeometry args={[1, 32, 16]} /><meshBasicMaterial color={props.light ? "#747d8c" : "#30394f"} side={BackSide} /></mesh>
       <Lightformer form="rect" intensity={2} position={[0, 4, -3]} scale={[5, 2, 1]} rotation-x={Math.PI / 2} />
       <Lightformer form="rect" intensity={1.5} position={[-4, 1, 1]} scale={[1, 5, 1]} rotation-y={Math.PI / 2} color="#b6c8ff" />
-      <Lightformer form="rect" intensity={2} position={[4, 3, 2]} scale={[1, 4, 1]} rotation-y={-Math.PI / 2} color={props.light ? "#fff2df" : "#b5a5f5"} />
+      <Lightformer form="rect" intensity={2} position={[4, 3, 2]} scale={[1, 4, 1]} rotation-y={-Math.PI / 2} color="#e2f5ff" />
+      {props.model === "prism-gate" && <>
+        <Lightformer form="rect" intensity={4} position={[-3, 2, 5]} scale={[3, 7, 1]} rotation-y={Math.PI - 0.5} color="#f2f7ff" />
+        <Lightformer form="rect" intensity={2.5} position={[3, -1, 4]} scale={[1.2, 6, 1]} rotation-y={Math.PI + 0.6} color="#b9e7ff" />
+      </>}
     </Environment>
     <ObjectModel key={props.model} {...props} />
-    {!props.interaction && <OrbitControls ref={controls} enabled={props.model !== "observatory" || !props.playing} enablePan={false} enableZoom={false} minPolarAngle={Math.PI / 5} maxPolarAngle={Math.PI / 1.8} onStart={props.onInteraction} />}
+    {!props.interaction && <OrbitControls ref={controls} enabled={!isOpening(props.model) || !props.playing} enablePan={false} enableZoom={false} minPolarAngle={Math.PI / 5} maxPolarAngle={Math.PI / 1.8} onStart={props.onInteraction} />}
   </>;
 }
 
 export default function ModelCanvas(props: Props) {
-  return <Canvas dpr={[1, 1.5]} frameloop={props.playing ? "always" : "demand"} camera={props.model === "observatory" ? { position: [3.6, 2.55, 9], fov: 30 } : { position: [3.6, 2.5, 7.5], fov: 34 }} gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}>
+  return <Canvas dpr={[1, 1.5]} frameloop={props.playing ? "always" : "demand"} camera={props.model === "prism-gate" ? { position: [0, 0, 9], fov: 30 } : props.model === "observatory" ? { position: [3.6, 2.55, 9], fov: 30 } : { position: [3.6, 2.5, 7.5], fov: 34 }} gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}>
     <CanvasHealth onFailure={props.onFailure} />
     <Suspense fallback={null}><StudioScene {...props} /></Suspense>
   </Canvas>;

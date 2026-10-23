@@ -30,7 +30,7 @@ export function CrystalOpening() {
   const latestStage = useRef(activeStage);
   latestStage.current = activeStage;
   const interaction = useRef<CrystalInteraction>({ yaw: 0, pitch: 0, hoverX: 0, hoverY: 0, palette: 0, pulse: 0 });
-  const [palette, setPalette] = useState(0);
+  const [info, setInfo] = useState(0);
   const drag = useRef<{ id: number; x: number; y: number; yaw: number; pitch: number; moved: boolean } | null>(null);
   const [phase, setPhase] = useState<Phase>("closed");
   const [ready, setReady] = useState(false);
@@ -109,7 +109,7 @@ export function CrystalOpening() {
     try {
       const renderer = await loadCanvas();
       if (request !== generation.current) return;
-      renderer.clearModelCache("observatory");
+      renderer.clearModelCache("prism-gate");
       setBoundaryVersion(value => value + 1);
       setReady(false);
       open();
@@ -126,10 +126,10 @@ export function CrystalOpening() {
     if (visible && pageVisible && !reduced && !failed && activeStage === null) activate(id);
   }, [visible, pageVisible, reduced, failed, activeStage, activate, id]);
 
-  const poster = `/renders/observatory-${light ? "light" : "dark"}${revealed ? "-open" : ""}`;
-  return <div ref={host} className="crystal-opening" data-phase={phase} data-ready={ready} data-reduced={reduced}>
-    <div className="opening-caption"><span>AURORA / 02</span>{revealed ? <NavLink to="/portfolio">Explore the work ↗</NavLink> : <span>Turn a little. Discover more.</span>}</div>
-    <div className="opening-surface" role="button" tabIndex={0} aria-pressed={revealed || phase === "opening"} aria-label="Interactive crystal. Click or press Enter to open or close. Drag to rotate; arrow keys also rotate. Escape returns to rest." onKeyDown={event => {
+  const poster = `/renders/prism-gate-${revealed ? "open" : "closed"}`;
+  return <div ref={host} onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); dismiss(); } }} className="crystal-opening" data-phase={phase} data-ready={ready} data-reduced={reduced}>
+    <div className="opening-caption"><span>PRISM GATE / 01</span>{revealed ? <NavLink to="/portfolio">Explore the work ↗</NavLink> : <span>Turn a little. Discover more.</span>}</div>
+    <div className="opening-surface" role="button" tabIndex={0} aria-pressed={revealed || phase === "opening"} aria-label="Interactive Prism Gate. Click or press Enter to open or close. Drag to rotate; arrow keys also rotate. Escape returns to rest." onKeyDown={event => {
       if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); dismiss(); }
       if (event.key === "Enter" || event.key === " ") { event.preventDefault(); if (!event.repeat) toggle(); }
       if (!reduced && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
@@ -171,19 +171,32 @@ export function CrystalOpening() {
     }} onPointerCancel={() => { drag.current = null; }} onLostPointerCapture={() => { drag.current = null; }} onPointerLeave={() => {
       interaction.current.hoverX = 0; interaction.current.hoverY = 0; interaction.current.invalidate?.();
     }}>
-    <picture className="opening-poster"><source type="image/webp" srcSet={`${poster}-800.webp?v=aurora-02 800w, ${poster}.webp?v=aurora-02 1600w`} sizes="(max-width: 1000px) 100vw, 50vw" /><img src={`${poster}.png?v=aurora-02`} alt={revealed ? "Jewel-coloured crystal petals unfolding around a luminous heart and fine gold orbits" : "A sculpted prismatic crystal with mineral textures, gold inlays and suspended jewel fragments"} width="1600" height="1000" fetchPriority="high" draggable={false} /></picture>
-    {active && visible && pageVisible && !failed && <div className="opening-canvas" ><OpeningBoundary key={boundaryVersion} fail={fail}><Suspense fallback={null}><Canvas model="observatory" light={light} clip={phase === "closing" ? "CrystalClose" : "CrystalOpen"} pose={revealed ? "open" : "closed"} angle={0} interaction={interaction} reset={attempt} playing={ready && moving} onReady={onReady} onFinished={finish} onFailure={fail} onInteraction={settle} /></Suspense></OpeningBoundary></div>}
+    <picture className="opening-poster"><source type="image/webp" srcSet={`${poster}-800.webp?v=prism-08 800w, ${poster}.webp?v=prism-08 1600w`} sizes="(max-width: 1000px) 100vw, 50vw" /><img src={`${poster}.png?v=prism-08`} alt={revealed ? "Four neon blue glass corners expanded around an upward-facing diamond projector" : "Light-blue glass gate with neon outlines and a faceted diamond projector"} width="1600" height="1000" fetchPriority="high" draggable={false} /></picture>
+    {active && visible && pageVisible && !failed && <div className="opening-canvas" ><OpeningBoundary key={boundaryVersion} fail={fail}><Suspense fallback={null}><Canvas model="prism-gate" light={light} clip={phase === "closing" ? "CrystalClose" : "CrystalOpen"} pose={revealed ? "open" : "closed"} angle={0} interaction={interaction} reset={attempt} playing={ready && moving} onReady={onReady} onFinished={finish} onFailure={fail} onInteraction={settle} /></Suspense></OpeningBoundary></div>}
     </div>
+    <section className="prism-projection" data-visible={revealed} aria-label="Studio information" aria-hidden={!revealed} inert={!revealed}>
+      <div className="prism-beam" aria-hidden="true" />
+      <div className="prism-hologram">
+        <span className="prism-signal">CRYSTAL POWERS / STUDIO TRANSMISSION</span>
+        <div className="prism-copy" key={info}>
+          <span className="prism-index">0{info + 1} / 03</span>
+          <h2>{["Websites with presence.", "Ideas, made interactive.", "Built around your business."][info]}</h2>
+          <p>{["Distinctive design. Thoughtful development. A clear path from first impression to conversation.", "Purposeful apps and digital experiences, crafted to feel intuitive on every screen.", "Client portals, integrations and bespoke systems that make everyday work simpler."][info]}</p>
+        </div>
+        <nav className="prism-tabs" aria-label="Explore studio services">{["Websites", "Apps", "Systems"].map((label, index) => <button key={label} type="button" aria-pressed={info === index} onClick={() => setInfo(index)}>{label}</button>)}</nav>
+        <NavLink to="/services" className="prism-link">Explore the possibilities <span aria-hidden="true">↗</span></NavLink>
+      </div>
+    </section>
     <div className="opening-controls">
-      <p role="status">{failed ? "3D is unavailable. Explore the rendered experience." : phase === "loading" ? "Preparing the crystal…" : reduced ? "Still experience · motion reduced" : moving ? "Click again to reverse · drag to explore" : revealed ? "Click to close · drag to rotate" : "Click to unfold · drag to rotate"}</p>
+      <p role="status">{failed ? "3D is unavailable. Explore the rendered experience." : phase === "loading" ? "Preparing Prism Gate…" : reduced ? "Still experience · motion reduced" : moving ? "Click again to reverse · drag to explore" : revealed ? "Click to close · drag to rotate" : "Click to project · drag to rotate"}</p>
       <div className="opening-actions">
-        <button ref={launch} type="button" onClick={() => phase === "loading" ? dismiss() : toggle()}>{phase === "loading" ? "Cancel" : revealed || phase === "opening" ? "Close crystal" : "Unfold crystal"} <span aria-hidden="true">◇</span></button>
+        <button ref={launch} type="button" onClick={() => phase === "loading" ? dismiss() : toggle()}>{phase === "loading" ? "Cancel" : revealed || phase === "opening" ? "Close projector" : "Open projector"} <span aria-hidden="true">◇</span></button>
         {failed ? <button type="button" onClick={() => void retry()}>Retry 3D</button> : !reduced && <>
-          <button type="button" disabled={!ready} onClick={() => { interaction.current.pulse = 1; interaction.current.invalidate?.(); }}>Pulse light</button>
+          <button type="button" disabled={!ready} onClick={() => { interaction.current.pulse += 1; interaction.current.invalidate?.(); }}>Pulse light</button>
           <button type="button" disabled={!ready} onClick={() => { Object.assign(interaction.current, { yaw: 0, pitch: 0, hoverX: 0, hoverY: 0 }); interaction.current.invalidate?.(); }}>Reset view</button>
         </>}
       </div>
-      {!reduced && !failed && <div className="opening-palettes" role="group" aria-label="Crystal colours">{["Aurora", "Ember", "Tide"].map((name, index) => <button key={name} type="button" aria-pressed={palette === index} disabled={!ready} onClick={() => { setPalette(index); interaction.current.palette = index; interaction.current.invalidate?.(); }}><span className={`opening-swatch opening-swatch-${index}`} aria-hidden="true" />{name}</button>)}</div>}
+
     </div>
   </div>;
 }

@@ -6,8 +6,8 @@ import { useExperience } from "./ExperienceContext";
 const loadModelCanvas = () => import("./ModelCanvas");
 const ModelCanvas = lazy(loadModelCanvas);
 const WARMUP_TIMEOUT_MS = 12_000;
-export type ModelKind = "crystal" | "laptop" | "monitor" | "phone" | "observatory";
-type Props = { model: Exclude<ModelKind, "observatory">; image?: string; title?: string; className?: string };
+export type ModelKind = "crystal" | "laptop" | "monitor" | "phone" | "observatory" | "prism-gate";
+type Props = { model: Exclude<ModelKind, "observatory" | "prism-gate">; image?: string; title?: string; className?: string };
 
 class SceneBoundary extends Component<PropsWithChildren<{ onFailure: () => void }>, { failed: boolean }> {
   state = { failed: false };
