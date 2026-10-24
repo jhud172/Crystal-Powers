@@ -1,5 +1,11 @@
 # Deployment and recovery
 
+## Main deployment correction — 24 October 2026
+
+The authorised main push5e9cdf3 triggered Render deploy dep-dbe9dhuk1f9s73f2q000, which failed during frontend compilation. The Docker frontend stage flattened the repository layout and excluded assets; the development design reference therefore could not import its approved Clare JSON. Preserve `/app/frontend` and copy only the public approved content JSON under `/app/assets/portfolio/...`; narrow Dockerignore exceptions continue excluding Blender sources, media bundles, runtime databases and credentials. An isolated source tree matching that Docker layout now passes a forced TypeScript build. The local Docker daemon is unavailable, so Render is the full container-build authority.
+
+The deployment npm audit also found one high Vite advisory. Under James's existing dependency-update approval, update the compatible6.x version from6.4.3 to6.4.5. npm audit now reports0 vulnerabilities; frontend production build passes with identical output asset hashes and the existing deferred Three.js warning. No backend code or schema changed for this correction; retain the just-completed272 passing backend tests. A fresh offline bootJar and deployed smoke verification follow. The previous live service remained available during the failed build.
+
 ## Incremental static packaging — 24 October 2026
 
 `processResources` regenerates only its guarded build-directory static output before copying current frontend and backend resources. This prevents retired Vite hashes entering the JAR and preserves backend-owned `robots.txt`. After building, run `python scripts/verify-packaged-assets.py`: it checks the complete frontend/backend static inventory and bytes, including missing/extra/duplicate files. Current local acceptance and external release gates: [bulk review](reviews/BULK_ACCEPTANCE_2026_10_24.md).

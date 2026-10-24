@@ -16,7 +16,12 @@ yarn-error.log*
 
 .codex-runtime
 .codex-temp
-assets
+assets/**
+!assets/portfolio/
+assets/portfolio/**
+!assets/portfolio/clares-life-celebrations/
+assets/portfolio/clares-life-celebrations/**
+!assets/portfolio/clares-life-celebrations/project-content.json
 docs
 bin
 *.log

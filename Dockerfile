@@ -1,10 +1,12 @@
 FROM node:22-bookworm-slim AS frontend-build
-WORKDIR /app
+WORKDIR /app/frontend
 
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 
 COPY frontend ./
+# Preserve the repository-relative approved content import used by design previews.
+COPY assets/portfolio/clares-life-celebrations/project-content.json /app/assets/portfolio/clares-life-celebrations/project-content.json
 RUN npm run build
 
 FROM eclipse-temurin:17-jdk-jammy AS app-build
@@ -14,7 +16,7 @@ ENV SKIP_FRONTEND_BUILD=true
 COPY gradlew gradlew.bat settings.gradle build.gradle ./
 COPY gradle ./gradle
 COPY src ./src
-COPY --from=frontend-build /app/dist ./src/main/resources/static
+COPY --from=frontend-build /app/frontend/dist ./src/main/resources/static
 
 RUN chmod +x ./gradlew && ./gradlew --no-daemon bootJar
 
