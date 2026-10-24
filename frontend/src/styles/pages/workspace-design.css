@@ -3,7 +3,7 @@
 .workspace-person-avatar { display: inline-grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; border: 1px solid var(--studio-control-line); border-radius: 12px; background: var(--studio-bg); color: var(--studio-text); font-size: 11px; font-weight: 700; letter-spacing: .02em; user-select: none; }
 .owner-shell .team-workspace { grid-template-columns: minmax(230px, 280px) minmax(0, 1fr); margin: 28px auto; width: calc(100% - 48px); max-width: 1600px; border-color: var(--studio-line); background: var(--studio-bg); }
 .owner-shell .team-sidebar { padding: 24px 18px; background: var(--studio-panel-fill); }
-.owner-shell .team-sidebar > h1 { font-size: 24px; line-height: 1.25; margin-block: 12px; letter-spacing: -.035em; }
+.owner-shell .team-sidebar > h1 { font-size: 24px; line-height: 1.25; margin-block: 12px; letter-spacing: .015em; }
 .owner-shell .team-sidebar > p { color: var(--studio-muted); font-size: 12px; }
 .team-identity-card { display: flex; align-items: center; gap: 12px; border: 1px solid var(--studio-line); border-radius: 16px; padding: 12px; margin-block: 20px; background: var(--studio-bg); }
 .team-identity-card > div { min-width: 0; }
@@ -35,7 +35,7 @@
 .team-composer-footer small { max-width: 42ch; font-size: 11px; line-height: 1.7; }
 .team-composer-footer button { margin-inline-start: auto; }
 .owner-shell :is(.admin-signin, .client-entry) { width: min(640px, calc(100% - 32px)); max-width: 640px; min-height: 0; margin: clamp(24px, 5vw, 64px) auto; padding: clamp(22px, 4vw, 42px); background: var(--studio-panel-fill); border: 1px solid var(--studio-line); border-radius: 24px; }
-.owner-shell :is(.admin-signin, .client-entry) h1 { font-size: clamp(32px, 4vw, 52px); line-height: 1.12; }
+.owner-shell :is(.admin-signin, .client-entry) h1 { font-size: clamp(32px, 4vw, 52px); line-height: 1.2; }
 .owner-shell .admin-topbar { border-radius: 18px; background: var(--studio-panel-fill); padding: 24px; }
 .owner-shell .admin-project-row { border: 1px solid var(--studio-line); border-radius: 16px; padding: 20px; margin-block: 12px; background: var(--studio-panel-fill); }
 .owner-shell .client-workspace { max-width: 1600px; margin: auto; padding: clamp(24px, 4vw, 64px) clamp(18px, 4vw, 64px); }

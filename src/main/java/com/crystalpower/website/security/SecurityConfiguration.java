@@ -41,7 +41,7 @@ public class SecurityConfiguration {
                 .requestMatchers("/api/team/**").hasAnyRole("OWNER", "TEAM")
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .requestMatchers(HttpMethod.HEAD, "/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/contact", "/api/services").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/contact", "/api/services", "/api/assistant/chat").permitAll()
                 .anyRequest().denyAll())
             .securityContext(context -> context.securityContextRepository(contexts))
             .addFilterAfter(new OwnerSessionFilter(owners), SecurityContextHolderFilter.class)

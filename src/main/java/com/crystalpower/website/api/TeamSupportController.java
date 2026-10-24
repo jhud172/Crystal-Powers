@@ -20,7 +20,7 @@ import java.util.Map;
 @RequestMapping("/api/team/support")
 public class TeamSupportController {
     @PostMapping("/requests/{id}/messages/{message}/share") public Object share(Authentication authentication,@PathVariable UUID id,@PathVariable UUID message) { requests.shareToPortal(authentication,id,message); return Map.of("success",true); }
-    public record Tracking(@Min(0) int expectedVersion, @NotNull @Pattern(regexp="NEW|REVIEWING|QUOTED|IN_PROGRESS|WAITING_CLIENT|COMPLETED|CLOSED") String state, @Min(0) @Max(100) int progress, @NotNull @Size(max=1000) String nextStep, UUID assignedMemberId) {}
+    public record Tracking(@Min(0) int expectedVersion, @NotNull @Pattern(regexp="NEW|REVIEWING|QUOTED|IN_PROGRESS|WAITING_CLIENT|COMPLETED|CLOSED") String state, @Min(0) @Max(100) int progress, @NotNull @Size(max=1000) String nextStep, UUID assignedMemberId, @Size(max=6000) String projectScope) {}
     public record Reply(@NotNull UUID submissionKey, @NotNull @Pattern(regexp="INTERNAL|CLIENT") String kind, @NotBlank @Size(max=4000) String body) {}
     private final SupportRequestService requests;
     private final SupportReplyEmailService replies;
@@ -31,7 +31,7 @@ public class TeamSupportController {
     @GetMapping("/requests/{id}") public Object detail(Authentication authentication, @PathVariable UUID id) { return requests.detail(authentication, id); }
     @GetMapping("/requests/{id}/overview") public Object overview(Authentication auth,@PathVariable UUID id) { return requests.overview(auth,id); }
     @GetMapping("/requests/{id}/updates") public Object updates(Authentication auth,@PathVariable UUID id,@RequestParam @Pattern(regexp="MESSAGES|REPLIES|EVENTS") String kind,@RequestParam(required=false) UUID before) { return requests.updates(auth,id,kind,before); }
-    @PatchMapping("/requests/{id}") public Object update(Authentication authentication, @PathVariable UUID id, @Valid @RequestBody Tracking input) { return requests.update(authentication, id, input.expectedVersion(), input.state(), input.progress(), input.nextStep(), input.assignedMemberId()); }
+    @PatchMapping("/requests/{id}") public Object update(Authentication authentication, @PathVariable UUID id, @Valid @RequestBody Tracking input) { return requests.update(authentication, id, input.expectedVersion(), input.state(), input.progress(), input.nextStep(), input.assignedMemberId(), input.projectScope()); }
     @PostMapping("/requests/{id}/messages") public Object message(Authentication authentication, @PathVariable UUID id, @Valid @RequestBody Reply input) { return requests.addMessage(authentication, id, input.submissionKey(), input.kind(), input.body()); }
     @PostMapping("/requests/{id}/messages/{message}/send") public Object send(Authentication authentication, @PathVariable UUID id, @PathVariable UUID message) { return replies.send(authentication, id, message); }
     @GetMapping("/attachments/{id}") public ResponseEntity<byte[]> download(Authentication authentication, @PathVariable UUID id) {

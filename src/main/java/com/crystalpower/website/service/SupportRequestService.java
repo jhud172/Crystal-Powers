@@ -19,7 +19,7 @@ import java.util.UUID;
 
 @Service
 public class SupportRequestService {
-    public record Summary(UUID id, String clientName, String clientEmail, String intent, String subject, String state, int progress, String nextStep, UUID assignedMemberId, String notificationState, int version, OffsetDateTime createdAt, OffsetDateTime updatedAt) {}
+    public record Summary(UUID id, String clientName, String clientEmail, String intent, String subject, String state, int progress, String nextStep, UUID assignedMemberId, String notificationState, int version, OffsetDateTime createdAt, OffsetDateTime updatedAt, String projectScope) {}
     public record Assignee(UUID id, String displayName, String role) {}
     public record Detail(Summary request, JsonNode brief, List<SupportRepository.Message> messages, List<SupportRepository.Event> events, List<SupportRepository.Attachment> attachments, boolean emailAvailable, String contactPreference, List<ClientRepository.Message> clientReplies) {}
     public record Overview(Summary request,JsonNode brief,List<SupportRepository.Attachment> attachments,boolean emailAvailable,String contactPreference,String actorScope,java.util.Set<TeamPermission> permissions) {}
@@ -72,14 +72,21 @@ public class SupportRequestService {
     private static <T> Page<T> page(List<T> rows,java.util.function.Function<T,UUID> key) { boolean more=rows.size()>50;var page=more ? rows.subList(0,50) : rows;return new Page<>(page,more ? key.apply(page.get(page.size()-1)) : null); }
     @Transactional
     public Summary update(Authentication authentication, UUID id, int expectedVersion, String state, int progress, String nextStep, UUID assigned) {
+        return update(authentication,id,expectedVersion,state,progress,nextStep,assigned,null);
+    }
+    @Transactional
+    public Summary update(Authentication authentication, UUID id, int expectedVersion, String state, int progress, String nextStep, UUID assigned, String projectScope) {
         var actor = writer(authentication,TeamPermission.UPDATE_TRACKING); var current = request(actor, id, true);
         if (assigned != null) {
             var member = teams.member(actor.workspaceId(), assigned).filter(value -> value.state().equals("ACTIVE") && roles.permissions(value).contains(TeamPermission.READ_SUPPORT)).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose an active team member who can handle enquiries."));
         }
+        if(projectScope!=null && projectScope.length()>6000) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Keep the confirmed project scope within 6,000 characters.");
+        String scope=projectScope==null ? current.projectScope() : projectScope.strip();
         int value = state.equals("COMPLETED") ? 100 : progress;
-        if (repository.update(actor.workspaceId(), id, expectedVersion, state, value, nextStep.strip(), assigned) != 1) throw conflict();
+        if (repository.update(actor.workspaceId(), id, expectedVersion, state, value, nextStep.strip(), assigned, scope) != 1) throw conflict();
         if (!Objects.equals(assigned, current.assignedMemberId())) repository.event(id, actor.ownerId(), actor.memberId(), "ASSIGNMENT_CHANGED", "Request ownership was updated.", false);
         repository.event(id, actor.ownerId(), actor.memberId(), "PROGRESS_UPDATED", "Status: " + state.replace('_', ' ') + ". Progress: " + value + "%. Next step: " + nextStep.strip(), true);
+        if(!Objects.equals(scope,current.projectScope())) repository.event(id,actor.ownerId(),actor.memberId(),"PROJECT_SCOPE_UPDATED","The team updated the confirmed project scope.",true);
         return summary(request(actor, id, false));
     }
     @Transactional
@@ -144,7 +151,7 @@ public class SupportRequestService {
     }
     private String contactPreference(UUID workspace,UUID request) { return clients.linked(workspace,request).map(account -> clients.preferences(account.id()).contactPreference()).orElse("UNLINKED"); }
     private SupportRepository.Request request(TeamAccessService.Actor actor, UUID id, boolean lock) { return repository.request(actor.workspaceId(), id, lock).orElseThrow(SupportRequestService::missing); }
-    private Summary summary(SupportRepository.Request r) { return new Summary(r.id(), r.clientName(), r.clientEmail(), r.intent(), r.subject(), r.state(), r.progress(), r.nextStep(), r.assignedMemberId(), r.notificationState(), r.version(), r.createdAt(), r.updatedAt()); }
+    private Summary summary(SupportRepository.Request r) { return new Summary(r.id(), r.clientName(), r.clientEmail(), r.intent(), r.subject(), r.state(), r.progress(), r.nextStep(), r.assignedMemberId(), r.notificationState(), r.version(), r.createdAt(), r.updatedAt(), r.projectScope()); }
     private static ResponseStatusException missing() { return new ResponseStatusException(HttpStatus.NOT_FOUND, "This request, message or file is unavailable."); }
     private static ResponseStatusException conflict() { return new ResponseStatusException(HttpStatus.CONFLICT, "This request changed. Reload before trying again; your unsaved text remains in this tab."); }
 }

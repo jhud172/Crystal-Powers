@@ -5,7 +5,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const before = process.env.CRYSTAL_RENDER_BEFORE || 'http://127.0.0.1:8084';
 const after = process.env.CRYSTAL_RENDER_AFTER || 'http://127.0.0.1:8085';
-for (const base of [before, after]) assert.match(base, /^http:\/\/127\.0\.0\.1:808[45]$/);
+for (const base of [before, after]) assert.match(base, /^http:\/\/127\.0\.0\.1:(8084|8085|18084)$/);
 assert.notEqual(before, after, 'Use distinct retained/current packages.');
 const output = path.resolve('.codex-runtime/qa/render-cost-pc');
 const report = { recordedAt: new Date().toISOString(), before, after, samples: [], errors: [],
@@ -92,10 +92,29 @@ function installMeasurements(quality) {
         page.on('request', request => { if (request.url().includes('/api/') && request.method() !== 'GET') mutations.push(request.method()); });
         try {
           await page.goto(base + (model === 'opening' ? '/' : '/portfolio/qa-render-cost'));
+          if (version === 'before' && model === 'opening') {
+            report.samples.push({version,quality,viewportWidth:width,model,comparable:false,scope:'Retained candidate predates Prism Gate; no baseline opening comparison is claimed'});
+            continue;
+          }
           const stage = page.locator(model === 'opening' ? '.crystal-opening' : '.studio-device-stage');
+          await stage.scrollIntoViewIfNeeded();
+          if (width < 768) {
+            if (model === 'opening') await stage.locator('.opening-actions button').first().click();
+            assert.equal(await stage.locator('canvas:not(.prism-stars)').count(), 0);
+            report.samples.push({version,quality,viewportWidth:width,model,fallback:true,scope:'Compact native still/hologram path, no GPU timing claimed'});
+            continue;
+          }
           if (model !== 'opening') await stage.getByRole('button', { name: /Explore this project in 3D/ }).click();
-          await stage.locator('canvas').waitFor({ timeout: 20000 });
-          if (model === 'opening') await page.locator('.crystal-opening[data-ready="true"]').waitFor();
+          else if (!await stage.locator('canvas:not(.prism-stars)').count()) await stage.locator('.opening-actions button').first().click();
+          await stage.locator('canvas:not(.prism-stars)').waitFor({ timeout: 20000 });
+          if (model === 'opening') {
+            await page.locator('.crystal-opening[data-ready="true"]').waitFor();
+            if (await stage.getAttribute('data-phase') !== 'closed') {
+              await page.locator('.crystal-opening[data-phase="open"]').waitFor();
+              await stage.locator('.opening-surface').focus();await page.keyboard.press('Enter');
+              await page.locator('.crystal-opening[data-phase="closed"]').waitFor();
+            }
+          }
           else await stage.getByRole('button', { name: 'Rotate left', exact: true }).and(page.locator(':enabled')).waitFor();
           await stage.scrollIntoViewIfNeeded();
           const operation = async () => {
@@ -107,16 +126,18 @@ function installMeasurements(quality) {
           await operation();
           if (model === 'opening') { await page.locator('.crystal-opening[data-phase="open"]').waitFor(); await stage.locator('.opening-surface').focus(); await page.keyboard.press('Enter'); await page.locator('.crystal-opening[data-phase="closed"]').waitFor(); }
           else if (model === 'laptop') { await page.waitForTimeout(2800); await stage.getByRole('button', { name: 'Reset', exact: true }).click(); }
-          await page.evaluate(() => { const state = window.__renderCost; if (!state.ext) throw Error('GPU elapsed queries unavailable'); state.gl.getParameter(state.ext.GPU_DISJOINT_EXT); state.rows = []; state.draws = 0; state.active = true; });
+          await page.evaluate(() => { const state = window.__renderCost; if (!state.ext) throw Error('GPU elapsed queries unavailable'); state.startupGlErrors=[];for(let i=0;i<32;i++){const error=state.gl.getError();if(!error)break;state.startupGlErrors.push(error);}state.gl.getParameter(state.ext.GPU_DISJOINT_EXT); state.rows = []; state.draws = 0; state.active = true; });
           await operation();
           if (model === 'opening' || model === 'laptop') await page.waitForTimeout(2800);
           await page.evaluate(() => { window.__renderCost.active = false; });
           await page.waitForFunction(() => window.__renderCost.pending.length === 0, null, { timeout: 10000 });
           const data = await page.evaluate(() => {
             const state = window.__renderCost, gl = state.gl, debug = gl.getExtension('WEBGL_debug_renderer_info'), canvas = gl.canvas;
-            return { rows: state.rows, disjoint: state.disjoint, glError: gl.getError(), renderer: debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : null,
-              canvasCount: document.querySelectorAll('canvas').length, width: canvas.width, height: canvas.height, cssWidth: canvas.clientWidth, cssHeight: canvas.clientHeight, tier: canvas.dataset.renderTier ?? 'legacy', heap: performance.memory?.usedJSHeapSize ?? null };
+            return { rows: state.rows, startupGlErrors: state.startupGlErrors, disjoint: state.disjoint, glError: gl.getError(), renderer: debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : null,
+              canvasCount: document.querySelectorAll('canvas:not(.prism-stars)').length, width: canvas.width, height: canvas.height, cssWidth: canvas.clientWidth, cssHeight: canvas.clientHeight, tier: canvas.dataset.renderTier ?? 'legacy', heap: performance.memory?.usedJSHeapSize ?? null };
           });
+          report.lastSample={version,quality,width,model,startupGlErrors:data.startupGlErrors,glError:data.glError,disjoint:data.disjoint};
+          if(version==='after')assert.deepEqual(data.startupGlErrors,[], 'Current candidate must not retain startup GL errors');
           assert.equal(data.disjoint, 0, 'Disjoint GPU results must be rejected');
           assert.equal(data.glError, 0); assert.ok(data.rows.length >= 12, 'Require actual draw-bearing GPU queries');
           assert.ok(data.rows.every(row => row.gpuMs > 0 && Number.isFinite(row.gpuMs)));

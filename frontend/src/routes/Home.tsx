@@ -1,3 +1,4 @@
+import { ChapterLinks } from "../components/ChapterLinks";
 import { NavLink } from "react-router-dom";
 import { usePublishedProjects } from "../features/portfolio/projectApi";
 import { FeaturedProjects } from "../features/portfolio/FeaturedProjects";
@@ -10,8 +11,9 @@ export function Home() {
   const selected = showcase.projects.find(project => project.featured);
   return <div className="studio-home">
     <LiquidLightHero project={selected} />
-    <section className="prism-showcase studio-section" aria-labelledby="prism-title">
-      <div className="prism-introduction"><p className="studio-eyebrow">LIGHT / FORM / INTERACTION</p><h2 id="prism-title">A different<br /><span className="studio-soft">perspective.</span></h2><p>A little space to explore. Open the prism, turn it in your hands and discover what we could create together.</p></div>
+    <ChapterLinks label="Explore the studio" chapters={[{id:"prism-title",label:"Prism Gate"},{id:"selected-work",label:"The work"},{id:"studio-introduction",label:"The studio"},{id:"services-title",label:"Services"}]} />
+    <section className="prism-showcase" aria-labelledby="prism-title">
+      <h2 id="prism-title" className="sr-only">Prism Gate — explore a different perspective</h2>
       <CrystalOpening />
     </section>
     <FeaturedProjects {...showcase} />

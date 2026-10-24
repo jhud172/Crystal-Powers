@@ -20,7 +20,7 @@ function createPrivateDesignAudit(suite) {
     const modal = await page.locator('dialog:modal').count() > 0;
     async function choose(label) {
       await page.getByRole('button', { name: 'Choose appearance', exact: true }).click();
-      await page.getByRole('button', { name: label, exact: true }).click();
+      await page.getByRole('button', { name: label, exact: true }).click(); await page.keyboard.press('Escape');
       await page.waitForFunction(() => !document.body.classList.contains('theme-changing'));
     }
     try {

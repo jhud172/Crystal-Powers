@@ -1,11 +1,11 @@
 .liquid-hero { position: relative; isolation: isolate; overflow: hidden; min-height: min(850px, calc(100svh - 96px)); background: var(--studio-bg); color: var(--studio-text); }
 .liquid-hero-content { position: relative; pointer-events: none; padding: clamp(35px, 5vw, 76px) var(--studio-gutter) 32px; }
 .liquid-hero-content a, .liquid-hero-content button { pointer-events: auto; }
-.liquid-wordmark { display: flex; flex-wrap: wrap; column-gap: .18em; margin: 0 0 clamp(40px, 5vw, 85px); font-size: clamp(72px, 11.4vw, 224px); line-height: .98; letter-spacing: -.085em; font-weight: 400; }
-.liquid-wordmark span { display: block; animation: liquid-type-arrive 440ms ease-out both; }
-.liquid-wordmark span + span { animation-delay: 70ms; }
+.studio-shell .liquid-wordmark { display: flex; flex-wrap: wrap; column-gap: .18em; margin: 0 0 clamp(40px, 5vw, 85px); font-size: clamp(72px, 11.4vw, 224px); line-height: 1.2; letter-spacing: .015em; font-weight: 400; }
+.studio-shell .liquid-wordmark span { display: block; min-width:0; max-width:100%; overflow-wrap:anywhere; animation: liquid-type-arrive 440ms ease-out both; }
+.studio-shell .liquid-wordmark span + span { animation-delay: 70ms; }
 .liquid-hero-copy { max-width: 720px; }
-.liquid-hero-copy h1 { font-size: clamp(40px, 4.7vw, 76px); letter-spacing: -.065em; line-height: 1.12; margin: 18px 0 24px; }
+.liquid-hero-copy h1 { font-size: clamp(40px, 4.7vw, 76px); letter-spacing: .015em; line-height: 1.2; margin: 18px 0 24px; }
 .liquid-hero-copy > p:not(.studio-eyebrow) { font-size: clamp(16px, 1.6vw, 21px); line-height: 1.6; color: var(--studio-muted); }
 .liquid-actions { display: flex; gap: clamp(22px, 5vw, 65px); flex-wrap: wrap; margin-top: 30px; align-items: center; }
 .studio-shell .liquid-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 13px 27px; border-radius: 999px; background: var(--studio-text); color: var(--studio-bg); text-decoration: none; font-size: 14px; }
@@ -29,12 +29,12 @@
 .liquid-hero[data-light="true"] .liquid-light-art { mix-blend-mode: multiply; }
 .liquid-hero[data-light="false"] .liquid-light-art img { filter: invert(1) hue-rotate(calc(var(--liquid-hue, 0deg) + 150deg)); opacity: calc(var(--liquid-intensity, .85) * .65); }
 .liquid-reveal { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .7fr); position: relative; gap: 25px; margin-top: clamp(45px, 6vw, 100px); padding-top: 24px; border-top: 1px solid var(--studio-control-line); }
-.liquid-reveal h2 { font-size: clamp(26px, 3.3vw, 52px); line-height: 1.2; letter-spacing: -.05em; margin: 12px 0; }
+.liquid-reveal h2 { font-size: clamp(26px, 3.3vw, 52px); line-height: 1.2; letter-spacing: .015em; margin: 12px 0; }
 .liquid-reveal-copy > p:not(.studio-eyebrow) { color: var(--studio-muted); font-size: 14px; max-width: 50ch; }
 .liquid-replay { border: 0; background: transparent; color: var(--studio-muted); min-height: 44px; padding: 8px 0; text-decoration: underline; text-align: left; font-size: 12px; }
 .liquid-hero[data-calm="true"] * { animation: none !important; transition: none !important; }
 @keyframes liquid-type-arrive { from { opacity: .7; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@media (max-width: 760px) { .liquid-hero { min-height: auto; } .liquid-hero-content { padding-top: 32px; } .liquid-wordmark { font-size: clamp(60px, 15.5vw, 118px); margin-bottom: 38px; gap: 0 .15em; } .liquid-hero-copy h1 { font-size: clamp(36px, 8vw, 58px); } .liquid-reveal { grid-template-columns: 1fr; margin-top: 42px; } .liquid-light-art img { object-position: 62% center; } .liquid-reveal-image { max-height: 210px; object-position: top left; } }
+@media (max-width: 760px) { .liquid-hero { min-height: auto; } .liquid-hero-content { padding-top: 32px; } .studio-shell .liquid-wordmark { font-size: clamp(60px, 15.5vw, 118px); margin-bottom: 38px; gap: 0 .15em; } .liquid-hero-copy h1 { font-size: clamp(36px, 8vw, 58px); } .liquid-reveal { grid-template-columns: 1fr; margin-top: 42px; } .liquid-light-art img { object-position: 62% center; } .liquid-reveal-image { max-height: 210px; object-position: top left; } }
 @media (prefers-reduced-motion: reduce) { .liquid-hero * { animation: none !important; transition: none !important; } .liquid-primary:hover { transform: none; } }
 
 /* A permanent proof strip and a separate optional preview keep disclosure semantics honest. */
@@ -50,7 +50,7 @@
 @media (max-width: 760px) {
   .liquid-hero-copy { max-width: 100%; }
   .liquid-light-art::after { background: linear-gradient(0deg, var(--studio-bg) 8%, transparent 80%); opacity: .7; }
-  .liquid-wordmark { margin-bottom: 26px; }
+  .studio-shell .liquid-wordmark { margin-bottom: 26px; }
   .liquid-hero-content { padding-top: 24px; }
   .liquid-hero-copy h1 { margin-block: 14px 18px; }
   .liquid-actions { margin-top: 22px; gap: 14px 28px; }
@@ -65,3 +65,9 @@
 .liquid-reveal-media .project-artwork-retry-button { min-height: 44px; margin-top: .5rem; padding: .5rem 0; border: 0; border-bottom: 1px solid var(--studio-line); background: transparent; color: inherit; font: inherit; font-size: .8rem; }
 .liquid-reveal-media .project-artwork-retry-button[aria-disabled="true"] { opacity: .6; cursor: progress; }
 .liquid-reveal-media .project-artwork-status { margin-top: .5rem; font-size: .8rem; color: var(--studio-muted); }
+
+/* Home artwork stays in viewport space while the document scrolls above it. */
+.studio-home { position:relative; isolation:isolate; }
+.studio-home .liquid-hero { isolation:auto; overflow:visible; background:transparent; }
+.studio-home .liquid-light-art { position:fixed; inset:0; z-index:-1; pointer-events:none; }
+.studio-home > .studio-section { background:color-mix(in srgb,var(--studio-bg) 72%,transparent); }

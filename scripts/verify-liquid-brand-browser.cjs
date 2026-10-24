@@ -33,7 +33,7 @@ function check(name, value) { assert.ok(value, name); report.checks.push(name); 
     check('New SVG loads without initial WebGL', await trigger.locator('img').evaluate(el => el.naturalWidth > 0 && el.src.endsWith('liquid-mark.svg')) && await page.locator('canvas').count() === 0);
     await trigger.focus(); await page.keyboard.press('Enter');
     await page.waitForFunction(() => document.querySelector('header .brand-scene')?.dataset.ready === 'true');
-    check('Default procedural mark needs no original GLB fetch', !requests.some(url => url.includes('crystal-powers-logo-3d.glb')));
+    check('Default loads the Blender signature without the heritage GLB', requests.some(url => url.includes('liquid-brand-crystal.glb')) && !requests.some(url => url.includes('crystal-powers-logo-3d.glb')));
     check('One opt-in canvas and selected Liquid Light treatment', await page.locator('canvas').count() === 1 && await header.getByRole('button', { name: 'Liquid Light', exact: true }).getAttribute('aria-pressed') === 'true');
     const rotation = header.getByRole('slider', { name: 'Rotate the crystal' });
     const beforeRotation = await page.evaluate(() => window.__brandDraws);
@@ -77,6 +77,7 @@ function check(name, value) { assert.ok(value, name); report.checks.push(name); 
       check(label + ' explicitly controls logo render tier', await page.locator('canvas').count() === 1);
     }
     await page.screenshot({ path: path.join(output, 'liquid-open.png') });
+    await header.getByRole('button', { name: 'Unfold the crystal', exact: true }).click();
     await header.getByRole('button', { name: 'Bring it together', exact: true }).click();
     check('Unfold can reverse', await header.getByRole('button', { name: 'Unfold the crystal', exact: true }).isVisible());
     await header.getByRole('button', { name: 'Original crystal', exact: true }).click();
@@ -87,7 +88,7 @@ function check(name, value) { assert.ok(value, name); report.checks.push(name); 
     await page.waitForFunction(() => document.querySelector('header .brand-scene')?.dataset.ready === 'true');
     await rotation.focus(); await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.waitForFunction(() => document.querySelectorAll('canvas').length === 0);
-    check('Motion preference retires model and preserves focused place', await header.locator('.brand-home-link').evaluate(el => el === document.activeElement));
+    check('Motion preference retires model and retains the usable rotation control focus', await rotation.evaluate(el => el === document.activeElement));
     await page.keyboard.press('Escape');
     check('Still-mode close remains usable', await header.locator('.brand-experience').count() === 0);
     await page.emulateMedia({ reducedMotion: 'no-preference' });
@@ -103,7 +104,7 @@ function check(name, value) { assert.ok(value, name); report.checks.push(name); 
     }
     await page.setViewportSize({ width: 390, height: 844 });
     await trigger.click();
-    check('Compact illumination avoids WebGL', await page.locator('canvas').count() === 0 && await trigger.getAttribute('aria-expanded') === 'false');
+    check('Compact rendered studio avoids WebGL', await page.locator('canvas').count() === 0 && await trigger.getAttribute('aria-expanded') === 'true');
     await page.screenshot({ path: path.join(output, 'compact.png') });
     for (const size of [32, 180, 192, 512]) {
       const icon = await page.request.get(base + '/branding/liquid-icon-' + size + '.png'); const bytes = await icon.body();

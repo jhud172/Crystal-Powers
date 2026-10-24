@@ -47,7 +47,7 @@ function check(name, value) { assert.ok(value, name); report.checks.push(name); 
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
     for (const [label, theme] of [['Dark', 'futuristic'], ['Light', 'clean'], ['Warm dark', 'classic'], ['Fresh light', 'fresh'], ['Warm light', 'summer-vibes']]) {
-      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: label, exact: true }).click();
+      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: label, exact: true }).click(); await page.keyboard.press('Escape');
       await page.waitForFunction(theme => document.body.dataset.theme === theme, theme);
       check(theme + ' author/actions remain available', await page.locator('.team-message-meta strong').first().isVisible() && await composer.isVisible());
       await page.screenshot({ path: path.join(output, 'team-' + theme + '.png'), fullPage: true });

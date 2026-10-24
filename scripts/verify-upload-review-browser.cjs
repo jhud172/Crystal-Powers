@@ -40,7 +40,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
     check('Active scan explains when review becomes available', (await row.innerText()).includes('Review is available once it finishes'));
     check('Quarantine offers no private download', await row.getByRole('link').count() === 0);
     for (const theme of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
-      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: theme, exact: true }).click();
+      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: theme, exact: true }).click(); await page.keyboard.press('Escape');
       for (const width of [320, 390, 768, 1024, 1440, 1920]) {
         await page.setViewportSize({ width, height: 900 });
         check(theme + ' ' + width + ' moderation has no overflow', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));

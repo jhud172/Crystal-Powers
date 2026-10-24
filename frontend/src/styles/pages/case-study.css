@@ -1,5 +1,5 @@
 .work-heading { padding-top: 64px; }
-.work-heading h1, .case-heading h1 { font-size: var(--studio-type-display); line-height: 1.07; letter-spacing: var(--studio-tracking-display); margin: 28px 0; overflow-wrap: anywhere; }
+.work-heading h1, .case-heading h1 { font-size: var(--studio-type-display); line-height: 1.2; letter-spacing: var(--studio-tracking-display); margin: 28px 0; overflow-wrap: anywhere; }
 .work-heading .studio-page-lead { max-width: 700px; }
 .work-filter-bar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 40px; }
 .work-filter-bar > p { font-size: 13px; color: var(--studio-muted); }
@@ -30,7 +30,7 @@
 .case-story aside ul { color: var(--studio-muted); font-size: 12px; padding: 0; list-style: none; margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; }
 .case-story aside li { border: 1px solid var(--studio-line); padding: 8px 12px; }
 .case-story > div > section { padding: 36px 0; border-bottom: 1px solid var(--studio-line); }
-.case-story h2 { font-size: clamp(30px, 3vw, 46px); margin: 20px 0; letter-spacing: -.04em; }
+.case-story h2 { font-size: clamp(30px, 3vw, 46px); margin: 20px 0; letter-spacing: .015em; }
 .case-story > div p { color: var(--studio-muted); font-size: 16px; line-height: 1.85; white-space: pre-line; }
 .case-study [id] { scroll-margin-top: 110px; }
 .case-gallery { padding: 60px var(--studio-gutter); }

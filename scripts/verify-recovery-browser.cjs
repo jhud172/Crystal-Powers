@@ -26,7 +26,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
       }
     }
     for (const theme of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
-      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: theme, exact: true }).click();
+      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: theme, exact: true }).click(); await page.keyboard.press('Escape');
       check(`${theme} recovery retains readable paths and contained artwork`, await page.locator('.recovery-signal').isVisible() && await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     }
     await page.setViewportSize({ width: 390, height: 844 }); await page.screenshot({ path: path.join(output, 'missing-mobile.png'), fullPage: true });

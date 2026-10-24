@@ -43,7 +43,7 @@ function check(name, value) { assert.ok(value, name); report.checks.push(name); 
     for (const theme of ['futuristic', 'clean', 'classic', 'fresh', 'summer-vibes']) {
       await page.getByRole('button', { name: 'Choose appearance', exact: true }).click();
       const label = { futuristic: 'Dark', clean: 'Light', classic: 'Warm dark', fresh: 'Fresh light', 'summer-vibes': 'Warm light' }[theme];
-      await page.getByRole('button', { name: label, exact: true }).click();
+      await page.getByRole('button', { name: label, exact: true }).click(); await page.keyboard.press('Escape');
       check(theme + ' appearance preserves field contrast tokens', await name.evaluate(el => {
         const style = getComputedStyle(el);
         return style.color !== style.backgroundColor && style.backgroundColor !== 'rgba(0, 0, 0, 0)';

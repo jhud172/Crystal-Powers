@@ -1,3 +1,4 @@
+import { SaveIndicator } from "../../components/SaveIndicator";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { api, ApiError } from "../portfolio/projectApi";
 import { OwnerError } from "../admin/OwnerError";
@@ -58,7 +59,7 @@ export function ClientContactPreferences({ clientId, workspaceId, ready, disable
     <p>This choice applies to support updates across your linked projects. Email updates are sent when the team chooses to send one; they are not automatic notifications.</p>
     <p>Portal-only keeps future support updates in your client workspace. Emails already claimed for delivery may still arrive. Account invitations, security messages and billing communications use separate settings.</p>
     <OwnerError message={error} />{notice && <p role="status" className="admin-notice">{notice}</p>}{loading && <p role="status">Loading contact preferences…</p>}
-    {snapshot && <form className="admin-form" onSubmit={event => void save(event)}><fieldset className="client-contact-choices" disabled={disabled || saving || loading || !ready || reloadRequired}><legend>How should the team contact you about project updates?</legend>
+    {snapshot && <form className="admin-form workspace-settings-card" onSubmit={event => void save(event)}><SaveIndicator dirty={dirty} label="Contact preference" /><fieldset className="client-contact-choices" disabled={disabled || saving || loading || !ready || reloadRequired}><legend>How should the team contact you about project updates?</legend>
       <label><input type="radio" name="clientContactPreference" checked={choice === "PORTAL_ONLY"} onChange={() => setChoice("PORTAL_ONLY")} />Portal only</label>
       <label><input type="radio" name="clientContactPreference" checked={choice === "PORTAL_AND_EMAIL"} onChange={() => setChoice("PORTAL_AND_EMAIL")} />Portal and email</label>
       <button className="admin-primary" disabled={!dirty}>{saving ? "Saving preference…" : "Save contact preference"}</button>

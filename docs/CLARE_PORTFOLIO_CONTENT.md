@@ -1,6 +1,8 @@
 # Approved portfolio content — Clare’s Life Celebrations
 
-James approved only `https://clareslifecelebrations.com` for public portfolio use on 10 October 2026. No other client/project is approved. This document prepares content for the existing private owner publishing workflow; it does not publish a project or bypass media permissions.
+James approved only `https://clareslifecelebrations.com` for public portfolio use on 10 October 2026. No other client/project is approved. The approved package was published and featured in the saved **local** portfolio on24 October2026 through a normal, restricted Codex team session authorised by James. Production publication remains separate.
+
+Local case study: `http://127.0.0.1:8084/portfolio/clares-life-celebrations`, saved/published revision2. Real owned desktop/mobile media, saved fields and private image responses were reviewed before publication. Public responsive/device/Home journeys pass33 checks with no mocks or runtime errors. Evidence: `.codex-runtime/qa/clare-local/`. Account lifecycle: [temporary Codex publisher](LOCAL_CODEX_ACCOUNT.md). The preparation notes below retain their dated context.
 
 ## Proposed project fields
 

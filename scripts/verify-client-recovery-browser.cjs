@@ -45,7 +45,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
     await page.goto(base + '/client'); await open();
     check('Client route is private noindex', (await page.locator('meta[name=robots]').getAttribute('content')).includes('noindex'));
     for (const theme of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
-      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: theme, exact: true }).click();
+      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: theme, exact: true }).click(); await page.keyboard.press('Escape');
       check(theme + ' contact choices have aligned radios and full label targets', await page.locator('.client-contact-choices label').evaluateAll(labels => labels.length === 2 && labels.every(label => { const a = label.getBoundingClientRect(), b = label.querySelector('input').getBoundingClientRect(); return a.height >= 44 && b.width <= 24 && b.height <= 24 && Math.abs((a.top + a.height / 2) - (b.top + b.height / 2)) <= 1; })));
       for (const width of [320, 390, 768, 1024, 1440, 1920]) { await page.setViewportSize({ width, height: 1000 }); check(theme + ' ' + width + ' portal has no overflow', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); }
     }

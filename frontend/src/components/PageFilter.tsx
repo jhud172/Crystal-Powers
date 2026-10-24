@@ -1,0 +1,7 @@
+import { useId, useRef } from "react";
+
+/** Local filtering is explicit about its scope and never replaces server pagination. */
+export function PageFilter({ label, value, onChange, shown, total, disabled = false, loading = false, hint = "Filters this loaded page only. Open items and unsaved edits stay in place." }: { label: string; value: string; onChange: (value: string) => void; shown: number; total: number; disabled?: boolean; loading?: boolean; hint?: string }) {
+  const id = useId(), input = useRef<HTMLInputElement>(null);
+  return <div className="workspace-filter"><label htmlFor={id}>{label}</label><div className="workspace-filter-control"><input ref={input} id={id} type="search" autoComplete="off" value={value} disabled={disabled || loading} aria-describedby={`${id}-hint ${id}-result`} onChange={event => onChange(event.target.value)} />{value && <button type="button" className="admin-secondary" disabled={disabled || loading} aria-label={`Clear ${label.toLowerCase()}`} onClick={() => { onChange(""); input.current?.focus(); }}>Clear</button>}</div><p id={`${id}-hint`} className="workspace-filter-hint">{hint}</p><p id={`${id}-result`} className="workspace-filter-result" role="status">{loading ? "Refreshing this page…" : `${shown} of ${total} loaded items shown.`}{!loading && total > 0 && shown === 0 && value.trim() ? " No matches. Clear or change the filter." : ""}</p></div>;
+}

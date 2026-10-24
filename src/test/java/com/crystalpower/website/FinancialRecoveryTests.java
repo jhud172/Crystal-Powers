@@ -74,7 +74,7 @@ class FinancialRecoveryTests {
         assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
         try(var connection=dataSource.getConnection()){
             postgres=connection.getMetaData().getDatabaseProductName().equals("PostgreSQL");
-            if(postgres)assertThat(connection.getMetaData().getURL()).matches("jdbc:postgresql://127\\.0\\.0\\.1:55432/crystal_rebuild_test[a-z0-9_]*");
+            if(postgres)assertThat(connection.getMetaData().getURL()).matches("jdbc:postgresql://127\\.0\\.0\\.1:(55432|55447)/crystal_rebuild_test[a-z0-9_]*");
             else assertThat(connection.getMetaData().getURL()).startsWith("jdbc:h2:mem:crystal-financial-recovery");
         }
         jdbc=new JdbcTemplate(dataSource);cleanup();

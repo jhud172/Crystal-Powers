@@ -25,7 +25,7 @@
   --studio-type-compact-title: clamp(36px, 4vw, 64px);
   --studio-leading-body: 1.7;
   --studio-leading-heading: 1.2;
-  --studio-tracking-display: -.055em;
+  --studio-tracking-display: .015em;
   --studio-space-small: clamp(12px, 1.5vw, 24px);
   --studio-gutter: clamp(22px, 5vw, 100px);
   --studio-space-section: clamp(56px, 7vw, 112px);
@@ -97,7 +97,9 @@ body:has(.studio-shell) { min-width: 0; }
 .studio-quality-trigger svg { transition: transform var(--studio-motion-short); }
 .studio-quality-trigger[aria-expanded="true"] svg { transform: rotate(180deg); }
 .studio-quality-trigger:disabled { opacity: .5; cursor: not-allowed; }
-.studio-quality-options { margin: 8px 0 12px; padding: 6px; border: 1px solid var(--studio-control-line); border-radius: 14px; background: var(--studio-bg); min-width: 0; }
+.studio-quality-select { position:relative; }
+.studio-quality-options { position:absolute; z-index:2; inset-inline:0; bottom:calc(100% + 8px); max-height:var(--quality-options-height, 280px); overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable; box-shadow:var(--studio-elevation); margin:0; padding: 6px; border: 1px solid var(--studio-control-line); border-radius: 14px; background: var(--studio-bg); min-width: 0; }
+.studio-quality-select[data-side="below"] .studio-quality-options { top:calc(100% + 8px); bottom:auto; }
 .studio-quality-options[hidden] { display: none; }
 .studio-quality-options legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .studio-quality-option { position: relative; display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 10px; border-radius: 9px; cursor: pointer; }
@@ -106,7 +108,7 @@ body:has(.studio-shell) { min-width: 0; }
 .studio-quality-option strong { display: block; font-size: 12px; font-weight: 600; }
 .studio-quality-option small { display: block; margin-top: 2px; color: var(--studio-muted); font-size: 10px; line-height: 1.5; }
 .studio-quality > p:last-child { margin: 10px 0 0; line-height: 1.6; }
-.studio-appearance-panel { max-height: calc(100dvh - 100px); overflow-y: auto; }
+.studio-appearance-panel { max-height: calc(100dvh - 132px - env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
 @media (max-width: 1000px) {
   .studio-appearance { position: static; }
   .studio-appearance-panel { right: 16px; top: calc(100% + 8px); }

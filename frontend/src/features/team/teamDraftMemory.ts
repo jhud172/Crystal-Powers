@@ -16,7 +16,7 @@ export type TeamDraftMemory = {
 };
 export type SupportDraft = {
   message: { body: string; kind: "CLIENT" | "INTERNAL"; submission: { signature: string; key: string } | null } | null;
-  tracking: { state: string; progress: number; nextStep: string; assignedMemberId: string; expectedVersion: number } | null;
+  tracking: { state: string; progress: number; nextStep: string; projectScope?: string; assignedMemberId: string; expectedVersion: number } | null;
 };
 export const hasTeamDrafts = (memory: TeamDraftMemory) => Object.keys(memory.refunds).length>0 || Object.values(memory.drafts).some(draft => !!draft.body.trim() || !!draft.reply || !!draft.mentions?.length) || !!memory.projects.creation || Object.keys(memory.projects.drafts).length>0 || Object.values(memory.support.drafts).some(draft => !!draft.message?.body.trim() || !!draft.tracking);
 export const emptyTeamDraftMemory = (): TeamDraftMemory => ({ scope: null, refunds:{}, drafts: {}, submissions: {}, projects:{selected:"",creation:null,drafts:{}}, support: { selected: "", drafts: {} } });

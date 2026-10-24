@@ -1,5 +1,7 @@
 # Clare’s Life Celebrations — prepared portfolio package
 
+Local publication completed24 October2026: `/portfolio/clares-life-celebrations`, revision2, featured on Home, using both original captures and actual owned media. Public desktop/tablet/mobile and normal restricted team-session checks pass. This is saved local database state; production publication is still separate. The JSON below remains a portable source template with intentionally empty media IDs. See [local account and removal](../../../docs/LOCAL_CODEX_ACCOUNT.md).
+
 James approved this website as the only real public portfolio project. The screenshots show the public homepage captured on 10 October 2026; they are not newly captured/live verification of today’s site. They contain no client admin, account, private enquiry or credential data. The JPG bytes are copied unchanged from the existing approved captures. Use these assets for this portfolio project only; they are not a general stock-photo or branding licence.
 
 ## Contents

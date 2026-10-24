@@ -1,7 +1,8 @@
 /* Labelled synthetic UI outcomes; real cryptography/authority use H2/PostgreSQL integration tests. */
 const { chromium } = require(process.env.CRYSTAL_PLAYWRIGHT_MODULE || 'playwright');
 const fs = require('node:fs/promises'), path = require('node:path'), assert = require('node:assert/strict');
-const base = 'http://127.0.0.1:8084', output = path.resolve('.codex-runtime/qa/team-security-pc');
+const base = process.env.CRYSTAL_QA_URL || 'http://127.0.0.1:8084', output = path.resolve('.codex-runtime/qa/team-security-pc');
+assert.match(base, /^http:\/\/127\.0\.0\.1:(8084|18084)$/);
   const report = { checks: [], errors: [], scope: 'Packaged staff security UI; explicit synthetic proof/pending/success/uncertainty fixtures, no real account/provider/credential change' };
 const check = (name,value) => { assert.ok(value,name);report.checks.push(name); };
 (async()=>{
@@ -39,7 +40,7 @@ const check = (name,value) => { assert.ok(value,name);report.checks.push(name); 
   try{
     await page.goto(base+'/team');await page.getByRole('button',{name:'Workspace and account settings',exact:true}).click();await security().waitFor();
     for(const theme of ['Dark','Light','Warm dark','Fresh light','Warm light']){
-      await page.getByRole('button',{name:'Choose appearance',exact:true}).click();await page.getByRole('button',{name:theme,exact:true}).click();
+      await page.getByRole('button',{name:'Choose appearance',exact:true}).click();await page.getByRole('button',{name:theme,exact:true}).click(); await page.keyboard.press('Escape');
       for(const width of [320,390,768,1024,1440,1920]){await page.setViewportSize({width,height:1000});check(theme+' '+width+' security form has no overflow',await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));check(theme+' '+width+' proof fields have usable boundaries and targets',await security().evaluate(element=>{const code=element.querySelector('.admin-code-field input'),password=element.querySelector('.admin-password-control input'),toggle=element.querySelector('.admin-password-toggle'),style=getComputedStyle(code),a=password.getBoundingClientRect(),b=toggle.getBoundingClientRect();return code.getBoundingClientRect().height>=44 && parseFloat(style.borderTopWidth)>0 && b.width>=44 && b.width<=80 && a.width>b.width && a.height>=44;}));}
     }
     await page.setViewportSize({width:390,height:1000});await security().screenshot({path:path.join(output,'staff-security-390.png')});
@@ -64,7 +65,7 @@ const check = (name,value) => { assert.ok(value,name);report.checks.push(name); 
     await reset();await security().getByRole('button',{name:'Replace authenticator',exact:true}).click();await proof();await security().getByRole('button',{name:'Set up a new authenticator',exact:true}).click();await security().getByLabel('New authenticator code',{exact:true}).waitFor();
     check('Staged setup keeps actor signed in and removes old proof fields',authenticated && await password().count()===0 && await security().locator('.admin-enrolment code').count()===1);
     for(const theme of ['Dark','Light','Warm dark','Fresh light','Warm light']){
-      await page.getByRole('button',{name:'Choose appearance',exact:true}).click();await page.getByRole('button',{name:theme,exact:true}).click();
+      await page.getByRole('button',{name:'Choose appearance',exact:true}).click();await page.getByRole('button',{name:theme,exact:true}).click(); await page.keyboard.press('Escape');
       for(const width of [320,390,768,1024,1440,1920]){await page.setViewportSize({width,height:1000});check(theme+' '+width+' pending setup has no overflow',await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));check(theme+' '+width+' new code has a visible usable boundary',await security().locator('.admin-code-field input').evaluate(element=>element.getBoundingClientRect().height>=44 && parseFloat(getComputedStyle(element).borderTopWidth)>0));}
     }
     await security().getByRole('button',{name:'Cancel new authenticator setup',exact:true}).click();await security().getByText('Synthetic setup cancelled; old authenticator remains active.',{exact:true}).waitFor();

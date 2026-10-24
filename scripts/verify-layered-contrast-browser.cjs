@@ -19,7 +19,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
       await page.setViewportSize({ width, height: 1000 }); await page.goto(base); await page.locator('#hero-title').waitFor();
       await page.waitForFunction(() => document.querySelector('.liquid-light-art img')?.naturalWidth > 0);
       for (const label of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
-        await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: label, exact: true }).click();
+        await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: label, exact: true }).click(); await page.keyboard.press('Escape');
         await page.waitForFunction(() => !document.body.classList.contains('theme-changing'));
         await page.evaluate(() => window.scrollTo(0, 0));
         const samples = await page.evaluate(() => {

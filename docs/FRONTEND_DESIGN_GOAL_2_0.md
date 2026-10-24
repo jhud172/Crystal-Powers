@@ -1,5 +1,180 @@
 # Crystal Powers 2.0 — immersive frontend design goal
 
+## Crystal Studio liquid optics and smooth transitions — 24 October 2026
+
+- [x] Upgrade the live signature with clearcoat, shallow physical transmission on eligible tiers, Fresnel transparency on economical tiers, stronger oriented softbox reflections and a soft cyan/rose/violet neon rim. Preserve the original Blender geometry and shared render budgets; no extra outline meshes, bloom pass or dependency.
+- [x] Interpolate finish tint, authored-gradient contribution, roughness, transparency and emission through persistent shader uniforms. Finish changes no longer flip vertex-colour shader definitions or trigger preparation/poster replacement.
+- [x] Interpolate existing key/rim light colours, key position and light intensity. Crossfade the stage atmosphere/halo and rendered-preview adjustments. No React state updates per frame, continuous idle spin or permanent draw loop.
+- [x] Use a1.25-second minimum-jerk unfold coordinate with eased velocity for continuous in-flight reversal; smoothly separate shell/backing/core and brighten the core slightly while unfolding. Preserve camera, reset, orbit, scroll, focus, still/reduced-motion fallback and resource retirement.
+
+Grouped final verification after the batch/correction: frontend production build passes; **61 Studio +36 logo +40 native-resource +50 motion +95 quality =282 passing browser assertions**, zero captured runtime errors or recorded shader-link failures. Native uniform/matrix observations prove intermediate material/light/layer values, unchanged live preparation/poster state during morphs, rapid finish retargeting, continuous unfold reversal, final idle and same-canvas control changes. Existing tests also cover low/balanced/detailed tiers, five appearances, responsive/still fallback, actual context loss/reopen and19 retired native contexts. Reports:`.codex-runtime/qa/crystal-glass-20261024/report.json` (screenshots alongside), `liquid-brand-d1`, `brand-resources-studio-20261024`, `motion-pc`, `quality-pc`.
+
+The first optical shader failed linkage because this Three.js version uses a four-component `vColor` even for RGB colour attributes; native shader logs identified the invalid `mix` overload. Use `vColor.rgb` in the RGB branch and add explicit native linkage diagnostics to the verifier. Corrected full runs pass. Main159.03kB/47.87gzip unchanged; lazy logo chunk10.58/4.15 versus6.35/2.71 before the optical upgrade; CSS209.49/36.79. Existing deferred Three.js chunk warning remains. Browser optics override the reusable asset materials; no Blender geometry/native-scene change was needed. Built preview/read-only fixture evidence only; no backend/provider/device/deployed verification, new dependency, commit, push or deployment. Release blockers remain open.
+
+
+## Crystal Studio — Blender signature and interactive viewer — 24 October 2026
+
+- [x] Replace the procedural Liquid Light approximation with a real original Blender model traced from the current SVG signature: cyan-to-violet shell, optical backing and mint core; preserve the original crystal as an explicit alternative.
+- [x] Upgrade the public header/footer experience with Crystal Studio, a larger responsive stage, live/preview labelling and persistent Reset/Unfold actions. Popup bounds stay inside the viewport.
+- [x] Add Studio/Aurora/Sunset lighting,30–180% intensity,65–120% object size, rotation and direct orbit, finish choices, shell/core isolation, mesh construction and reversible layer separation. State changes retain the same live canvas; reset restores the scene and camera.
+- [x] Preserve lazy activation, shared render quality, reduced/compact previews, keyboard/focus and context-loss recovery. Stable controls remain usable in the rendered preview; live-only geometry inspection is disabled there. Preserve vertical touch panning and wheel page chaining over the object.
+- [x] Validate and reopen the editable Blender scene, validate the embedded GLB/gradient/axis/triangle budget/transparent fallback, and complete grouped browser verification.
+
+Original source and regeneration guide:[Crystal Studio](CRYSTAL_STUDIO.md). Recipe:`assets/blender/build_liquid_brand.py`; scene:`assets/blender/scenes/liquid-brand-crystal.blend`; web:`frontend/public/models/liquid-brand-crystal.glb` (280,580bytes /15,360triangles /3meshes), portrait:`frontend/public/renders/liquid-brand-crystal.png` (720×800RGBA). Existing SVG/heritage assets retained; no downloaded model/texture/HDRI or dependency installation.
+
+Findings fixed during the batch: visual review caught Blender's axis conversion turning the logo edge-on and OrbitControls resetting the initial camera zoom. Convert authoring coordinates before glTF export, preserve framing on orbit reset, and assert upright exported bounds. The native-file verifier initially assumed uncompressed BLENDER headers; recognise Blender5 Zstandard saves and additionally reopen the real scene successfully in Blender5.2.1LTS. Added cache revision`studio-02` for the corrected asset. Obsolete procedural geometry/CSS was replaced or removed; dated documentation is explicitly superseded.
+
+Final relevant verification: production frontend build passes; Blender build/reopen and `python scripts/verify-liquid-brand-asset.py` pass. **53 Studio +36 logo +40 native-resource +50 motion +95 quality +346 appearance =620 passing grouped browser assertions**, zero captured runtime errors. Actual rendered pixels, camera orbit, reset, idle draws, five appearances, context loss/reopen and320/390/768/1024/1440px coverage; resources40 observes19 retired contexts. Reports:`.codex-runtime/qa/crystal-studio-20261024`, `liquid-brand-d1`, `brand-resources-studio-20261024`, `motion-pc`, `quality-pc`, `appearance-stability-20261024`. `verify-brand-browser.cjs` compatibility assumptions were updated and syntax checked; its separate packaged acceptance was not rerun. Main159.03kB/47.87gzip, CSS208.93/36.62; Three.js remains deferred with the existing chunk warning. Prepared environment code is now shared between the lazy logo/model chunks. Built preview/read-only fixture evidence only; backend/provider/native-device/deployed gates remain unchanged and open. No commit/push/deployment in this batch.
+
+
+Current24October evidence: [bulk acceptance review](reviews/BULK_ACCEPTANCE_2026_10_24.md). This supersedes earlier pending/current totals below for the recorded scopes. Companion acceptance is excluded at James's request; operating/provider/device/deployed gates remain open.
+
+## Backend acceptance checkpoint — 23 October 2026
+
+The private UI batch now has fresh local backend evidence:256 H2 and256 actual PostgreSQL tests pass with zero failures/errors/skips, plus53 packaged real-HTTP recovery checks including project order, saved staff/client progress and client-preference concurrency. The full command/evidence/finding log is at the top of [the audit](CRYSTAL_POWERS_2_0_AUDIT.md). Browser fixtures remain separate; deployed/provider/device acceptance is still open. No UI design or application contract changed in this backend QA batch.
+
+## Protected admin, team and client batches — 23 October 2026
+
+Two related implementation batches are complete and their final local checks pass. This extends the earlier whole-site visual pass; it does not mark the production release complete.
+
+- [x] Channels, private groups, team members, business projects, client requests, reference-file review and client projects: add labelled filters with announced loaded-page counts, clear/focus recovery and honest pagination scope. Filtering preserves the open detail and message, tracking or review drafts; queries are not persisted.
+- [x] Staff requests and client projects: present saved status, estimated progress and next step together, with explicit reference-copy actions. Unsaved staff tracking edits remain separate from confirmed progress.
+- [x] Business project ordering: replace the browser prompt with a responsive native dialog. Validate integer/range, preserve the concurrency token, retain input on conflict, trap keyboard focus, return focus on close and lock cancellation/input while awaiting confirmation. Existing publication permissions still apply.
+- [x] Team personal/workspace settings and client contact preferences: add independent saved/unsaved feedback and clearer form grouping; enlarge selectable contact cards. Owner editor save feedback is announced. Separate saves and retained sibling drafts remain intact.
+- [x] Correct the actual visual finding: Tailwind reset native dialog margins, leaving compact order/publication/refund reviews at the top-left. Restore centred placement, verify mobile visually, and rerun affected guarded-confirmation suites.
+
+### End-of-batch verification and correction log
+
+`npm.cmd --prefix frontend run build` passes. Grouped Edge runs against the built loopback preview pass **1,224 functional/rendered-UI assertions across 19 suites**, plus **748 opt-in private visual/input assertions across eight scopes**. The separate typography sweep passes **105 states / 26,429 sampled glyphs**. These are local synthetic fixtures, not production transactions. No captured runtime errors remain in the final reports.
+
+| Suite | Final checks |
+| --- | ---: |
+| New private filtering/order/progress/settings regression | 70 |
+| Channels/messages/workspace | 79 |
+| Support requests and updates | 48 |
+| Team members / role profiles / private groups | 43 / 47 / 55 |
+| Upload review | 44 |
+| Team settings / security / authentication / lifecycle | 54 / 137 / 79 / 16 |
+| Client authentication / access / recovery / billing | 79 / 20 / 51 / 25 |
+| Staff billing and refunds | 31 |
+| Owner editor/private preview / session | 53 / 24 |
+| Shared rendered UI | 269 |
+| Private visual/input: editor / owner session / members / roles | 413 / 29 / 48 / 36 |
+| Private visual/input: support / staff billing / client billing / order dialog | 42 / 115 / 48 / 17 |
+
+Checks include 320–2560px loaded-list reflow, draft retention when filtering, keyboard/focus recovery, order conflicts and pending state, permission denial, settings independence, authentication/security/recovery, publication review and invoice/refund recovery. Visual audit scopes include theme, compact viewport, enlarged text and input/focus checks as recorded in each report; the new order-dialog scope covers its current theme rather than every theme. The rendered-UI suite sampled 4,425 solid-text surfaces. Desktop private-page contact sheets and the centred 390px order dialog were reviewed.
+
+Corrected test findings separately from application defects: fixture permissions now use the actual reply/tracking capabilities; saved next-step assertions are scoped away from editable textareas; independent status indicators no longer collide with global-success selectors. Split decorative status icons from their readable text. A final navigation cancellation was the existing guard correctly retaining tracking edits even after retyping the saved value; the verifier now deliberately uses **Discard progress draft** before navigating. Final rerun: 70/70. Earlier failed reports are retained locally for traceability.
+
+Evidence: `.codex-runtime/qa/private-workflows-20261023/report.json`, the named `*-pc/report.json` suite folders, `.codex-runtime/qa/private-design-d5/*/report.json`, `.codex-runtime/qa/rendered-ui-d5/` and `.codex-runtime/qa/typography-20261023/`. Commands: `node scripts/verify-private-workflows-browser.cjs` and the existing workspace, support-workflow, team-members, role-profiles, upload-review, team-groups, client-recovery, billing-workflow, team-settings, team-security, client-auth, client-access, team-auth, team-lifecycle, client-billing, preview, session, rendered-ui and typography browser verifiers, using installed Edge/Playwright and opt-in private audits where supported. Run complete batches before verification, then fix and rerun the affected scope.
+
+### Remaining acceptance
+
+- [x] Local backend integration: see the fresh backend checkpoint above.
+- [ ] Deployed role/session isolation and real account acceptance for the final release.
+- [ ] Physical phone/tablet/touch/GPU and assistive-technology acceptance across the full private state matrix.
+- [ ] Real Stripe/mail/upload-scanner operations and production configuration, tested only through an agreed non-live/provider procedure first.
+- [ ] Confirm legal/trading name, public company email, retention/deletion and aftercare terms; still undecided.
+- [ ] Complete the broader release checklist below. Existing deferred Three chunk warning remains; no dependency, backend or API-contract changes were made in these batches. Changes remain local and uncommitted.
+
+## Whole-site optical design and interaction pass - 23 October 2026
+
+James expanded the homepage direction to every page and control. This is an implementation pass across the existing site, with scoped browser evidence below; the final all-role/device/release checklist remains open. Earlier Prism material notes are historical: current assets use `prism-optical-06` as recorded in PRISM_GATE.md.
+
+### Page-by-page implementation and acceptance
+
+An implementation tick means the named work exists. It does not silently tick the broader acceptance table further below.
+
+| Implemented | Page / workflow | This pass | Recorded browser coverage / remaining acceptance |
+| --- | --- | --- | --- |
+| [x] | Home and `/home` redirect | Retain fixed Liquid Light, optical gate, hologram and independently drifting stars; add a native chapter journey to the prism, selected work, studio and services; improve shared/footer interactions | Public shell, typography and41 Prism checks; physical GPU/touch acceptance remains open |
+| [x] | About | Original orbital glass illustration, section navigation, illuminated founder note, softer art frame, process surfaces and section arrival cues | Public/typography/text checks, five-theme screenshots and reduced-motion pointer cleanup |
+| [x] | Services: starting point, additions, aftercare, review, app/system directions | Layered optical illustration, chapter links, stronger builder/summary hierarchy, selected steps, native customisable dropdowns and an explicit copyable starting brief | Full builder selection-to-review/copy journey and reflow checked; package data and enquiry handoff preserved |
+| [x] | Portfolio: populated, empty, loading, failed and filtered | Lens illustration, spaced filter strip, rounded original media presentation, restrained image hover zoom, pointer-lit entries and announced result count | Populated local fixture plus existing public failure/empty checks; only approved real work may be published |
+| [x] | Project detail, story, device preview, gallery, missing project | Chapter surfaces, readable story measure, optional public link copying without category/query/fragment, retained real image and3D/gallery interactions | Public fixture and typography/reflow; previous gallery/device contracts retained, deeper device lifecycle acceptance remains separate |
+| [x] | Contact: every enquiry intent | Optical introduction, clearer purpose choices, polished form/focus/aside surfaces; preserve field values, validation, uploads and delivery contracts | Public layouts, field focus and responsive/contrast checks; no real enquiry/email was submitted |
+| [x] | Support | Signal illustration, routes through help/preparation, softly lit triage choices, native disclosures, useful copyable support checklist with denial fallback | Keyboard disclosure, chapter navigation, success/denied copy and compact/desktop checks |
+| [x] | Accessibility | Signal illustration, section navigation and accurate copy/selection guidance; explain existing still/quality preferences | Text, keyboard-entry, responsive and reduced-motion checks; no independent conformance claim |
+| [x] | Privacy: published, unavailable, failed | Layer illustration, readable section rhythm, navigation surfaces and explicit published-contact copy action | Eight-section labelled local policy fixture and existing unavailable/error rendering; legal/operator/retention facts still undecided and not invented |
+| [x] |404 / missing routes | Retain signal recovery composition; add explicit page-address copying that excludes query/fragment | Public/typography and missing-case checks; recovery destinations preserved |
+| [x] | Owner setup/sign-in/MFA/recovery/security | Consistent optical entry surface, rounded fields, clear password group, native dropdown/focus treatment and legible feedback |41 owner transition/rejection/security tests; setup/MFA/live account proof remains separate |
+| [x] | Owner library: current/draft/published/archive, sort/search/create | Search available even for a small library; announced results; polished entries, native sorting and topbar | One-project search/empty filter/sort and new shared UI checks; no real project saved/published |
+| [x] | Editor Details / Images / Story / History / Preview / publication / reauthentication | Keep sticky measurement, previews, save/publication safeguards; refine panel/control/readiness geometry and focus materials | Details/Images/Story/History at320/390/1440px with unchanged-save protection; preview/publication semantics preserved, their full updated role/state acceptance remains open |
+| [x] | Team entry/activation/MFA/security/members/roles | Shared field, dropdown, disclosure, focus, selection and private-panel design extends to these feature-owned screens | Entry states and existing shared rendered-text subset; full permission/role variants still require their dedicated acceptance |
+| [x] | Team channels/groups/messages/replies/mentions/pins/uploads/moderation | Retain visible actions and separate drafts; improve sidebar/header/composer/message focus, native controls and selection behaviour |22 synthetic conversation/draft checks and rendered conversation states; remaining management/moderation variants stay open |
+| [x] | Support operations: requests, updates, client access, billing/invoices/refunds | Extend the same native controls, time/number clarity, panel geometry and focus treatment; preserve all confirmation/security boundaries | Readable shared styles implemented; this is not full execution of each support/refund/invitation state |
+| [x] | Client entry/activation, projects/progress/messages/files/preferences/password | Cohesive entry/control/workspace design; selectable content, clear focused composer/fields and retained account/project isolation | Entry and rendered client workspace states; broader authenticated project/history/access recovery acceptance remains separate |
+| [x] | Client deposit/balance/monthly billing and invoices/receipts | Same consistent controls, payment terms and status surfaces; preserve consent, pending/reconciliation and provider boundary |25 synthetic client-billing checks plus48 private visual/input checks with five themes and reflow; no Stripe request/transaction |
+| [x] | Separate birthday route | Retain its separate purpose, identity and assets; inherit the already completed positive typography safeguard | Included in105-state typography sweep; do not apply marketing glass decoration indiscriminately to this standalone experience |
+
+### Shared interaction decisions
+
+- [x] Typography: retain Manrope and positive spacing, balanced headings, wrapping and normal selectable reading text; no overlapping-letter treatment.
+- [x] Composition: use native chapter links with observed current-section feedback; stable deep-link targets and a footer return-to-top link. No scroll interception or forced scroll speed.
+- [x] Motion: content is visible before animation; route cues180ms and section cues220ms, at most24 observed top-level sections, one-time arrivals. Vector motifs use CSS scroll timelines where supported. Existing reduced/lighter/hidden-page policies remain authoritative.
+- [x] Pointer: only explicitly marked cards get one delegated, RAF-coalesced local light response on a fine mouse. No React updates per pointer move, no touch dependence; listeners/frames/styles retire on route/policy/unmount.
+- [x] Controls: consistent rounded fields and native keyboard semantics; progressive `base-select` dropdown/picker styling with native fallback; full-size options, checkbox/radio semantics, focus feedback and existing upload widgets preserved.
+- [x] Buttons/hover: preserve labels, minimum targets and selected/disabled states; subtle card borders, optical sheen and restrained2.5% public-image hover zoom only under full motion/fine pointer.
+- [x] Scrolling: semantic theme-coloured root/nested scrollbars; native chapter/history scrolling; reduced/lighter modes use immediate anchor scrolling.
+- [x] Copying: public prose, project information, messages, values, addresses and real project images remain available through normal browser selection/controls. Explicit buttons copy only the chosen brief/checklist/public URL/published privacy contact, announce results and provide selected read-only manual text when denied. The browser clipboard is never read automatically.
+- [x] Decoration: logos, background artwork, motifs and model hit surfaces avoid accidental dragging/selection. Do not blanket-block context menus, browser shortcuts, image saving or assistive selection; CSS is not copy protection. Existing secret/invitation/recovery-code copy controls keep their dedicated warnings and guards.
+- [x] Workspaces: apply the shared visual language through existing controls/panels; preserve roles, draft recovery, session expiry, uploads, publishing, payment consent and server-side contracts.
+
+### Batch test log
+
+All changes above were accumulated before the first build/verification checkpoint. The first scoped suites passed the public shell75, team conversation22, new interactions109, typography105 states and rendered text269 checks. Visual inspection then found a real legacy square-field selector overriding the rounded protected fields. Fixed its specificity while preserving the password-toggle group. The initial owner suite also failed because its first session/CSRF requests reached the preview without fixtures; made that initial bootstrap synthetic and isolated, matching its existing later fixtures. No production authentication logic changed for that harness correction.
+
+The lifecycle gate then found redundant Prism visibility/system-motion subscriptions. Switched CrystalOpening to the shared ExperienceProvider state rather than adding more listeners. The no-observer scenario also exposed a real guard defect: checking only whether the property existed allowed an undefined constructor. Replaced that with the same function-type guard used elsewhere. A fast-scroll checkpoint caught a transient fixed-wave violation: arrival transforms established a containing block above viewport-fixed art. Main and wave-owning section arrivals now fade without transforming; other section cues remain. Added a twelve-frame fast-scroll regression assertion. The star drift check now waits for fresh frames after returning from offscreen before sampling, instead of comparing cached pre-scroll positions. Preserved local failure reports: `motion-pc/initial-listener-failure.json`, `motion-pc/observer-fallback-failure.json`, `prism-precision-20261023/fixed-wave-entrance-failure.json` and `drift-after-scroll-sampling-failure.json`.
+
+Final consolidated verification on the corrected frontend: `npm.cmd --prefix frontend run build` passes. **700 scoped browser checks pass**, comprising immersive refinement129, public shell75, team workspace22, owner41, client billing25, private client-billing visual/input48, rendered UI269 (4,335 solid-surface text samples), Prism41 and motion50. **105 typography states /26,429 glyph samples pass** separately. All final reports have no recorded failures; captured runtime-error arrays are empty. Final Prism drift sampling observed99/99 sampled stars moving. Screenshots/reports: `.codex-runtime/qa/immersive-refinement-20261023`, `owner-pc`, `workspace-design-d3`, `private-design-d5/client-billing`, `rendered-ui-d5`, `typography-20261023`, `prism-precision-20261023`, `motion-pc`.
+
+Commands use `CRYSTAL_QA_URL=http://127.0.0.1:8084`, the installed Edge executable and the existing bundled Playwright module. The48-check private visual audit runs with `CRYSTAL_PRIVATE_DESIGN_AUDIT=1` inside the client billing verifier. No dependencies were installed. Final main CSS187.65kB/32.82kB gzip; main JS approximately143kB/43kB gzip. Existing deferred Three chunk1,007.40kB/276.32kB gzip remains a warning, not a claimed performance acceptance.
+
+Remaining acceptance: physical phones/tablets/GPU/thermal behaviour, native assistive technology, all protected management/moderation/refund/role states, real provider/mailbox/deployed acceptance and undecided business policy facts. Backend binaries/database/provider contracts were unchanged; backend regression was not rerun for this frontend design batch. Existing deferred Three bundle warning remains. Native clipboard calls are intercepted by the new verifier; it does not overwrite the system clipboard. No live credentials, account, publication, enquiry or transaction is claimed.
+
+## Hologram inside the Prism Gate - 23 October 2026
+
+- [x] Move the studio information from below the scene into a holographic overlay between the four glass arrows.
+- [x] Add a translucent cyan glass panel, illuminated edge, projection beam and short opening reveal; retain real DOM text, service buttons and link.
+- [x] Lower the authored open diamond from Z1.87 to Z1.05. Rebuild GLB, both editable Blender scenes and all responsive fallback posters; preserve the closed pose and exact reversible 2.5-second path. Cache revision: `prism-hologram-05`.
+- [x] Keep the projection and draggable hit surface as siblings, so panel buttons/links do not toggle or rotate the model. Preserve reset, pulse, star jump, Escape/focus, reduced motion and context-loss/retry behaviour.
+- [x] Fit the panel to a shared 4:3 model frame. Compact screens keep readable type and 44px service targets, with internal scrolling for content that exceeds the aperture. The projection remains screen-facing when the glass model rotates.
+
+End-of-batch verification: Blender 5.2.1 background generation completed; `python assets/blender/prepare_prism_gate.py` passed geometry/material/animation/poster checks and the new lower-projector endpoint assertion. `npm.cmd --prefix frontend run build` passed. `node scripts/verify-prism-gate-browser.cjs` passed38 installed-Edge checks against the built local preview, including the new scene containment and320/390/768px panel bounds. Six further compact-browser assertions passed for service interaction, keyboard access to the internally scrolled link, and Escape at320/390px. Reviewed desktop and mobile fallback screenshots. Reports/screenshots: `.codex-runtime/qa/prism-precision-20261023/`. No captured runtime errors. Existing deferred Three chunk-size warning remains. Backend, providers, physical devices and deployed release QA were not rerun for this frontend/model change.
+
+Current GLB:237,280 bytes, SHA256 `4c6aec622337e655354b961198a0dc4faacbe89e5d7847c37bde998b375aac47`. This entry supersedes older descriptions of information appearing below the stage and earlier asset hashes. Changes remain uncommitted.
+
+## Typography spacing safeguard — 23 October 2026
+
+James requires visible letter separation at every device size. Removed negative letter spacing and the negative display token throughout the stylesheets, including private screens and the separate birthday experience. Display tracking is now positive, compressed line heights are raised, and the hero wordmark selector outranks the shared paragraph margin reset. Wordmark spans can wrap within the available width; kerning/ligature behaviour is explicit. Condensed italic birthday display text uses additional0.06em tracking after actual glyph collisions were found there. `docs/skills/04-ui-design-system.md` records the permanent rule.
+
+Grouped verification: production frontend build passes; new `verify-typography-browser.cjs` passes105 states (14 routes×7 widths,320–2560px, plus doubled homepage headings) and24,364 sampled glyphs with zero detected rendered-pixel collisions/negative tracking/page overflow. Public-shell75 and prism34 checks also pass. Browser screenshots reviewed at1024px; responsive screenshots and report are in `.codex-runtime/qa/typography-20261023`. Private-route evidence is entry screens, not every authenticated panel. No physical-device or full release acceptance is claimed; existing Three chunk warning remains.
+
+The initial typography harness incorrectly treated overlapping ink bounding boxes as touching pixels and returned an invalid fixture for missing project detail. Corrected the fixture and used raster collision confirmation before accepting findings. The remaining seven failing birthday viewport groups were real condensed-italic collisions; widened their tracking and reran the complete affected set successfully. Earlier reports are retained locally as `initial-metrics-fixture-failed.json` and `birthday-italic-failed.json`. Backend/provider checks were not repeated for typography-only changes. Existing prism/starfield work remains preserved and uncommitted.
+
+
+## Rounded liquid-glass corners — 23 October 2026
+
+This material/geometry checkpoint supersedes the earlier rimmed Prism Gate description.
+
+Live visual review found an overly white fill because the DOM wave is outside Three's transmission capture. The corner material now uses exported BLEND alpha0.68 and matching browser transparency/depth-write handling, so the real wave remains visible behind it. This is composited transparency plus shallow scene refraction; it does not claim physical refraction of DOM pixels. The no-rim/BLEND-alpha asset checks and original geometry/animation checks pass on final GLB SHA256 `05ef5945d9d7dbd3c3750b2b60c4eb54b33a71d975b9810dcb8d019e52022c6f`.
+
+Final grouped checks: asset preparation/no-rim contract, decoded geometry and animation-contract checks pass; production frontend build passes. Prism browser34 + public shell75 = **109 scoped browser checks**, with zero captured runtime errors. Includes an explicit live-WebGL assertion after dragging, opening/reversal, starfield, pulse, context-loss/retry, five appearances and responsive/reduced-motion paths. Blender closed/open renders reviewed; rotated live capture is `liquid-glass-angled.png` in the ignored QA report folder. Existing Three chunk warning remains; full backend/device/deployment acceptance was not rerun for this asset/material batch. All current glass work and prior starfield changes remain local/uncommitted.
+
+Rebuilt the four corner arrows as continuous rounded volumes: broad0.28-unit outer bends,0.24-unit inner bends, capsule ends and13 elliptical depth rings with0.075-unit face roll. Removed all eight neon-rim meshes and the CSS silhouette halo. Glass now uses a pale cyan tint,90% transmission,0.085 roughness, full clearcoat and faint whole-body emission; browser refraction is shallow (0.12 thickness,1.38 IOR). The faceted centre and reversible2.5-second motion remain. This is an original liquid-glass-inspired material, with natural curved-surface reflections rather than separate luminous outlines.
+
+Original Blender recipes and both editable scenes/posters regenerated; cache key `prism-liquid-04` invalidates previous deliveries. Actual exported GLB237,280 bytes,7 meshes,5,532 vertices/8,716 triangles (fewer triangles than the previous rimmed version). Geometry decoding, indices/normals/transforms/UVs, exact inverse animation and the explicit no-rim asset contract pass. Build passes; final browser results are recorded below. No new dependency or backend/provider change; existing uncommitted full-screen/starfield work is preserved.
+
+
+## Full-screen prism and hyperjump — 23 October 2026
+
+Grouped verification after the camera/framing and slower-travel corrections: `npm.cmd --prefix frontend run build` passes; `verify-prism-gate-browser.cjs`33 checks and `verify-liquid-shell-browser.cjs`75 checks pass (**108 scoped browser checks**, zero captured runtime errors). This covers fixed wave position, full viewport stage, actual pointer repulsion, all stars departing/returning, pause, surface drag/click, interrupted opening, context-loss/retry/Escape, five appearances,320/390/768 layouts, enlarged text and reduced motion. Closed and travelling renders reviewed. Final main136.31kB/40.52gzip, CSS172.28/30.36; existing deferred Three chunk warning unchanged. No full backend, physical-device/thermal, full assistive or deployed acceptance is claimed. Local reports/screenshots remain under `.codex-runtime/qa/prism-precision-20261023` and `liquid-shell-d2`.
+
+James requested a viewport-fixed animated wave behind scrolling content and a full-screen Prism Gate directly below the hero. Implemented a full-width, minimum-viewport-height stage, matching live/poster camera framing, pointer-repelling twinkling stars, bounded recycling (120 desktop /48 compact or lighter), and a reversible2.5-second outward/inward star jump with motion trails. Travel begins with the authored opening; all stars leave the screen while open and return on closing. Pointer events pass through the decorative layer to the original crystal controls.
+
+`PrismStarfield.tsx` owns the separate2D canvas, recycled particles, pointer refs, visibility/resize subscriptions and cancelled animation frame. It stops drawing at the empty jump endpoint, suspends offscreen/hidden, clamps DPR to1.5 (1 in lighter mode), and uses a static field for reduced motion or the independent Pause stars control. No dependencies, external assets, backend or provider changes. The autonomous wave is fixed in viewport coordinates; foreground sections scroll normally without scroll-jacking. Detailed results follow in `PRISM_GATE.md`; full release/device acceptance remains open.
+
+
 ## Prism refinement — 23 October 2026
 
 Final correction gate: frontend production build passes; Prism browser24 + public shell75 + shared device-model24 = **123 scoped browser checks**, all passing with zero captured runtime errors. Actual WebGL context loss, fallback, retry and keyboard Escape/focus recovery pass. Asset and animation-contract scripts pass; GLB235,724 bytes,15 meshes/9,340 triangles. CSS171.43kB/30.16gzip, main133.04/39.06, deferred Three1,007.40/276.32; existing large-chunk warning remains. Backend/database/provider/device/deployed suites were not rerun for this frontend/asset-only batch. Browser evidence is built-preview/synthetic GETs, not a new packaged or production release. Reports/screenshots: `.codex-runtime/qa/prism-precision-20261023`, `liquid-shell-d2`, `device-quality-d1`.

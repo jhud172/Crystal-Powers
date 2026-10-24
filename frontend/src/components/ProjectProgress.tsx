@@ -1,0 +1,5 @@
+/** Show saved estimates and next steps without implying that an estimate is a guarantee. */
+export function ProjectProgress({ state, progress, nextStep, projectScope, showScope = false, label = "Estimated project progress", heading: Heading = "h3" }: { state: string; progress: number; nextStep: string; projectScope?: string; showScope?: boolean; label?: string; heading?: "h3" | "h4" }) {
+  const valid = Number.isFinite(progress) && progress >= 0 && progress <= 100;
+  return <section className="project-progress" aria-label="Saved project status"><p className="project-progress-status"><span>{state.toLowerCase().replace(/_/g, " ")}</span><span>{valid ? `${progress}% estimated progress` : "Progress not available"}</span></p>{valid && <progress aria-label={label} max={100} value={progress} />}<div className="project-progress-next"><Heading>Next step</Heading><p>{nextStep || "The team has not added a next step yet."}</p></div>{showScope && <div className="project-progress-next"><Heading>Confirmed project scope</Heading><p>{projectScope || "Your team has not recorded a confirmed scope yet. Ask them if you need the current brief."}</p></div>}</section>;
+}

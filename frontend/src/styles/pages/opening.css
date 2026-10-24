@@ -1,39 +1,97 @@
 /* Prism shares Liquid Light tokens; only the glass artwork has its own cool tint. */
-.prism-showcase { display:grid; grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr); align-items:center; gap:clamp(28px,5vw,88px); }
-.prism-introduction h2 { font-size:clamp(42px,5.6vw,88px); line-height:1.04; letter-spacing:-.055em; margin:24px 0; }
-.prism-introduction > p:last-child { max-width:35ch; color:var(--studio-muted); line-height:1.75; }
-.crystal-opening { min-width:0; width:100%; border:1px solid var(--studio-control-line); border-radius:24px; overflow:clip; background:radial-gradient(ellipse at 50% 32%,color-mix(in srgb,var(--studio-accent) 5%,var(--studio-bg)),var(--studio-bg) 72%); }
-.opening-caption { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; padding:22px 24px 0; font-size:10px; letter-spacing:.07em; color:var(--studio-muted); }
+.prism-showcase { position:relative; width:100%; min-height:100svh; scroll-margin-top:96px; }
+.crystal-opening { position:relative; isolation:isolate; min-width:0; width:100%; min-height:100svh; display:flex; flex-direction:column; overflow:clip; border-block:1px solid var(--studio-control-line); background:radial-gradient(ellipse at 50% 45%,color-mix(in srgb,var(--studio-bg) 48%,transparent),color-mix(in srgb,var(--studio-bg) 88%,transparent)); }
+.prism-stars { position:absolute; inset:0; width:100%; height:100%; z-index:-1; pointer-events:none; }
+.prism-stars-still { opacity:.4; background-image:radial-gradient(circle at 20% 30%,var(--studio-accent) 1px,transparent 2px),radial-gradient(circle at 70% 60%,var(--studio-muted) 1px,transparent 2px); background-size:113px 137px,173px 191px; }
+.opening-caption { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; padding:22px var(--studio-gutter) 0; font-size:10px; letter-spacing:.07em; color:var(--studio-muted); }
 .opening-caption a { color:var(--studio-text); text-underline-offset:4px; }
-.opening-surface { position:relative; width:100%; aspect-ratio:4/3; cursor:grab; touch-action:pan-y; user-select:none; border-radius:16px; }
 .opening-surface:active { cursor:grabbing; }
 .opening-surface:focus-visible { outline:2px solid var(--studio-accent); outline-offset:-5px; }
 .opening-poster,.opening-canvas { position:absolute; inset:0; pointer-events:none; }
 .opening-poster img { display:block; width:100%; height:100%; object-fit:contain; }
 .crystal-opening[data-ready="true"] .opening-poster { opacity:0; }
-.opening-canvas canvas { filter:drop-shadow(0 0 calc(3px + var(--prism-pulse,0)*5px) rgb(110 205 235 / .15)); }
-.opening-controls { padding:18px 24px 24px; border-top:1px solid var(--studio-control-line); }
+/* Light comes from the glass material, not a drawn silhouette outline. */
+.opening-canvas { z-index:3; }
+.opening-canvas, .opening-canvas * { pointer-events:none !important; touch-action:pan-y !important; }
+.opening-poster { z-index:3; transform-origin:center; }
+.opening-controls { padding:18px var(--studio-gutter) 24px; border-top:1px solid var(--studio-control-line); }
 .opening-controls p { color:var(--studio-muted); font-size:12px; line-height:1.6; margin:0 0 14px; }
 .opening-actions { display:flex; flex-wrap:wrap; gap:8px; }
 .opening-actions button { min-height:44px; padding:10px 14px; border:1px solid var(--studio-control-line); border-radius:10px; background:var(--studio-bg); color:var(--studio-text); font:inherit; font-size:12px; cursor:pointer; }
 .opening-actions button:hover { border-color:var(--studio-accent); }
 .opening-actions button:focus-visible,.prism-tabs button:focus-visible,.prism-link:focus-visible { outline:2px solid var(--studio-accent); outline-offset:3px; }
 .opening-actions button:disabled { opacity:.5; cursor:default; }
-.prism-projection { display:none; padding:0 24px 24px; }
-.prism-projection[data-visible="true"] { display:block; animation:prism-reveal .55s cubic-bezier(.22,1,.36,1) both; }
-.prism-beam { display:none; }
-.prism-hologram { padding:24px; border:1px solid var(--studio-control-line); border-radius:16px; background:var(--studio-raised); }
-.prism-signal { display:block; font-size:9px; letter-spacing:.12em; color:var(--studio-muted); margin-bottom:20px; line-height:1.7; }
 .prism-index { font-size:10px; color:var(--studio-muted); }
-.prism-hologram h2 { font-size:clamp(24px,2.4vw,36px); letter-spacing:-.04em; line-height:1.15; margin:12px 0; color:var(--studio-text); }
-.prism-hologram p { font-size:14px; line-height:1.7; color:var(--studio-muted); max-width:40ch; margin:0; }
-.prism-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:22px 0; }
 .prism-tabs button { min-height:44px; padding:10px 14px; border:1px solid var(--studio-control-line); border-radius:8px; background:var(--studio-bg); color:var(--studio-text); font:inherit; font-size:12px; cursor:pointer; }
 .prism-tabs button[aria-pressed="true"] { background:var(--studio-text); color:var(--studio-bg); border-color:var(--studio-text); }
-.prism-link { display:flex; justify-content:space-between; gap:16px; padding-top:18px; border-top:1px solid var(--studio-control-line); color:var(--studio-text); font-size:13px; line-height:1.6; text-underline-offset:4px; }
 .prism-copy { animation:prism-reveal .35s ease-out both; }
 @keyframes prism-reveal { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
-@media(max-width:900px) { .prism-showcase { grid-template-columns:minmax(0,1fr); } .crystal-opening { max-width:760px; } }
-@media(max-width:480px) { .opening-caption { padding:18px 16px 0; } .opening-controls { padding:16px; } .prism-projection { padding:0 16px 16px; } .prism-hologram { padding:18px; } .opening-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .opening-actions button:first-child { grid-column:1/-1; } }
+@media(max-width:480px) { .opening-caption { padding:18px 16px 0; } .opening-controls { padding:16px; } .opening-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .opening-actions button:first-child { grid-column:1/-1; } }
 @media(prefers-reduced-motion:reduce) { .prism-projection[data-visible="true"],.prism-copy { animation:none; } }
 .crystal-opening[data-reduced="true"] .prism-projection,.crystal-opening[data-reduced="true"] .prism-copy { animation:none; }
+/* The projection and the hit surface are siblings: links never sit inside a button. */
+.opening-viewport { position:relative; display:grid; place-items:center; height:calc(100svh - 210px); min-height:540px; flex:1 0 auto; }
+.opening-scene-frame { position:relative; width:min(100%,calc((100svh - 210px) * 1.333333)); aspect-ratio:4/3; }
+.opening-surface { position:absolute; inset:0; width:100%; height:100%; min-height:0; cursor:grab; touch-action:pan-y; user-select:none; border-radius:16px; }
+.prism-projection { position:absolute; visibility:hidden; opacity:0; z-index:2; left:50%; top:20%; width:54%; height:49%; padding:0; transform:translateX(-50%); pointer-events:none; }
+.prism-projection[data-visible="true"] { visibility:visible; opacity:1; animation:prism-project-in .65s cubic-bezier(.22,1,.36,1) both; }
+.prism-hologram { position:relative; display:flex; flex-direction:column; height:100%; overflow:auto; overscroll-behavior:auto; scrollbar-width:thin; scrollbar-color:#88e5ff transparent; pointer-events:auto; padding:clamp(12px,2vw,24px); border:1px solid #83dcf5a6; border-radius:18px; background:linear-gradient(135deg,#10283ae8,#091a2bd9); color:#e7faff; backdrop-filter:blur(14px); box-shadow:inset 0 0 24px #6cdeff14,0 0 32px #6cdeff2e; }
+.prism-hologram > * { flex-shrink:0; }
+.prism-hologram::before { content:""; position:absolute; top:0; left:12%; width:76%; height:1px; background:linear-gradient(90deg,transparent,#a3efff,transparent); pointer-events:none; }
+.prism-beam { display:block; position:absolute; top:100%; left:10%; width:80%; height:28%; background:linear-gradient(0deg,#89edff66,#89edff08); clip-path:polygon(0 0,100% 0,51% 100%,49% 100%); pointer-events:none; }
+.prism-signal { display:block; font-size:9px; letter-spacing:.12em; color:#a0eaff; margin-bottom:10px; line-height:1.7; }
+.prism-hologram h2 { font-size:clamp(20px,2vw,30px); line-height:1.2; margin:8px 0; color:#effcff; }
+.prism-hologram p { font-size:13px; line-height:1.6; color:#bed9e6; margin:0; }
+.prism-tabs { display:flex; flex-wrap:wrap; flex-shrink:0; gap:6px; margin:12px 0; }
+.prism-tabs button { padding:8px 10px; }
+.prism-link { display:flex; flex-shrink:0; justify-content:space-between; gap:16px; padding-top:10px; margin-top:auto; border-top:1px solid #89def54d; color:#d4f5ff; font-size:12px; line-height:1.6; text-underline-offset:4px; }
+.prism-hologram .prism-index { color:#9ec7d8; }
+.prism-hologram .prism-tabs button { background:#0c2335; border-color:#8cdeff66; color:#d5f6ff; }
+.prism-hologram .prism-tabs button[aria-pressed="true"] { background:#b4efff; border-color:#b4efff; color:#082032; }
+@keyframes prism-project-in { from { opacity:0; transform:translateX(-50%) translateY(18px) scale(.96); } to { opacity:1; transform:translateX(-50%); } }
+@media(max-width:767px) {
+  .opening-viewport { min-height:480px; }
+  .opening-scene-frame { width:140%; max-width:none; }
+  .prism-projection { top:16%; height:51%; width:54%; padding:0; }
+  .prism-hologram { padding:12px; border-radius:12px; }
+  .prism-signal { font-size:8px; letter-spacing:.07em; }
+  .prism-hologram h2 { font-size:20px; }
+  .prism-tabs { flex-wrap:nowrap; gap:4px; }
+  .prism-tabs button { flex:1; min-width:0; padding:8px 4px; font-size:11px; }
+}
+@media(prefers-reduced-motion:reduce) { .prism-projection[data-visible="true"] { animation:none; } }
+
+/* The glass is composited above the stationary DOM projection; it never eats input. */
+.crystal-opening[data-phase="closing"] .prism-projection[data-visible="true"] {
+  animation:prism-project-home 1.15s cubic-bezier(.4,0,.2,1) both;
+  transform-origin:50% 128%;
+}
+@keyframes prism-project-home {
+  0% { opacity:1; transform:translateX(-50%) scale(1); filter:blur(0); }
+  45% { opacity:.45; }
+  100% { opacity:0; transform:translateX(-50%) translateY(18%) scale(.08,.02); filter:blur(6px); visibility:hidden; }
+}
+.opening-actions button,.prism-tabs button {
+  position:relative; border-radius:999px; letter-spacing:.025em;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--studio-text) 8%,var(--studio-bg)),var(--studio-bg));
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--studio-text) 12%,transparent);
+  transition:background .22s ease,border-color .22s ease,box-shadow .22s ease,transform .22s ease;
+}
+.opening-actions button:first-child {
+  border-color:color-mix(in srgb,var(--studio-accent) 65%,var(--studio-control-line));
+  background:linear-gradient(125deg,color-mix(in srgb,var(--studio-accent) 20%,var(--studio-bg)),var(--studio-bg));
+}
+.opening-actions button span { display:inline-block; margin-left:12px; color:var(--studio-accent); }
+.prism-hologram .prism-tabs button { border-radius:999px; }
+@media(hover:hover) {
+  .opening-actions button:enabled:hover,.prism-hologram .prism-tabs button:hover {
+    border-color:#8ce7ff; box-shadow:inset 0 1px 0 #c9f6ff44,0 0 20px #67dfff26;
+    transform:translateY(-2px);
+  }
+}
+.opening-actions button:enabled:active,.prism-tabs button:active { transform:translateY(1px) scale(.98); }
+@media(prefers-reduced-motion:reduce) {
+  .crystal-opening[data-phase="closing"] .prism-projection[data-visible="true"] { animation:none; opacity:0; }
+  .opening-actions button,.prism-tabs button { transition:none; }
+}
+.crystal-opening[data-reduced="true"] .opening-actions button,.crystal-opening[data-reduced="true"] .prism-tabs button { transition:none; }

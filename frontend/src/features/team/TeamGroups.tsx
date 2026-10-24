@@ -1,3 +1,5 @@
+import { PageFilter } from "../../components/PageFilter";
+import { matchesFilter } from "../../lib/matchesFilter";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { api, ApiError } from "../portfolio/projectApi";
 import { OwnerError } from "../admin/OwnerError";
@@ -7,6 +9,7 @@ type Group = { id: string; name: string; description: string; archived: boolean;
 type Member = { id: string; displayName: string; role: string };
 type Props = { onBack: () => void; onExpired: () => void; onBusy: (value: boolean) => void; onDirty: (value: boolean) => void; onChanged: () => void };
 export function TeamGroups(props: Props) {
+  const [query,setQuery]=useState("");
   const [groups,setGroups]=useState<Group[]>([]),[selected,setSelected]=useState<string | null>(null),[creating,setCreating]=useState(false);
   const [error,setError]=useState(""),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
   const live=useRef(true),dirty=useRef(false),generation=useRef(0),request=useRef<AbortController | null>(null);
@@ -31,7 +34,7 @@ export function TeamGroups(props: Props) {
   function unavailable(message:string){setError(message);setGroups([]);setSelected(null);setCreating(false);dirty.current=false;props.onDirty(false);heading.current?.focus();}
   function saved(){setBusy(false);props.onBusy(false);dirty.current=false;props.onDirty(false);setSelected(null);setCreating(false);void load();props.onChanged();}
   return <section className="team-groups"><button className="admin-text-button" disabled={busy} onClick={props.onBack}>Back to channels</button><h2 ref={heading} tabIndex={-1}>Private team groups</h2><p>Organise membership, then restrict channels to a group. Role access still applies; group membership does not grant staff permissions.</p><OwnerError message={error}/><div className="team-history-nav"><button className="admin-secondary" disabled={busy || loading || !!error} onClick={()=>choose(null)}>Create a group</button><button className="admin-secondary" disabled={busy || loading} onClick={()=>void load()}>Refresh groups</button></div>{loading && <p role="status">Loading groups…</p>}
-    <ul className="team-group-list">{groups.map(group=><li key={group.id}><button className="admin-text-button" disabled={busy} aria-current={selected===group.id ? "page" : undefined} onClick={()=>choose(group.id)}><strong>{group.name}</strong><span>{group.archived ? "Archived" : "Active"}</span></button><p>{group.description}</p></li>)}</ul>{!loading && !error && !groups.length && <p>No private groups yet.</p>}
+    <PageFilter label="Filter private groups" value={query} onChange={setQuery} shown={groups.filter(group=>matchesFilter(query,group.name,group.description,group.archived ? "Archived" : "Active")).length} total={groups.length} disabled={busy} loading={loading} hint="Filters available groups. Any open group and membership edits stay in place." /><ul className="team-group-list">{groups.filter(group=>matchesFilter(query,group.name,group.description,group.archived ? "Archived" : "Active")).map(group=><li key={group.id}><button className="admin-text-button" disabled={busy} aria-current={selected===group.id ? "page" : undefined} onClick={()=>choose(group.id)}><strong>{group.name}</strong><span>{group.archived ? "Archived" : "Active"}</span></button><p>{group.description}</p></li>)}</ul>{!loading && !error && !groups.length && <p>No private groups yet.</p>}
     {(selected || creating) && <GroupEditor key={selected || "new-group"} id={selected} onUnavailable={unavailable} onSaved={saved} onExpired={props.onExpired} onBusy={value=>{setBusy(value);props.onBusy(value);}} onDirty={value=>{dirty.current=value;props.onDirty(value);}}/>}
   </section>;
 }

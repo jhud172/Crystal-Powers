@@ -229,7 +229,7 @@ exports.runPortfolioQa = async ({ chromium, executablePath, base, password, setu
     }
     for (const theme of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
       await publicPage.getByRole('button', { name: 'Choose appearance', exact: true }).click();
-      await publicPage.getByRole('button', { name: theme, exact: true }).click();
+      await publicPage.getByRole('button', { name: theme, exact: true }).click(); await publicPage.keyboard.press('Escape');
       check(`${theme} populated case fits`, await publicPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     }
     check('Inactive device uses no canvas', await publicPage.locator('canvas').count() === 0);
@@ -302,7 +302,7 @@ exports.runPortfolioQa = async ({ chromium, executablePath, base, password, setu
     check('Fixture retry replaces the error with the recovered showcase', true);
     for (const theme of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
       await fixturePage.getByRole('button', { name: 'Choose appearance', exact: true }).click();
-      await fixturePage.getByRole('button', { name: theme, exact: true }).click();
+      await fixturePage.getByRole('button', { name: theme, exact: true }).click(); await fixturePage.keyboard.press('Escape');
       check(`${theme} fixture Work fits`, await fixturePage.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     }
     await fixturePage.screenshot({ path: path.join(output, 'work-fixtures-desktop.png'), fullPage: true });

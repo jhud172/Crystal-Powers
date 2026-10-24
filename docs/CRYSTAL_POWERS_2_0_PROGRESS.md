@@ -1,4 +1,243 @@
-# Crystal Powers 2.0 progress —12 October 2026
+# Crystal Powers 2.0 progress — 24 October 2026
+
+## Local Codex publisher and approved Clare publication — 24 October 2026
+
+- [x] Create a dedicated temporary Codex team login without resetting the protected owner. Ordinary password/MFA/CSRF/session controls; restricted custom publisher role with exactly READ_CHANNELS, EDIT_PROJECTS and PUBLISH_PROJECTS. Deny reserved automation identities outside the loopback local H2 runtime; retain normal account behaviour and management removal visibility.
+- [x] Store credentials only in Windows-user DPAPI encryption under ignored .codex-runtime/security/codex-local.dpapi; provide an explicit offline provision/remove tool outside the shipped application. Removal suspends the account, revokes sessions and deletes its credential file while retaining audit/project records. [Lifecycle and removal](LOCAL_CODEX_ACCOUNT.md).
+- [x] Use the real normal team session and existing media/project APIs to upload both approved Clare captures, assign owned cover/desktop/mobile IDs, save and review revision2, publish and feature /portfolio/clares-life-celebrations in the persistent LOCAL database. Source hashes match the approved portable package; no invented projects or client metrics. Existing owner and legacy projects remain untouched.
+- [x] Verify normal password/MFA sign-in, exact grants and owner403; pass33 real browser assertions for published portfolio/case study, screenshots/device switching, reload, Home featuring and the restricted team projects UI at1440/768/390px, zero captured runtime errors or failing public media/project responses. Evidence: .codex-runtime/qa/clare-local/.
+
+Final batch verification: `SKIP_FRONTEND_BUILD=1 ./gradlew.bat test --offline --no-daemon --console=plain` passes **272 tests /16 suites,0 failures/errors/skips**. Focused policy/authority tests and offline`bootJar` pass. Actual local full-stack browser regression passes33 assertions with1 published project, alongside the33 Clare/team checks. Packaged static inventory matches162 files with0 stale; new JAR SHA256`b9da9fc67feef6abda7c1c3532713141d1c1a71d977868c9ea5d89fd0ceaab45`. Node syntax checks and`git diff --check` pass. No frontend source changed in this batch, so the already-built/current frontend was reused. The live Codex account intentionally remains active; destructive end-to-end removal was not run against this working account. No PostgreSQL/provider/deployed release verification in this batch.
+
+This supersedes the empty-local-portfolio state in the earlier connection-repair checkpoint below. Production publication/HOME-03, live provider/legal release gates and removal of the temporary local account remain separate release work. No dependency installation, production mutation, commit/push or deployment.
+
+## Local portfolio connection repair — 24 October 2026
+
+- [x] Diagnose the actual screenshot: the frontend preview was running while backend8080 was stopped; `/api/projects` returned500, correctly producing the unavailable/retry UI. This was not a missing-project card styling defect.
+- [x] Back up the saved local database before startup at `.codex-runtime/local-start-backup-20261024-112810/crystal.mv.db`. Start the actual application with the local H2/media profile on loopback8080; Flyway successfully applied62 pending migrations fromV3 toV65. Retain the original local encryption key. Outgoing email, invitations, billing/recovery/refunds and external AI are disabled for this local runtime.
+- [x] Give Vite dev/preview an explicit shared IPv4 API proxy. Preview defaults to loopback8084/strict port and now refuses ordinary startup unless real backend health and published-project JSON succeed. UI-only fixture previews require the explicit `CRYSTAL_FRONTEND_ONLY=1` opt-in. Document both-server startup in README.
+- [x] Leave backend8080 and frontend8084 running; verify actual same-origin API and page journeys without mocked responses or business writes.
+
+Current local published list is genuinely empty. Read-only inspection of the pre-start backup already showed0 visible published projects and1 archived project with a retained publication revision. No projects were newly published, unarchived, deleted or fabricated to hide the connection problem. The portfolio now shows its honest unpublished empty state; approved Clare source material still requires the normal owner upload/review/publication workflow.
+
+Verification: frontend build, offline`bootJar`, backend migration/startup, successful`prepreview` guard and **35 actual local full-stack browser/HTTP checks** pass. Includes both health/project endpoints, proxy/backend parity, anonymous owner/team/client sessions, real missing-project404, portfolio filters/reload/reflow at390/1440px and eight public/private entry pages; zero captured runtime errors or failing API responses. Evidence:`.codex-runtime/qa/local-full-stack-20261024/report.json` and portfolio screenshots; runtime logs:`local-backend.log` / `local-frontend.log` under`.codex-runtime`. A preview process retired during an early run; relaunched as a tracked running server. A filter assertion initially read before React Router committed; wait for the selected state and rerun passes. Packaged static inventory:161 frontend +1 backend files matched,0 stale; JAR SHA256`2c509da3e0b6143191e960abd018eeccefacf91f7493756ed28be4a62d4d8b64`. No dependency installation, real provider action, production mutation, commit/push or deployment. Backend unit suites were not repeated because no Java/business/security logic changed; this checkpoint verifies the actual startup/proxy defect.
+
+
+## Crystal Studio liquid optics and smooth transitions — 24 October 2026
+
+- [x] Upgrade the live signature with clearcoat, shallow physical transmission on eligible tiers, Fresnel transparency on economical tiers, stronger oriented softbox reflections and a soft cyan/rose/violet neon rim. Preserve the original Blender geometry and shared render budgets; no extra outline meshes, bloom pass or dependency.
+- [x] Interpolate finish tint, authored-gradient contribution, roughness, transparency and emission through persistent shader uniforms. Finish changes no longer flip vertex-colour shader definitions or trigger preparation/poster replacement.
+- [x] Interpolate existing key/rim light colours, key position and light intensity. Crossfade the stage atmosphere/halo and rendered-preview adjustments. No React state updates per frame, continuous idle spin or permanent draw loop.
+- [x] Use a1.25-second minimum-jerk unfold coordinate with eased velocity for continuous in-flight reversal; smoothly separate shell/backing/core and brighten the core slightly while unfolding. Preserve camera, reset, orbit, scroll, focus, still/reduced-motion fallback and resource retirement.
+
+Grouped final verification after the batch/correction: frontend production build passes; **61 Studio +36 logo +40 native-resource +50 motion +95 quality =282 passing browser assertions**, zero captured runtime errors or recorded shader-link failures. Native uniform/matrix observations prove intermediate material/light/layer values, unchanged live preparation/poster state during morphs, rapid finish retargeting, continuous unfold reversal, final idle and same-canvas control changes. Existing tests also cover low/balanced/detailed tiers, five appearances, responsive/still fallback, actual context loss/reopen and19 retired native contexts. Reports:`.codex-runtime/qa/crystal-glass-20261024/report.json` (screenshots alongside), `liquid-brand-d1`, `brand-resources-studio-20261024`, `motion-pc`, `quality-pc`.
+
+The first optical shader failed linkage because this Three.js version uses a four-component `vColor` even for RGB colour attributes; native shader logs identified the invalid `mix` overload. Use `vColor.rgb` in the RGB branch and add explicit native linkage diagnostics to the verifier. Corrected full runs pass. Main159.03kB/47.87gzip unchanged; lazy logo chunk10.58/4.15 versus6.35/2.71 before the optical upgrade; CSS209.49/36.79. Existing deferred Three.js chunk warning remains. Browser optics override the reusable asset materials; no Blender geometry/native-scene change was needed. Built preview/read-only fixture evidence only; no backend/provider/device/deployed verification, new dependency, commit, push or deployment. Release blockers remain open.
+
+
+## Crystal Studio — Blender signature and interactive viewer — 24 October 2026
+
+- [x] Replace the procedural Liquid Light approximation with a real original Blender model traced from the current SVG signature: cyan-to-violet shell, optical backing and mint core; preserve the original crystal as an explicit alternative.
+- [x] Upgrade the public header/footer experience with Crystal Studio, a larger responsive stage, live/preview labelling and persistent Reset/Unfold actions. Popup bounds stay inside the viewport.
+- [x] Add Studio/Aurora/Sunset lighting,30–180% intensity,65–120% object size, rotation and direct orbit, finish choices, shell/core isolation, mesh construction and reversible layer separation. State changes retain the same live canvas; reset restores the scene and camera.
+- [x] Preserve lazy activation, shared render quality, reduced/compact previews, keyboard/focus and context-loss recovery. Stable controls remain usable in the rendered preview; live-only geometry inspection is disabled there. Preserve vertical touch panning and wheel page chaining over the object.
+- [x] Validate and reopen the editable Blender scene, validate the embedded GLB/gradient/axis/triangle budget/transparent fallback, and complete grouped browser verification.
+
+Original source and regeneration guide:[Crystal Studio](CRYSTAL_STUDIO.md). Recipe:`assets/blender/build_liquid_brand.py`; scene:`assets/blender/scenes/liquid-brand-crystal.blend`; web:`frontend/public/models/liquid-brand-crystal.glb` (280,580bytes /15,360triangles /3meshes), portrait:`frontend/public/renders/liquid-brand-crystal.png` (720×800RGBA). Existing SVG/heritage assets retained; no downloaded model/texture/HDRI or dependency installation.
+
+Findings fixed during the batch: visual review caught Blender's axis conversion turning the logo edge-on and OrbitControls resetting the initial camera zoom. Convert authoring coordinates before glTF export, preserve framing on orbit reset, and assert upright exported bounds. The native-file verifier initially assumed uncompressed BLENDER headers; recognise Blender5 Zstandard saves and additionally reopen the real scene successfully in Blender5.2.1LTS. Added cache revision`studio-02` for the corrected asset. Obsolete procedural geometry/CSS was replaced or removed; dated documentation is explicitly superseded.
+
+Final relevant verification: production frontend build passes; Blender build/reopen and `python scripts/verify-liquid-brand-asset.py` pass. **53 Studio +36 logo +40 native-resource +50 motion +95 quality +346 appearance =620 passing grouped browser assertions**, zero captured runtime errors. Actual rendered pixels, camera orbit, reset, idle draws, five appearances, context loss/reopen and320/390/768/1024/1440px coverage; resources40 observes19 retired contexts. Reports:`.codex-runtime/qa/crystal-studio-20261024`, `liquid-brand-d1`, `brand-resources-studio-20261024`, `motion-pc`, `quality-pc`, `appearance-stability-20261024`. `verify-brand-browser.cjs` compatibility assumptions were updated and syntax checked; its separate packaged acceptance was not rerun. Main159.03kB/47.87gzip, CSS208.93/36.62; Three.js remains deferred with the existing chunk warning. Prepared environment code is now shared between the lazy logo/model chunks. Built preview/read-only fixture evidence only; backend/provider/native-device/deployed gates remain unchanged and open. No commit/push/deployment in this batch.
+
+
+## Stable 3D detail dropdown and preference changes — 24 October 2026
+
+- [x] Replace the expanding in-flow detail list with a bounded floating list inside the appearance panel. Choose above/below from available space before paint; retain radio semantics, keyboard navigation, nested Escape and outside dismissal. Resize/scroll listeners exist only while open and are cleaned up.
+- [x] Stop preference/visibility changes replaying entrance animations on content already seen. Remember arrival/visible sections for the current route; new routes and unseen sections retain their existing cues. Preserve reduced motion, cancellation and viewport-fixed artwork.
+- [x] Verify unchanged menu/header/trigger/heading geometry and document scroll across open, close and selection, including repeated Lighter↔Automatic changes with full motion enabled.
+
+Measured causes: opening the old list increased the panel from571.72 to768px on1440×900; after the dropdown fix, the full-motion regression exposed a separate4px heading movement when Lighter→Automatic re-enabled arrival cues. Both are corrected. Grouped final verification: frontend production build, **346 menu/geometry +50 motion +95 quality =491 passing browser checks**, zero captured runtime errors. Public and private entry shells, five appearances, compact/short windows, normal/reduced motion, keyboard/focus and actual rendering quality covered. Read-only fixtures on built preview8084; backend/provider/native-device/deployed checks not rerun for this frontend-only correction. Main155.13kB/46.58gzip, CSS203.44/35.70; existing deferred Three.js chunk warning remains. Evidence:`.codex-runtime/qa/appearance-stability-20261024/report.json` and `stable-detail-open.png`, `motion-pc/report.json`, `quality-pc/report.json`. No dependency installation, commit, push or deployment; release blockers remain open.
+
+
+## Persistent, correctly anchored appearance menu — 24 October 2026
+
+- [x] Theme changes retain the open menu and focus on the selected option. Effects/detail choices remain in the same open disclosure.
+- [x] Add a centred44px Close appearance control; preserve Escape, outside-pointer and toggle dismissal, focus restoration and route-change cleanup.
+- [x] Anchor the panel below the complete header, rather than its shorter appearance button; constrain height for short windows and keep it above floating launchers while open.
+
+Grouped verification: `npm.cmd --prefix frontend run build` passes;253 dedicated menu +50 motion +95 quality = **398 passing browser assertions**, zero captured runtime errors. Dedicated coverage spans `/about`, `/admin`, `/team`, `/client`;1440×900,1024×700,768×600,390×844,320×480,1440×360; all five appearances, nested detail Escape, effects, focus, all dismissal controls, panel bounds and44px centred close target. The first320px run found a floating Companion launcher intercepting the lower menu controls; corrected the header disclosure's stacking order and reran the complete dedicated matrix successfully. Theme verifiers now explicitly dismiss after selection instead of assuming auto-close;34 relevant verifier files pass syntax checks. Main154.03kB/46.23gzip, CSS203.10/35.63; existing deferred Three.js warning remains. Built preview/read-only fixture evidence only; no backend/provider/device acceptance or deployment. Reports:`.codex-runtime/qa/appearance-persistence-20261024/report.json`, `motion-pc/report.json`, `quality-pc/report.json`. Existing release blockers remain open.
+
+
+## Deeper reversible starfield — 24 October 2026
+
+- [x] Add a bounded distant star population with smaller, dimmer perspective at rest and staggered acceleration from the vanishing point. Desktop:120 near +120 distant stars; compact/light-motion budget:48 +48.
+- [x] Extend travel to6 seconds (4.5 seconds with light motion). Distant stars continue rushing after the crystal finishes opening; travel ends with zero visible stars and stops requesting frames.
+- [x] Use one continuous depth/travel coordinate in both directions. In-flight reversal retains the population and current position; returning to rest restores nearby and distant ambient stars. Keep pointer repulsion, offscreen cleanup and reduced-motion still artwork.
+
+Grouped verification after implementation: production frontend build passes; **53 Prism +50 shared motion +4 delayed-observer checks =107 passing assertions**, zero captured runtime errors. Built preview8084 with labelled read-only API fixtures; no new backend/provider/device/release acceptance. Initial browser attempts hit a stopped preview (connection refused); restarted preview8084, then reran all three suites successfully. Existing deferred Three.js size warning remains. Main JS153.75kB/46.19gzip versus153.45/46.03 before this refinement; no new dependency. Evidence:`.codex-runtime/qa/prism-depth-20261024/report.json`, `motion-pc/report.json`, `batched-intersection/report.json`. Preview remains running; no commit/push/deployment.
+
+
+## Latest Prism interaction refinement — 24 October 2026
+
+Completed the requested frontend batch before running grouped verification:
+
+- [x] Keep the DOM hologram stationary; composite the transparent glass canvas above it, with pointer events passing through to the actual controls.
+- [x] Close with a 1.15-second fade/blur and contraction towards the projector, while reversing the authored crystal motion. Hide and make controls inert immediately; retire WebGL after closing and restore trigger focus. In-flight reversals remain supported.
+- [x] Make the first drag visible immediately through the rendered artwork, then prepare the closed live scene only after deliberate interaction. Initialise the renderer at the current angle; retain direct manipulation on compact/reduced artwork. No automatic arrival WebGL.
+- [x] Update Prism controls, service tabs and shared chapter links with rounded glass styling, hover glow, pressed feedback and keyboard focus.
+- [x] Remove Pause/Resume stars controls; preserve automatic offscreen/reduced-motion resource policy.
+- [x] Restore cyan pulse in the actual optical-glass shader plus a brief soft glow, with full settling after 2.4 seconds.
+- [x] Restore native wheel scrolling over the glass and hologram; remove contained overscroll and keep vertical touch panning through the canvas wrappers.
+
+Verification: `npm.cmd --prefix frontend run build` passes. Grouped browser checks: Prism **50**, shared motion **50**, quality **95**, delayed observers **4**, public section navigation **139** = **338 passing assertions**, with zero captured runtime errors. Five appearances, 320/390/768/1440px coverage, doubled text, native wheel input, actual shader uniform writes, context loss/retry and keyboard focus included. Read-only API fixtures on built preview8084; this is frontend evidence, not a refreshed packaged/backend/provider/device acceptance. The existing deferred Three.js chunk warning remains. No dependency install, backend change, commit, push or deployment for this refinement.
+
+Evidence: `.codex-runtime/qa/prism-interaction-20261024/report.json` (screenshots alongside), `motion-pc/report.json`, `quality-pc/report.json`, `batched-intersection/report.json`, `section-anchors-preview-prism/report.json`. The first stationary-transform assertion used exact serialised subpixels and was corrected to compare the DOM matrix and before/after bounds. A navigation runner initially required packaged APIs on preview; added an explicitly labelled opt-in read-only fixture mode (`CRYSTAL_QA_READONLY_FIXTURES=1`), retaining real APIs by default. Both corrected journeys pass. The earlier packaged checkpoint below is historical; this frontend build supersedes its UI, without rerunning its unrelated backend suite. Original release blockers and named-item totals remain unchanged.
+
+
+## Current bulk checkpoint — 24 October 2026
+
+**131/156 named feature/release items are locally complete;25 remain open, plus8 separate phase-acceptance boxes.** The [bulk acceptance review](reviews/BULK_ACCEPTANCE_2026_10_24.md) is the current evidence ledger. This batch adds confirmed client scope and fixes asynchronous layout shifts, delayed-observer Prism freezing, a collision with the existing Prism fragment and retired assets leaking into incremental packages.
+
+Final applicable checks pass:263-case backend tasks with7 corrected cases per database;38 actual-session workflow,31 earlier actual-role,401 refreshed identity/security,242 motion/quality/adaptive,139 public-navigation and106 static-delivery assertions;48 cold profiles;57 populated recovery checks. The cleaned package contains159 matching frontend files plus backend robots.txt, with0 stale static files. Each result retains its candidate/date/fixture scope in the review. Actual native target activation/minimisation both left the document visible in this automation session, so native-background acceptance remains unproven.
+
+Operating facts, real provider/scanner, physical/assistive, phase and deployed acceptance remain open. James excludes the separate assistant/chat feature; only its conflicting heading ID was namespaced to preserve existing homepage navigation. Earlier dated checkpoints below are historical. Final cleanup is verified: owned QA18084/baseline8085/PostgreSQL55447 stopped; existing frontend preview8084 preserved. No commit/push/deployment.
+
+## Bulk acceptance stages — 23–24 October 2026
+
+- [x] Real-session browser stage:37 checks pass against the packaged current application and a fresh PostgreSQL database. Browser password/MFA/cookie sessions for owner and moderator, separate client login; actual ordering, saved tracking, unshared/shared replies, client response/preferences, workspace/profile settings, private group membership and group-restricted channel creation; owner revision/private image library/consent-gated publication/unpublish; client logout cleanup. Reflow at390/768/1440px on five populated surfaces. No intercepted API responses, no runtime errors, no real provider operations. Source fixture: `scripts/run-real-session-browser.py` / `verify-real-session-browser.cjs`; evidence: `.codex-runtime/qa/populated-recovery-browser-20261023235540/browser-report.json`.
+- [x] Corrections in the new verifier: uniquely identify fixture projects; change the contact preference from its actual saved value; check group membership through the authorised detail endpoint rather than the deliberately compact list; target the native group select without including its option text in an exact label match. Earlier failures remain in their isolated evidence directories. No application defect was demonstrated by those test assumptions.
+- [x] Automated motion/quality stage passes; see correction totals below. Native-background/device acceptance remains open separately.
+- [x] Stability correction gate:48 cold profiles initially had no response/runtime/network/overflow failures, but the measurements exposed real loading CLS up to0.539 on owner/client/privacy pages. Reserve the first-view main-frame height for those asynchronous routes and enforce a0.10 project CLS budget. Frontend build/package and48 final cold profiles pass with the new CLS gate: maximum0.06565. Owner390px0.0244, client390px0.06565, unpublished privacy390px0.0089, team0. Static delivery91 passes. Extended real role lifecycle/delegated editor31 checks pass on this stability candidate; the restore step deliberately accepts its existing confirmation. This is an application fix, distinct from verifier corrections.
+- [x] GPU measurements:15 valid desktop GPU profiles +7 compact still/hologram cases and2 explicitly non-comparable baseline entries completed with no measured GL/disjoint/runtime errors. The retained package predates Prism and has one laptop startup GL1281 flag recorded separately; current-candidate startup errors are explicitly asserted absent. Current Prism automatic/low/high median GPU costs0.169/0.059/0.334ms; these are per draw-bearing callback, not whole-frame/mobile/thermal proof. Evidence: `render-cost-pc/report.json`. Renderer/model code is unchanged by the subsequent workspace/privacy CSS stability fix.
+- [ ] Full release completion — external/provider, operating-fact and physical/assistive-device gates below still require their actual evidence. A local tick does not silently close them.
+
+
+- [x] Remaining staff base-role browser batch:22 checks pass with real UI-issued invitations, recipient activation, MFA enrolment, role-specific navigation/direct API denial, support tracking and admin suspension revoking existing sessions. Admin, support and member plus the earlier moderator/owner/client journeys cover every account type locally. Evidence: `.codex-runtime/qa/populated-recovery-browser-20261024000000/roles-browser-report.json`. The first lifecycle attempt needed an explicit member reload after activation in another browser; the final run waits for the confirmed active roster before suspension.
+- [x] Automated motion/quality correction gate:50 lifecycle +41 Prism +95 quality +40 brand-resource +12 adaptive checks =238 passing assertions. Quality originally counted decorative2D stars as WebGL; corrected the verifier without changing application behaviour. Native background visibility remains an unproven acceptance item because real Edge minimisation still reported the document visible; deterministic hidden-state checks are separately labelled and passing.
+
+### Final product gap batch — confirmed client scope
+
+CLIENT-02 source review found no dedicated client-visible confirmed-scope field. Added V63's optional `support_request.project_scope`, shared tracking version/authority checks, a6,000-character limit, scope-change history and staff/client rendering. Missing input from old clients preserves the current scope; an explicit blank clears it. The staff field explains that only already-agreed scope is shared and that it does not change issued payment terms. Draft recovery/filtering keeps scope alongside progress, with safe old-draft defaults. Added integration regressions for stale/legacy/clear writes, client isolation, bounds, permissions and CSRF; extended the real browser and populated-recovery labs. Frontend build passes after correcting an initial TypeScript variable-scope mistake. Acceptance now passes:263-case backend tasks,7 focused corrections per database,38 real-session browser checks and57 populated recovery/rollback checks. CLIENT-02 is locally complete; operating/provider/device/release gates remain separate.
+
+## Backend integration and recovery batch — 23 October 2026
+
+James requested fresh backend integration after the private UI batches. The earlier intercepted-browser results remain separate from this actual-server/database checkpoint.
+
+- [x] Inspect existing backend contracts, permission checks, migration ownership, test isolation and provider-disable settings before changes.
+- [x] Fix local QA portability: Windows currently reserves TCP55347–55446, including the usual55432 database port. Permit only the additional explicit loopback QA port55447 in Gradle, database assertions and backup/restore/isolation helpers. Existing disposable-name/empty-target/new-media restrictions remain. No host networking or production configuration was changed.
+- [x] Give the populated-recovery lab an explicit8084/default or18084 alternative application port, refusing occupied ports and stopping only its own child. Preserve the existing preview.
+- [x] Extend real-HTTP recovery coverage for display-order bounds/concurrency/capability/privacy, matching saved staff/client progress, unrelated client project denial and stale client-preference writes. Synthetic credentials remain in process memory; actual provider operations stay disabled.
+- [x] Fresh H2 `test bootJar`:256 tests in14 suites, zero failures/errors/skips; packaged existing built frontend successfully.
+- [x] Local database guard rejection checks: remote host, ordinary database port, non-disposable database name and unsupported recovery-port arguments rejected before database access (4 checks).
+- [x] Packaged real-HTTP populated recovery:53 checks pass on PostgreSQL17.10. Backup/restore comparison covers45 tables,133 rows,2 sequences and1 private JPEG; browser-role isolation checks deny8 representative private reads. Current and retained earlier candidates authenticate, read/write and reject stale/cross-role requests after restore. Twelve new workflow assertions run across both candidates. Financial/provider states are explicitly imported synthetic snapshots, not real Stripe operations.
+- [x] Fresh actual PostgreSQL `postgresTest`:256 tests in14 suites, zero failures/errors/skips; full run exited0 in5m56s. H2/package run exited0 in3m34s. This verifies local controller/service/repository/security/validation/concurrency/webhook contracts; real provider calls remain separate.
+
+### Final commands, evidence and limits
+
+- `$env:SKIP_FRONTEND_BUILD='1'; .\gradlew.bat test bootJar --offline --no-daemon --rerun-tasks --console=plain` — passed; reuses the previously built current frontend/dist, installs no dependencies.
+- Set `PG_TEST_DATABASE_URL=jdbc:postgresql://127.0.0.1:55447/crystal_rebuild_test_20261023_backend` and synthetic local credentials, then `.\gradlew.bat postgresTest --offline --no-daemon --console=plain` — passed. Target-only representative anon/authenticated default grants were configured before migration so the schema boundary is exercised.
+- `python scripts/verify-populated-recovery.py --candidate build/libs/crystal-power-website-2.0.0.jar --rollback-candidate .codex-runtime/qa/candidates/f7541b58604b2d6f194ba8000bddc18dc4ffa7c836ebf47d74b261d0561c0bd1.jar --source crystal_rebuild_test_recovery_20261023_backend --target crystal_restore_20261023_backend --run populated-recovery-backend-20261023 --pg-port 55447 --app-port 18084` —53 checks passed; fixture creates fresh databases only.
+- The final isolation helper and XML copies live in `backend-integration-20261023/`; H2 and PostgreSQL summaries are each256/0 failed/0 errors/0 skips. Current package SHA256: `fb36727564d34a5fa59fda0ac81843c6bdc9cba59555552bc494ceb48097da43`; a copy is retained under ignored `qa/candidates/`.
+- Python helper syntax and `git diff --check` pass. Existing test warnings: deprecated MockBean, unchecked transport-test operations and JVM class-sharing notice. Existing line-ending notices remain; none is a failing check.
+
+No application logic defect was exposed by this batch. The corrected failures were QA environment/port selection; the initial ordinary online Gradle attempt was stopped before tests, then rerun using cached dependencies and the repository's short Java temporary-directory workaround. These are fresh local backend integration results, not browser end-to-end proof for every protected UI state, live external-provider delivery or deployed2.0 acceptance. Physical/assistive-device, Stripe sandbox/full financial provider, real mail/scanner, published legal/operator configuration and deployed release gates remain open. Do not tick those broader gates from these results.
+
+Evidence: `.codex-runtime/qa/backend-integration-20261023.log`, `backend-postgres-tests-20261023.log`, `backend-integration-20261023/` and `populated-recovery-backend-20261023/`. The initial PostgreSQL socket failure is retained in `backend-postgres-20261023.log`; the successful alternative startup is separate. Final cleanup confirmed: owned QA application18084 and PostgreSQL55447 are closed; existing preview8084 remains listening. The local test/restore databases and evidence are retained for inspection. Existing frontend work is preserved. No dependency installation, real payment/email, deployment or commit/push.
+
+## Protected admin, team and client batches — 23 October 2026
+
+Two related implementation batches are complete and their final local checks pass. This extends the earlier whole-site visual pass; it does not mark the production release complete.
+
+- [x] Channels, private groups, team members, business projects, client requests, reference-file review and client projects: add labelled filters with announced loaded-page counts, clear/focus recovery and honest pagination scope. Filtering preserves the open detail and message, tracking or review drafts; queries are not persisted.
+- [x] Staff requests and client projects: present saved status, estimated progress and next step together, with explicit reference-copy actions. Unsaved staff tracking edits remain separate from confirmed progress.
+- [x] Business project ordering: replace the browser prompt with a responsive native dialog. Validate integer/range, preserve the concurrency token, retain input on conflict, trap keyboard focus, return focus on close and lock cancellation/input while awaiting confirmation. Existing publication permissions still apply.
+- [x] Team personal/workspace settings and client contact preferences: add independent saved/unsaved feedback and clearer form grouping; enlarge selectable contact cards. Owner editor save feedback is announced. Separate saves and retained sibling drafts remain intact.
+- [x] Correct the actual visual finding: Tailwind reset native dialog margins, leaving compact order/publication/refund reviews at the top-left. Restore centred placement, verify mobile visually, and rerun affected guarded-confirmation suites.
+
+### End-of-batch verification and correction log
+
+`npm.cmd --prefix frontend run build` passes. Grouped Edge runs against the built loopback preview pass **1,224 functional/rendered-UI assertions across 19 suites**, plus **748 opt-in private visual/input assertions across eight scopes**. The separate typography sweep passes **105 states / 26,429 sampled glyphs**. These are local synthetic fixtures, not production transactions. No captured runtime errors remain in the final reports.
+
+| Suite | Final checks |
+| --- | ---: |
+| New private filtering/order/progress/settings regression | 70 |
+| Channels/messages/workspace | 79 |
+| Support requests and updates | 48 |
+| Team members / role profiles / private groups | 43 / 47 / 55 |
+| Upload review | 44 |
+| Team settings / security / authentication / lifecycle | 54 / 137 / 79 / 16 |
+| Client authentication / access / recovery / billing | 79 / 20 / 51 / 25 |
+| Staff billing and refunds | 31 |
+| Owner editor/private preview / session | 53 / 24 |
+| Shared rendered UI | 269 |
+| Private visual/input: editor / owner session / members / roles | 413 / 29 / 48 / 36 |
+| Private visual/input: support / staff billing / client billing / order dialog | 42 / 115 / 48 / 17 |
+
+Checks include 320–2560px loaded-list reflow, draft retention when filtering, keyboard/focus recovery, order conflicts and pending state, permission denial, settings independence, authentication/security/recovery, publication review and invoice/refund recovery. Visual audit scopes include theme, compact viewport, enlarged text and input/focus checks as recorded in each report; the new order-dialog scope covers its current theme rather than every theme. The rendered-UI suite sampled 4,425 solid-text surfaces. Desktop private-page contact sheets and the centred 390px order dialog were reviewed.
+
+Corrected test findings separately from application defects: fixture permissions now use the actual reply/tracking capabilities; saved next-step assertions are scoped away from editable textareas; independent status indicators no longer collide with global-success selectors. Split decorative status icons from their readable text. A final navigation cancellation was the existing guard correctly retaining tracking edits even after retyping the saved value; the verifier now deliberately uses **Discard progress draft** before navigating. Final rerun: 70/70. Earlier failed reports are retained locally for traceability.
+
+Evidence: `.codex-runtime/qa/private-workflows-20261023/report.json`, the named `*-pc/report.json` suite folders, `.codex-runtime/qa/private-design-d5/*/report.json`, `.codex-runtime/qa/rendered-ui-d5/` and `.codex-runtime/qa/typography-20261023/`. Commands: `node scripts/verify-private-workflows-browser.cjs` and the existing workspace, support-workflow, team-members, role-profiles, upload-review, team-groups, client-recovery, billing-workflow, team-settings, team-security, client-auth, client-access, team-auth, team-lifecycle, client-billing, preview, session, rendered-ui and typography browser verifiers, using installed Edge/Playwright and opt-in private audits where supported. Run complete batches before verification, then fix and rerun the affected scope.
+
+### Remaining acceptance
+
+- [x] Local backend integration: see the fresh H2/PostgreSQL and real-HTTP recovery batch above.
+- [ ] Deployed role/session isolation and real account acceptance for the final release; local results do not establish those results.
+- [ ] Physical phone/tablet/touch/GPU and assistive-technology acceptance across the full private state matrix.
+- [ ] Real Stripe/mail/upload-scanner operations and production configuration, tested only through an agreed non-live/provider procedure first.
+- [ ] Confirm legal/trading name, public company email, retention/deletion and aftercare terms; still undecided.
+- [ ] Complete the broader release checklist below. Existing deferred Three chunk warning remains; no dependency, backend or API-contract changes were made in these batches. Changes remain local and uncommitted.
+
+## Whole-site design and interaction batch - 23 October 2026
+
+Implemented the homepage direction across the public pages and shared owner/team/client controls: original optical vector studies, native chapter navigation, contextual pointer lighting, readable composition, consistent forms/dropdowns/focus/hover/scrollbars, selected-content copy actions with manual fallback, decorative drag/selection rules, and owner search for small libraries. Text, messages and public project images retain normal browser controls. The detailed page-by-page implementation/acceptance matrix is now at the top of [FRONTEND_DESIGN_GOAL_2_0.md](FRONTEND_DESIGN_GOAL_2_0.md); its implementation ticks do not close the broader full acceptance gates.
+
+Corrected findings: legacy square-field CSS overrode protected rounded controls; the owner UI test lacked isolated initial session/CSRF fixtures; Prism duplicated shared motion/visibility subscriptions; its missing-observer guard could call an undefined constructor; and entrance transforms could briefly move the fixed wave. The test now distinguishes decorative2D stars from WebGL canvases, samples fresh drift frames after scrolling, and asserts wave stability during twelve initial fast-scroll frames. Production role/security/payment/validation contracts remain.
+
+Final frontend build passes. Final consolidated evidence: **700 scoped browser checks**, plus **105 typography states /26,429 glyph samples**, all passing;4,335 solid-surface text samples, no captured runtime errors. Breakdown: new interactions129, public shell75, team22, owner41, client billing25, private billing visual/input48, rendered UI269, Prism41, motion50. Reports/screenshots and retained failure findings are recorded in the design goal test log. Local fixtures only: no real account, publication, system clipboard modification, email delivery or transaction is claimed. No dependency installation. Existing Three bundle warning remains; full physical-device, protected role/state, provider/mailbox/deployed and undecided business-policy acceptance remain open. Backend regression was not rerun for these frontend-only changes. Changes remain local and uncommitted.
+
+## Hologram inside the Prism Gate - 23 October 2026
+
+- [x] Move the studio information from below the scene into a holographic overlay between the four glass arrows.
+- [x] Add a translucent cyan glass panel, illuminated edge, projection beam and short opening reveal; retain real DOM text, service buttons and link.
+- [x] Lower the authored open diamond from Z1.87 to Z1.05. Rebuild GLB, both editable Blender scenes and all responsive fallback posters; preserve the closed pose and exact reversible 2.5-second path. Cache revision: `prism-hologram-05`.
+- [x] Keep the projection and draggable hit surface as siblings, so panel buttons/links do not toggle or rotate the model. Preserve reset, pulse, star jump, Escape/focus, reduced motion and context-loss/retry behaviour.
+- [x] Fit the panel to a shared 4:3 model frame. Compact screens keep readable type and 44px service targets, with internal scrolling for content that exceeds the aperture. The projection remains screen-facing when the glass model rotates.
+
+End-of-batch verification: Blender 5.2.1 background generation completed; `python assets/blender/prepare_prism_gate.py` passed geometry/material/animation/poster checks and the new lower-projector endpoint assertion. `npm.cmd --prefix frontend run build` passed. `node scripts/verify-prism-gate-browser.cjs` passed38 installed-Edge checks against the built local preview, including the new scene containment and320/390/768px panel bounds. Six further compact-browser assertions passed for service interaction, keyboard access to the internally scrolled link, and Escape at320/390px. Reviewed desktop and mobile fallback screenshots. Reports/screenshots: `.codex-runtime/qa/prism-precision-20261023/`. No captured runtime errors. Existing deferred Three chunk-size warning remains. Backend, providers, physical devices and deployed release QA were not rerun for this frontend/model change.
+
+Current GLB:237,280 bytes, SHA256 `4c6aec622337e655354b961198a0dc4faacbe89e5d7847c37bde998b375aac47`. This entry supersedes older descriptions of information appearing below the stage and earlier asset hashes. Changes remain uncommitted.
+
+## Typography spacing safeguard — 23 October 2026
+
+James requires visible letter separation at every device size. Removed negative letter spacing and the negative display token throughout the stylesheets, including private screens and the separate birthday experience. Display tracking is now positive, compressed line heights are raised, and the hero wordmark selector outranks the shared paragraph margin reset. Wordmark spans can wrap within the available width; kerning/ligature behaviour is explicit. Condensed italic birthday display text uses additional0.06em tracking after actual glyph collisions were found there. `docs/skills/04-ui-design-system.md` records the permanent rule.
+
+Grouped verification: production frontend build passes; new `verify-typography-browser.cjs` passes105 states (14 routes×7 widths,320–2560px, plus doubled homepage headings) and24,364 sampled glyphs with zero detected rendered-pixel collisions/negative tracking/page overflow. Public-shell75 and prism34 checks also pass. Browser screenshots reviewed at1024px; responsive screenshots and report are in `.codex-runtime/qa/typography-20261023`. Private-route evidence is entry screens, not every authenticated panel. No physical-device or full release acceptance is claimed; existing Three chunk warning remains.
+
+The initial typography harness incorrectly treated overlapping ink bounding boxes as touching pixels and returned an invalid fixture for missing project detail. Corrected the fixture and used raster collision confirmation before accepting findings. The remaining seven failing birthday viewport groups were real condensed-italic collisions; widened their tracking and reran the complete affected set successfully. Earlier reports are retained locally as `initial-metrics-fixture-failed.json` and `birthday-italic-failed.json`. Backend/provider checks were not repeated for typography-only changes. Existing prism/starfield work remains preserved and uncommitted.
+
+
+## Rounded liquid-glass corners — 23 October 2026
+
+This material/geometry checkpoint supersedes the earlier rimmed Prism Gate description.
+
+Live visual review found an overly white fill because the DOM wave is outside Three's transmission capture. The corner material now uses exported BLEND alpha0.68 and matching browser transparency/depth-write handling, so the real wave remains visible behind it. This is composited transparency plus shallow scene refraction; it does not claim physical refraction of DOM pixels. The no-rim/BLEND-alpha asset checks and original geometry/animation checks pass on final GLB SHA256 `05ef5945d9d7dbd3c3750b2b60c4eb54b33a71d975b9810dcb8d019e52022c6f`.
+
+Final grouped checks: asset preparation/no-rim contract, decoded geometry and animation-contract checks pass; production frontend build passes. Prism browser34 + public shell75 = **109 scoped browser checks**, with zero captured runtime errors. Includes an explicit live-WebGL assertion after dragging, opening/reversal, starfield, pulse, context-loss/retry, five appearances and responsive/reduced-motion paths. Blender closed/open renders reviewed; rotated live capture is `liquid-glass-angled.png` in the ignored QA report folder. Existing Three chunk warning remains; full backend/device/deployment acceptance was not rerun for this asset/material batch. All current glass work and prior starfield changes remain local/uncommitted.
+
+Rebuilt the four corner arrows as continuous rounded volumes: broad0.28-unit outer bends,0.24-unit inner bends, capsule ends and13 elliptical depth rings with0.075-unit face roll. Removed all eight neon-rim meshes and the CSS silhouette halo. Glass now uses a pale cyan tint,90% transmission,0.085 roughness, full clearcoat and faint whole-body emission; browser refraction is shallow (0.12 thickness,1.38 IOR). The faceted centre and reversible2.5-second motion remain. This is an original liquid-glass-inspired material, with natural curved-surface reflections rather than separate luminous outlines.
+
+Original Blender recipes and both editable scenes/posters regenerated; cache key `prism-liquid-04` invalidates previous deliveries. Actual exported GLB237,280 bytes,7 meshes,5,532 vertices/8,716 triangles (fewer triangles than the previous rimmed version). Geometry decoding, indices/normals/transforms/UVs, exact inverse animation and the explicit no-rim asset contract pass. Build passes; final browser results are recorded below. No new dependency or backend/provider change; existing uncommitted full-screen/starfield work is preserved.
+
+
+## Full-screen prism and hyperjump — 23 October 2026
+
+Grouped verification after the camera/framing and slower-travel corrections: `npm.cmd --prefix frontend run build` passes; `verify-prism-gate-browser.cjs`33 checks and `verify-liquid-shell-browser.cjs`75 checks pass (**108 scoped browser checks**, zero captured runtime errors). This covers fixed wave position, full viewport stage, actual pointer repulsion, all stars departing/returning, pause, surface drag/click, interrupted opening, context-loss/retry/Escape, five appearances,320/390/768 layouts, enlarged text and reduced motion. Closed and travelling renders reviewed. Final main136.31kB/40.52gzip, CSS172.28/30.36; existing deferred Three chunk warning unchanged. No full backend, physical-device/thermal, full assistive or deployed acceptance is claimed. Local reports/screenshots remain under `.codex-runtime/qa/prism-precision-20261023` and `liquid-shell-d2`.
+
+James requested a viewport-fixed animated wave behind scrolling content and a full-screen Prism Gate directly below the hero. Implemented a full-width, minimum-viewport-height stage, matching live/poster camera framing, pointer-repelling twinkling stars, bounded recycling (120 desktop /48 compact or lighter), and a reversible2.5-second outward/inward star jump with motion trails. Travel begins with the authored opening; all stars leave the screen while open and return on closing. Pointer events pass through the decorative layer to the original crystal controls.
+
+`PrismStarfield.tsx` owns the separate2D canvas, recycled particles, pointer refs, visibility/resize subscriptions and cancelled animation frame. It stops drawing at the empty jump endpoint, suspends offscreen/hidden, clamps DPR to1.5 (1 in lighter mode), and uses a static field for reduced motion or the independent Pause stars control. No dependencies, external assets, backend or provider changes. The autonomous wave is fixed in viewport coordinates; foreground sections scroll normally without scroll-jacking. Detailed results follow in `PRISM_GATE.md`; full release/device acceptance remains open.
+
 
 ## Prism refinement — 23 October 2026
 

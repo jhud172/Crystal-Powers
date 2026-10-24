@@ -1,7 +1,8 @@
 /* Explicit synthetic client activation/login transports; no real account, provider or credential mutation. */
 const {chromium}=require(process.env.CRYSTAL_PLAYWRIGHT_MODULE || 'playwright');
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
-const base='http://127.0.0.1:8084',output=path.resolve('.codex-runtime/qa/client-auth-pc');
+const base=process.env.CRYSTAL_QA_URL || 'http://127.0.0.1:8084',output=path.resolve('.codex-runtime/qa/client-auth-pc');
+assert.match(base, /^http:\/\/127\.0\.0\.1:(8084|18084)$/);
 const report={checks:[],errors:[],warnings:[],scope:'Packaged client entry; synthetic activation/login responses and real browser history/hash navigation'};
 const check=(name,value)=>{assert.ok(value,name);report.checks.push(name);};
 (async()=>{
@@ -45,7 +46,7 @@ const check=(name,value)=>{assert.ok(value,name);report.checks.push(name);};
   await fragment(B);
   check('Same-document replacement clears previous input/error/success',await password().inputValue()==='' && await confirm().inputValue()==='' && await page.getByText('Synthetic invitation expired or replaced.',{exact:true}).count()===0 && await page.getByRole('link',{name:'Sign in to your projects',exact:true}).count()===0);
   for(const theme of ['Dark','Light','Warm dark','Fresh light','Warm light']){
-   await page.getByRole('button',{name:'Choose appearance',exact:true}).click();await page.getByRole('button',{name:theme,exact:true}).click();
+   await page.getByRole('button',{name:'Choose appearance',exact:true}).click();await page.getByRole('button',{name:theme,exact:true}).click(); await page.keyboard.press('Escape');
    for(const width of [320,390,768,1024,1440,1920]){
     await page.setViewportSize({width,height:1000});
     check(theme+' '+width+' activation has no overflow',await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));

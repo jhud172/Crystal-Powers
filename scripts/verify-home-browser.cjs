@@ -57,7 +57,7 @@ const project = { id: 'home-clare-fixture', slug: 'home-clare-fixture', featured
     for(let index=0;index<5;index++){await art.getByRole('button',{name:index%2===0 ? 'Close the experience' : 'Explore the work',exact:true}).click();}
     check('Repeated reversal leaves a usable closed preview and no extra veil',await art.locator('.liquid-reveal-detail').isHidden() && await art.locator('.liquid-light-veil').count()===1);
     for(const theme of ['Dark','Light','Warm dark','Fresh light','Warm light']){
-      await art.getByRole('button',{name:'Choose appearance',exact:true}).click();await art.getByRole('button',{name:theme,exact:true}).click();
+      await art.getByRole('button',{name:'Choose appearance',exact:true}).click();await art.getByRole('button',{name:theme,exact:true}).click(); await art.keyboard.press('Escape');
       const contrast=await art.locator('.liquid-primary').evaluate(element=>{
         const style=getComputedStyle(element);
         const luminance=colour=>{const channels=colour.match(/[\d.]+/g).slice(0,3).map(value=>{const v=Number(value)/255;return v<=.04045 ? v/12.92 : ((v+.055)/1.055)**2.4;});return .2126*channels[0]+.7152*channels[1]+.0722*channels[2];};

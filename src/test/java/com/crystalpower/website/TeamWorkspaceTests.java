@@ -69,7 +69,7 @@ class TeamWorkspaceTests {
             if (connection.getMetaData().getDatabaseProductName().equals("PostgreSQL")) {
                 // Other integration classes leave a synthetic owner in this shared
                 // disposable target. Isolate each team fixture inside its rollback.
-                assertThat(connection.getMetaData().getURL()).matches("jdbc:postgresql://127\\.0\\.0\\.1:55432/crystal_rebuild_test[a-z0-9_]*");
+                assertThat(connection.getMetaData().getURL()).matches("jdbc:postgresql://127\\.0\\.0\\.1:(55432|55447)/crystal_rebuild_test[a-z0-9_]*");
                 assertThat(org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()).isTrue();
                 new org.springframework.jdbc.core.JdbcTemplate(dataSource).execute("TRUNCATE TABLE public.admin_account CASCADE");
             }
@@ -677,6 +677,43 @@ class TeamWorkspaceTests {
                 .content(json.writeValueAsString(Map.of("expectedVersion",updated.version(),"state","IN_PROGRESS","progress",101,"nextStep","Invalid progress"))))
                 .andExpect(status().isBadRequest());
         assertStatus(403, () -> supportRequests.update(ordinary, request.id(), updated.version(), "NEW", 0, "Forbidden", null));
+    }
+
+    @Test void confirmedProjectScopeIsVersionedClientScopedAndPreservedByLegacyTracking() throws Exception {
+        var request = clientRequest("confirmed-scope");
+        var other = clientRequest("unrelated-scope");
+        var invitation = clientAccess.provision(root,request.id());
+        clientAccess.activate(invitation.invitationToken(),PASSWORD);
+        Authentication client = token(clientAccess.login(request.clientEmail(),PASSWORD),"CLIENT");
+        Authentication supporter = member("scope-support",TeamRole.SUPPORT);
+        var saved = supportRequests.update(supporter,request.id(),request.version(),"IN_PROGRESS",40,"Review the draft",null,"  Five agreed pages\nOne review round  ");
+        assertThat(saved.projectScope()).isEqualTo("Five agreed pages\nOne review round");
+        assertThat(portal.overview(client,request.id()).project().projectScope()).isEqualTo(saved.projectScope());
+        assertStatus(404,()->portal.overview(client,other.id()));
+        mvc.perform(patch("/api/team/support/requests/"+request.id()).with(authentication(client)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("expectedVersion",saved.version(),"state","NEW","progress",0,"nextStep","Client cannot rewrite scope","projectScope","Unauthorised"))))
+                .andExpect(status().isForbidden());
+        assertStatus(409,()->supportRequests.update(supporter,request.id(),request.version(),"NEW",0,"Stale",null,"Stale scope"));
+        var legacy = supportRequests.update(supporter,request.id(),saved.version(),"WAITING_CLIENT",50,"Reply when ready",null);
+        assertThat(legacy.projectScope()).isEqualTo(saved.projectScope());
+        assertThat(supportRepository.events(request.id())).filteredOn(event->event.event().equals("PROJECT_SCOPE_UPDATED")).hasSize(1);
+        var cleared = supportRequests.update(supporter,request.id(),legacy.version(),"WAITING_CLIENT",50,"Reply when ready",null,"");
+        assertThat(cleared.projectScope()).isEmpty();
+        assertThat(portal.overview(client,request.id()).project().projectScope()).isEmpty();
+    }
+
+    @Test void scopeEndpointRejectsOversizedUnauthorisedAndCsrfFreeWritesWithoutChangingTheRequest() throws Exception {
+        var request = clientRequest("scope-validation");
+        var body = Map.of("expectedVersion",request.version(),"state","NEW","progress",0,"nextStep","Review","projectScope","x".repeat(6001));
+        mvc.perform(patch("/api/team/support/requests/"+request.id()).with(authentication(root)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(body)))
+                .andExpect(status().isBadRequest());
+        mvc.perform(patch("/api/team/support/requests/"+request.id()).with(authentication(root)).contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(body)))
+                .andExpect(status().isForbidden());
+        Authentication ordinary = member("scope-member",TeamRole.MEMBER);
+        assertStatus(403,()->supportRequests.update(ordinary,request.id(),request.version(),"NEW",0,"Review",null,"Unauthorised scope"));
+        assertStatus(400,()->supportRequests.update(root,request.id(),request.version(),"NEW",0,"Review",null,"x".repeat(6001)));
+        assertThat(supportRequests.detail(root,request.id()).request().version()).isEqualTo(request.version());
+        assertThat(supportRequests.detail(root,request.id()).request().projectScope()).isEmpty();
     }
 
     @Test void staffMessageRetryKeysBindActorRequestKindAndContent() throws Exception {

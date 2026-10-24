@@ -30,7 +30,7 @@ function check(name, value) { assert.ok(value, name); report.checks.push(name); 
     await page.goto(base + '/support'); await page.setViewportSize({ width: 1440, height: 1000 });
     for (const [label, theme] of [['Dark', 'futuristic'], ['Light', 'clean'], ['Warm dark', 'classic'], ['Fresh light', 'fresh'], ['Warm light', 'summer-vibes']]) {
       await page.getByRole('button', { name: 'Choose appearance', exact: true }).click();
-      await page.getByRole('button', { name: label, exact: true }).click();
+      await page.getByRole('button', { name: label, exact: true }).click(); await page.keyboard.press('Escape');
       check(theme + ' support surfaces use theme colour roles', await page.locator('.support-pathways > a').first().evaluate(el => getComputedStyle(el).backgroundColor !== 'rgba(0, 0, 0, 0)'));
       await page.screenshot({ path: path.join(output, 'support-' + theme + '.png') });
     }

@@ -4,7 +4,7 @@ const { chromium } = require(process.env.CRYSTAL_PLAYWRIGHT_MODULE || 'playwrigh
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises'), path = require('node:path');
 const base = process.env.CRYSTAL_QA_URL || 'http://127.0.0.1:8084';
-assert.equal(base, 'http://127.0.0.1:8084');
+assert.match(base, /^http:\/\/127\.0\.0\.1:(8084|18084)$/);
 const output = path.resolve('.codex-runtime/qa/rendered-ui-d5');
 const report = { checks: [], cases: [], errors: [], scope: 'Built local frontend; Edge; computed/rasterised solid text surfaces with alpha compositing; read-only synthetic public/team/entry fixtures. Gradients/artwork are explicitly manual review, not automatically accepted. Doubled text and resized viewports are not browser zoom or physical devices.' };
 const check = (name, value) => { assert.ok(value, name); report.checks.push(name); };
@@ -112,7 +112,7 @@ async function main() {
       if (route === 'client-billing') await page.locator('.client-billing .support-billing-list > li').first().waitFor();
       for (const [label, theme] of themes) {
         await page.getByRole('button', { name: 'Choose appearance', exact: true }).click();
-        await page.getByRole('button', { name: label, exact: true }).click();
+        await page.getByRole('button', { name: label, exact: true }).click(); await page.keyboard.press('Escape');
         await page.waitForFunction(theme => document.body.dataset.theme === theme && !document.body.classList.contains('theme-changing'), theme);
         const result = await page.evaluate(auditText);
         report.cases.push({ route, theme, ...result });
@@ -121,7 +121,7 @@ async function main() {
         await page.emulateMedia({ contrast: 'more' });
         for (const [label, theme] of themes) {
           await page.getByRole('button', { name: 'Choose appearance', exact: true }).click();
-          await page.getByRole('button', { name: label, exact: true }).click();
+          await page.getByRole('button', { name: label, exact: true }).click(); await page.keyboard.press('Escape');
           await page.waitForFunction(() => !document.body.classList.contains('theme-changing'));
           check(route + '/' + theme + ' stronger contrast roles applied', await page.locator('.studio-shell').evaluate(el => {
             const s = getComputedStyle(el), token = name => s.getPropertyValue('--studio-' + name).trim();

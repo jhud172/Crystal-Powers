@@ -48,21 +48,24 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
   try {
     await page.goto(base + '/team'); await page.getByRole('button', { name: 'Workspace and account settings', exact: true }).click();
     check('Settings heading receives focus', await page.getByRole('heading', { name: 'Workspace and account settings', exact: true }).evaluate(element => element === document.activeElement));
+    check('Saved-state feedback starts independently for each settings form',await page.locator('.workspace-save-state[data-dirty="false"]').count()===2);
     check('Unchanged forms cannot be saved', await personal().isDisabled() && await workspace().isDisabled());
     for (const appearance of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
       await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: appearance, exact: true }).click();
       for (const width of [320, 390, 768, 1024, 1440, 1920]) { await page.setViewportSize({ width, height: 900 }); check(appearance + ' ' + width + ' settings do not overflow', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); }
     }
     await page.getByLabel('Workspace name', { exact: true }).fill('Unsent workspace identity');
+    check('Workspace edits mark only the workspace form as unsaved',await page.locator('.workspace-save-state[data-dirty="true"]').count()===1 && await page.getByText('Workspace identity: unsaved changes.',{exact:true}).isVisible());
     await page.getByLabel('Display name', { exact: true }).fill('Updated synthetic teammate');
     await page.getByLabel('Compact message spacing', { exact: true }).check();
     await personal().click(); await page.getByText('Personal preferences saved. Mention choices apply to future messages.', { exact: true }).waitFor();
+    check('Personal confirmation clears only its own unsaved indicator',await page.getByText('Personal settings: matches saved values.',{exact:true}).isVisible() && await page.getByText('Workspace identity: unsaved changes.',{exact:true}).isVisible());
     check('Personal save preserves the other form draft', await page.getByLabel('Workspace name', { exact: true }).inputValue() === 'Unsent workspace identity' && await workspace().isEnabled());
     check('Personal save uses only its original revision and fields', writes[0].input.expectedVersion === 2 && !('name' in writes[0].input));
     await workspace().click(); await page.getByText('Workspace details saved.', { exact: true }).waitFor();
     check('Workspace save leaves saved personal settings intact', await page.getByLabel('Display name', { exact: true }).inputValue() === 'Updated synthetic teammate' && await page.getByLabel('Compact message spacing', { exact: true }).isChecked() && await personal().isDisabled());
     mode = 'OUTAGE'; await reload().click(); await page.getByText('Synthetic settings reload unavailable.', { exact: true }).waitFor();
-    check('Failed reload clears stale saved success status', await page.locator('.team-settings [role=status]').innerText() === '');
+    check('Failed reload clears stale saved success status', await page.locator('.team-settings > [role=status]').innerText() === '');
     check('Outage retains the last confirmed settings', await page.getByLabel('Workspace name', { exact: true }).inputValue() === 'Unsent workspace identity');
     mode = 'CONFLICT'; await page.getByLabel('Display name', { exact: true }).fill('Keep my conflicted profile'); await personal().click();
     await page.getByText('Synthetic settings conflict. Reload current values.', { exact: true }).waitFor();

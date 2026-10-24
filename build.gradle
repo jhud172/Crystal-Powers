@@ -66,6 +66,16 @@ tasks.register('buildFrontend', Exec) {
 tasks.named('processResources') {
     dependsOn tasks.named('buildFrontend')
     includeEmptyDirs = false
+    doFirst {
+        // Copy leaves retired Vite hashes behind. Regenerate only static output;
+        // the normal resource copy below also restores backend-owned robots.txt.
+        def buildRoot = layout.buildDirectory.get().asFile.canonicalFile.toPath()
+        def staticOutput = new File(destinationDir, 'static').canonicalFile
+        if (!staticOutput.toPath().startsWith(buildRoot)) {
+            throw new GradleException('Refusing to clean static output outside the build directory.')
+        }
+        delete staticOutput
+    }
     from('frontend/dist') {
         into 'static'
     }
@@ -95,8 +105,8 @@ tasks.register('postgresTest', Test) {
     outputs.cacheIf { false }
     def testUrl = providers.environmentVariable('PG_TEST_DATABASE_URL').orElse('')
     doFirst {
-        if (!(testUrl.get() ==~ /jdbc:postgresql:\/\/127\.0\.0\.1:55432\/crystal_rebuild_test[a-z0-9_]*/)) {
-            throw new GradleException('PG_TEST_DATABASE_URL must name a disposable crystal_rebuild_test database on 127.0.0.1:55432.')
+        if (!(testUrl.get() ==~ /jdbc:postgresql:\/\/127\.0\.0\.1:(55432|55447)\/crystal_rebuild_test[a-z0-9_]*/)) {
+            throw new GradleException('PG_TEST_DATABASE_URL must name a disposable crystal_rebuild_test database on 127.0.0.1:55432 or :55447.')
         }
         systemProperty 'spring.datasource.url', testUrl.get()
         // Test-local URL overrides must resolve to the same guarded PostgreSQL target.

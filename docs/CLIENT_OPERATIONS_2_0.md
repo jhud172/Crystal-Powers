@@ -8,9 +8,13 @@ James confirmed that the hub is where his team handles website requests, updates
 
 Public enquiry routes and DTO validation remain. Valid submissions are saved to an additive request store before notification; an optional idempotency key prevents the same submission creating duplicate requests when retried. Existing success/message/fieldErrors fields remain, with a request reference added. Preserve upload validation and the existing email transport. Staff reads/writes require current workspace/capability checks. Public callers cannot read requests from guessed IDs or choose staff/customer roles.
 
-Requests, messages, status/history and private attachment metadata belong to repositories/services with Flyway migrations. Team support controllers use `/api/team/support`; frontend surfaces belong to `features/team`. A separate client identity and private `/client` surface will own client messages, progress and billing, without exposing internal notes, staff channels or other clients. Client routes must be private/noindex, with appropriate authentication, session expiry/recovery, token safety and per-client resource checks.
+Requests, messages, status/history and private attachment metadata belong to repositories/services with Flyway migrations. Team support controllers use `/api/team/support`; frontend surfaces belong to `features/team`. The separate client identity and private `/client` surface own client messages, progress and billing, without exposing internal notes, staff channels or other clients. Client routes must be private/noindex, with appropriate authentication, session expiry/recovery, token safety and per-client resource checks.
 
 The business is currently one protected-owner workspace. Incoming requests received before workspace provisioning remain unassigned in storage and can only be claimed through the authorised singleton-business support service. This is not a generic multi-tenant ingress API; callers never submit a workspace ID.
+
+## Confirmed client-visible scope
+
+Staff with tracking authority can save a separate, already-agreed scope (maximum6,000 characters) alongside progress and next step. Clients see only this explicit scope and public history, never the private enquiry brief/internal notes. Older clients omitting the field preserve its saved value; an explicit blank clears it. Scope edits share tracking version checks and do not amend issued invoices or payment terms.
 
 ## Communication and workflow
 

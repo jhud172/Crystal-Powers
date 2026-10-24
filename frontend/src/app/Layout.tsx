@@ -1,3 +1,4 @@
+import { Companion } from "../features/companion/Companion";
 import { BrandIdentity } from "../features/experience/BrandIdentity";
 import { PrivacyLink } from "../features/privacy/PrivacyPublication";
 import { createContext, PropsWithChildren, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -11,10 +12,10 @@ import { THREE_D_SCREEN_QUERY } from "../features/experience/screenPolicy";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { RouteMetadata } from "./RouteMetadata";
 
-type SiteThemeContextValue = { theme: ThemeId; assets: ThemeAssets };
+type SiteThemeContextValue = { theme: ThemeId; setTheme: (theme: ThemeId) => void; assets: ThemeAssets };
 const SiteThemeContext = createContext<SiteThemeContextValue | null>(null);
 export function useSiteTheme() {
-  return useContext(SiteThemeContext) ?? { theme: defaultTheme, assets: getThemeAssets(defaultTheme) };
+  return useContext(SiteThemeContext) ?? { theme: defaultTheme, setTheme: (_theme: ThemeId) => {}, assets: getThemeAssets(defaultTheme) };
 }
 
 function initialTheme(): ThemeId {
@@ -41,7 +42,7 @@ export function Layout({ children, owner = false }: PropsWithChildren<{ owner?: 
   const main = useRef<HTMLElement>(null);
   const previousPath = useRef<string | null>(null);
   const light = ["clean", "fresh", "summer-vibes"].includes(theme);
-  const value = useMemo(() => ({ theme, assets: getThemeAssets(theme) }), [theme]);
+  const value = useMemo(() => ({ theme, setTheme, assets: getThemeAssets(theme) }), [theme]);
 
   useLayoutEffect(() => {
     // Commit related foreground/background roles together. Hover transitions
@@ -88,17 +89,17 @@ export function Layout({ children, owner = false }: PropsWithChildren<{ owner?: 
 
   return <SiteThemeContext.Provider value={value}><ExperienceProvider reduceEffects={reduceEffects} renderQuality={renderQuality}>
     <RouteMetadata />
-    <MotionScope animateRoutes={!owner} className={`studio-shell${owner ? " owner-shell" : ""}`} data-appearance={light ? "light" : "dark"} data-reduced-effects={reduceEffects}>
+    <MotionScope animateRoutes={!owner} className={`studio-shell${owner ? " owner-shell" : ""}`} data-route={owner ? "workspace" : location.pathname === "/" ? "home" : location.pathname.split("/")[1]} data-appearance={light ? "light" : "dark"} data-reduced-effects={reduceEffects}>
       <a className="studio-skip" href="#main-content">Skip to content</a>
-      <header className="studio-header">
-        {owner ? <NavLink to={location.pathname === "/team" || location.pathname.startsWith("/team/") ? "/team" : location.pathname === "/client" || location.pathname.startsWith("/client/") ? "/client" : owner ? "/admin" : "/"} className="studio-brand" aria-label={owner ? "Crystal Powers private workspace" : "Crystal Powers home"}><img className="brand-private-emblem" src="/branding/crystal-powers-liquid-mark.svg" alt="" width={26} height={40} /><span>CRYSTAL<br />POWERS</span></NavLink> : <BrandIdentity />}
-        {owner ? <p className="owner-workspace-label">Private workspace</p> : <nav className="studio-desktop-nav" aria-label="Primary navigation">{navItems.map(item => <NavLink key={item.href} to={item.href}>{item.label}</NavLink>)}</nav>}
+      <header id="studio-top" tabIndex={-1} className="studio-header">
+        {owner ? <NavLink to={location.pathname === "/team" || location.pathname.startsWith("/team/") ? "/team" : location.pathname === "/client" || location.pathname.startsWith("/client/") ? "/client" : owner ? "/admin" : "/"} className="studio-brand" aria-label={owner ? "Crystal Powers private workspace" : "Crystal Powers home"}><img draggable={false} className="brand-private-emblem" src="/branding/crystal-powers-liquid-mark.svg" alt="" width={26} height={40} /><span>CRYSTAL<br />POWERS</span></NavLink> : <BrandIdentity />}
+        {owner ? <p className="owner-workspace-label">Private workspace</p> : <nav className="studio-desktop-nav" aria-label="Primary navigation">{navItems.map(item => <NavLink key={item.href} to={item.href} end={item.href === "/"}>{item.label}</NavLink>)}</nav>}
         <div className="studio-header-actions">
           <div className="studio-appearance">
             <button ref={appearanceButton} type="button" className="studio-icon-button" aria-label="Choose appearance" aria-expanded={appearanceOpen} aria-controls="appearance-panel" onClick={() => { setMenuOpen(false); setAppearanceOpen(open => !open); }}><span aria-hidden="true">{light ? "◐" : "◑"}</span></button>
-            {appearanceOpen && <div id="appearance-panel" className="studio-appearance-panel">
-              <p>Make yourself at home.</p>
-              {([{ id: "futuristic", label: "Dark" }, { id: "clean", label: "Light" }, { id: "classic", label: "Warm dark" }, { id: "fresh", label: "Fresh light" }, { id: "summer-vibes", label: "Warm light" }] as const).map((option) => <button type="button" key={option.id} aria-pressed={theme === option.id} onClick={() => { setTheme(option.id); setAppearanceOpen(false); appearanceButton.current?.focus(); }}>{option.label}<span aria-hidden="true">{theme === option.id ? "●" : "○"}</span></button>)}
+            {appearanceOpen && <div id="appearance-panel" className="studio-appearance-panel" role="region" aria-label="Appearance settings">
+              <div className="studio-appearance-heading"><p>Make yourself at home.</p><button type="button" className="studio-appearance-close" aria-label="Close appearance" onClick={() => { setAppearanceOpen(false); appearanceButton.current?.focus(); }}><span aria-hidden="true">×</span></button></div>
+              {([{ id: "futuristic", label: "Dark" }, { id: "clean", label: "Light" }, { id: "classic", label: "Warm dark" }, { id: "fresh", label: "Fresh light" }, { id: "summer-vibes", label: "Warm light" }] as const).map((option) => <button type="button" key={option.id} aria-pressed={theme === option.id} onClick={() => setTheme(option.id)}>{option.label}<span aria-hidden="true">{theme === option.id ? "●" : "○"}</span></button>)}
               <label className="studio-effects-choice"><input type="checkbox" checked={reduceEffects} onChange={event => setReduceEffects(event.target.checked)} aria-describedby="effects-description" /><span className="studio-choice-mark" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="m3 8 3 3 7-7" /></svg></span><span>Reduce effects</span></label>
               <p id="effects-description">Use still artwork and turn off decorative motion and 3D.</p>
               {tabletScreen && <AppearanceQuality value={renderQuality} onChange={setRenderQuality} disabled={reduceEffects} />}
@@ -107,13 +108,14 @@ export function Layout({ children, owner = false }: PropsWithChildren<{ owner?: 
           {owner ? <NavLink to="/" className="owner-public-link">Public site <span aria-hidden="true">↗</span></NavLink> : <><NavLink to="/contact" className="studio-header-contact" aria-label="Start a project"><span className="studio-project-label">Start a project</span> <span aria-hidden="true">↗</span></NavLink>
           <button ref={menuButton} type="button" className="studio-menu-button" aria-expanded={menuOpen} aria-controls="studio-mobile-menu" onClick={() => { setAppearanceOpen(false); setMenuOpen(open => !open); }}><span className="studio-menu-label">{menuOpen ? "Close" : "Menu"}</span><span className="studio-menu-glyph" aria-hidden="true"><i /><i /></span></button></>}
         </div>
-        {menuOpen && <nav id="studio-mobile-menu" className="studio-mobile-menu" aria-label="Mobile navigation"><div className="studio-menu-intro"><p>FIND YOUR NEXT CHAPTER</p><span>Explore Crystal Powers.</span></div>{navItems.map((item, index) => <NavLink key={item.href} to={item.href}><span className="studio-index">0{index + 1}</span><span className="studio-menu-link-copy"><span>{item.label}</span><small>{({"/portfolio":"Selected projects and the thinking behind them", "/services":"Websites, apps and bespoke systems", "/about":"Meet James and explore the process", "/support":"Help, changes and aftercare", "/contact":"Tell me what you have in mind"} as Record<string,string>)[item.href]}</small></span><span className="studio-menu-link-arrow" aria-hidden="true">↗</span></NavLink>)}</nav>}
+        {menuOpen && <nav id="studio-mobile-menu" className="studio-mobile-menu" aria-label="Mobile navigation"><div className="studio-menu-intro"><p>FIND YOUR NEXT CHAPTER</p><span>Explore Crystal Powers.</span></div>{navItems.map((item, index) => <NavLink key={item.href} to={item.href} end={item.href === "/"}><span className="studio-index">0{index + 1}</span><span className="studio-menu-link-copy"><span>{item.label}</span><small>{({"/":"Ideas, projects and the interactive Prism Gate", "/portfolio":"Selected projects and the thinking behind them", "/services":"Websites, apps and bespoke systems", "/about":"Meet James and explore the process", "/support":"Help, changes and aftercare", "/contact":"Tell me what you have in mind"} as Record<string,string>)[item.href]}</small></span><span className="studio-menu-link-arrow" aria-hidden="true">↗</span></NavLink>)}</nav>}
       </header>
       <main ref={main} tabIndex={-1} id="main-content" className="studio-main">{children}</main>
       {owner ? <footer className="owner-footer"><p>Crystal Powers / Private workspace</p><p>Your projects and conversations, together.</p></footer> : <footer className="studio-footer">
-        <div className="studio-footer-top"><div className="studio-footer-identity"><BrandIdentity footer /><p>Websites, apps and bespoke systems.<br />Designed and developed by James.</p></div><div className="studio-footer-conversation"><p className="studio-eyebrow">AN IDEA / A NEW CHAPTER</p><h2>Let’s make<br />it work.</h2><NavLink to="/contact" className="studio-text-link">Start a conversation <span aria-hidden="true">↗</span></NavLink></div><nav aria-label="Footer navigation">{navItems.map(item => <NavLink key={item.href} to={item.href}>{item.label}<span aria-hidden="true">↗</span></NavLink>)}<PrivacyLink arrow/><NavLink to="/accessibility">Accessibility<span aria-hidden="true">↗</span></NavLink><NavLink to="/client">Client workspace<span aria-hidden="true">↗</span></NavLink><NavLink to="/team">Team sign-in<span aria-hidden="true">↗</span></NavLink></nav></div>
-        <div className="studio-footer-bottom"><p>© {new Date().getFullYear()} Crystal Powers</p><p>Independent studio. Direct collaboration.</p><p className="studio-footer-signature" aria-hidden="true">DESIGN / BUILD / SUPPORT</p></div>
+        <div className="studio-footer-top"><div className="studio-footer-identity"><BrandIdentity footer /><p>Websites, apps and bespoke systems.<br />Designed and developed by James.</p></div><div className="studio-footer-conversation"><p className="studio-eyebrow">AN IDEA / A NEW CHAPTER</p><h2>Let’s make<br />it work.</h2><NavLink to="/contact" className="studio-text-link">Start a conversation <span aria-hidden="true">↗</span></NavLink></div><nav aria-label="Footer navigation">{navItems.map(item => <NavLink key={item.href} to={item.href} end={item.href === "/"}>{item.label}<span aria-hidden="true">↗</span></NavLink>)}<PrivacyLink arrow/><NavLink to="/accessibility">Accessibility<span aria-hidden="true">↗</span></NavLink><NavLink to="/client">Client workspace<span aria-hidden="true">↗</span></NavLink><NavLink to="/team">Team sign-in<span aria-hidden="true">↗</span></NavLink></nav></div>
+        <div className="studio-footer-bottom"><p>© {new Date().getFullYear()} Crystal Powers</p><p>Independent studio. Direct collaboration.</p><a className="studio-text-link" href="#studio-top">Back to top <span aria-hidden="true">↑</span></a></div>
       </footer>}
+      {!owner && /^\/(?:|about|services|support|contact|portfolio(?:\/[^/]+)?)$/.test(location.pathname) && <Companion />}
     </MotionScope>
   </ExperienceProvider></SiteThemeContext.Provider>;
 }

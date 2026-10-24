@@ -1,5 +1,7 @@
 # Agent reference — Crystal Powers
 
+Current24October evidence: [bulk acceptance review](reviews/BULK_ACCEPTANCE_2026_10_24.md). This supersedes earlier pending/current totals below for the recorded scopes. Companion acceptance is excluded at James's request; operating/provider/device/deployed gates remain open.
+
 Read AGENTS.md and docs/skills/README.md with mandatory/task-specific skills before changes. Inspect actual code and ownership; docs are guidance, not runtime evidence.
 
 James selected Liquid Light and authorised dependency updates/migration. The public site and private business team hub share the existing React/Vite/Spring architecture. Only Clare’s Life Celebrations is approved public client work. Follow the [audit](CRYSTAL_POWERS_2_0_AUDIT.md), [handover](CODEX_SESSION_HANDOVER.md) and [team brief](TEAM_HUB_2_0.md).
@@ -13,4 +15,4 @@ James's19October working order is: complete all frontend/backend logic, then con
 Historical notes are in [the archived agent record](archive/AGENT_HISTORY_2026_10_12.md); they are not current design/dependency instructions.
 
 
-Current phase checkpoint,19October: local logic gate passes248 H2/248 actual PostgreSQL tests,1,246 packaged browser checks and41 populated recovery checks. Begin the coordinated immersive design brief D1–D5. Preserve grouped implementation/verification, backend contracts and scoped external/device/deployed release gates. Full goal remains active; this is not complete2.0 release acceptance.
+Current phase checkpoint,23October: public/private design batches are implemented; fresh local backend acceptance passes256 H2 and256 actual PostgreSQL tests plus53 real-HTTP recovery checks. Continue grouped real-session browser acceptance, motion and performance verification; record exact final reports in the audit. External provider/company facts, deployed-candidate and physical/assistive-device gates remain separate. Historical counts are dated evidence, not fresh acceptance. Preserve batch implementation, then test/fix/retest until no applicable failures.

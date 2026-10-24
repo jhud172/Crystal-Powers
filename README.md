@@ -15,11 +15,15 @@ $env:SKIP_FRONTEND_BUILD='1'
 .\gradlew.bat bootRun --args='--spring.profiles.active=local'
 ```
 
-Open `http://localhost:8080`. For Vite hot reload, run `npm run dev` in `frontend` while the backend is running. Use one hostname consistently so session cookies remain on the same origin. Vite proxies `/api` to port 8080.
+Open `http://127.0.0.1:8080`. For Vite hot reload, run `npm run dev` in `frontend` while the backend is running. Use one hostname consistently so session cookies remain on the same origin. Vite proxies `/api` to `http://127.0.0.1:8080`.
+
+For the built design preview, leave that backend running and, in a second terminal, run `npm.cmd --prefix frontend run preview`. Open `http://127.0.0.1:8084`; portfolio, accounts and forms use the same-origin API proxy. The preview now checks backend health and the published-project API before starting. A frontend-only server is not a working full application. Only for intentional UI-only QA, set `$env:CRYSTAL_FRONTEND_ONLY='1'` before running the preview; backend features will remain unavailable. Keep127.0.0.1 consistent across the local URLs so cookies remain usable.
 
 The local profile uses a persistent H2 database and private media under `.codex-runtime/`. It disables real email. Set a private `OWNER_SETUP_TOKEN` of at least 32 characters before first-owner setup at `/admin`. A local encryption key is generated and retained under `.codex-runtime/security/`; do not delete it while keeping the database. Production requires an explicit PostgreSQL connection and encryption key.
 
 The repository’s `.env` is not automatically loaded. Supply process environment variables or your IDE’s run configuration. See `.env.example` for supported settings.
+
+The temporary [local Codex publisher](docs/LOCAL_CODEX_ACCOUNT.md) uses normal password/MFA team authentication, Windows-user-encrypted credentials and a restricted portfolio role. It is blocked outside the loopback local H2 runtime. Suspend it and remove its encrypted credentials with the documented offline tool before release. Clare’s approved project is now published in the saved local database; this does not publish it to production.
 
 ## Build and verify
 

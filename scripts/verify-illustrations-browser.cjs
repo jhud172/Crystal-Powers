@@ -26,7 +26,7 @@ function luminance(colour) { return colour.match(/[\d.]+/g).slice(0, 3).map(Numb
     for (const theme of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
       await page.goto(base + '/about'); await page.locator('main h1').waitFor();
       await page.getByRole('button', { name: 'Choose appearance', exact: true }).click();
-      await page.getByRole('button', { name: theme, exact: true }).click();
+      await page.getByRole('button', { name: theme, exact: true }).click(); await page.keyboard.press('Escape');
       for (const study of studies) {
         await page.goto(base + study.route); await page.locator(study.selector).waitFor();
         for (const width of [320, 390, 768, 1024, 1440, 1920]) {

@@ -9,7 +9,7 @@
 .studio-interior .pricing-shell, .studio-interior .services-summary-dock { margin: 0; padding: 65px var(--studio-gutter); }
 .studio-interior .section-divider { margin: 0 var(--studio-gutter); background: var(--studio-line); }
 .studio-interior .pricing-header { display: flex; justify-content: space-between; align-items: start; gap: 40px; margin-bottom: 40px; }
-.studio-interior .pricing-header h2 { font-size: clamp(32px, 3vw, 50px); letter-spacing: -.04em; line-height: 1.2; margin-top: 15px; }
+.studio-interior .pricing-header h2 { font-size: clamp(32px, 3vw, 50px); letter-spacing: .015em; line-height: 1.2; margin-top: 15px; }
 .studio-interior .services-section-copy { color: var(--studio-muted); max-width: 350px; font-size: 13px; }
 .studio-interior .section-tag, .studio-interior .services-summary-label { font-size: 10px; color: var(--studio-muted); text-transform: uppercase; letter-spacing: .15em; }
 .studio-interior .service-choice-card, .studio-interior .addon-select-card, .studio-interior .services-summary-shell, .studio-interior .services-summary-compact, .studio-interior .services-form-shell, .studio-interior .contact-preview-shell, .studio-interior .contact-form-section, .studio-interior .contact-preview-card { background: none; border-radius: 0; box-shadow: none; backdrop-filter: none; }
@@ -53,11 +53,11 @@
 .studio-interior .text-white { color: var(--studio-text); }
 .studio-contact .contact-builder { display: grid; grid-template-columns: 1fr 1.6fr; gap: 75px; padding: 40px var(--studio-gutter) 100px; }
 .studio-contact .contact-preview-column { position: static; }
-.studio-contact .services-hero-title { font-size: clamp(32px, 3.2vw, 52px); color: var(--studio-text); margin: 22px 0; line-height: 1.2; letter-spacing: -.04em; }
+.studio-contact .services-hero-title { font-size: clamp(32px, 3.2vw, 52px); color: var(--studio-text); margin: 22px 0; line-height: 1.2; letter-spacing: .015em; }
 .studio-contact .services-hero-body { color: var(--studio-muted); font-size: 13px; }
 .studio-contact .contact-preview-shell { padding: 15px 0; border: 0; }
 .studio-contact .contact-form-shell { padding: 0; border: 0; }
-.studio-contact .contact-form-intro h2 { font-size: 32px; margin: 18px 0 30px; letter-spacing: -.03em; }
+.studio-contact .contact-form-intro h2 { font-size: 32px; margin: 18px 0 30px; letter-spacing: .015em; }
 .studio-contact .contact-form-section { padding: 25px 0; border: 0; border-top: 1px solid var(--studio-line); }
 .studio-contact .contact-form-section-head { padding: 0; margin-bottom: 25px; }
 .studio-contact .contact-form-section-title { color: var(--studio-text); font-size: 18px; margin-top: 12px; }

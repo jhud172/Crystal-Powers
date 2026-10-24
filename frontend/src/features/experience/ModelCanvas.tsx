@@ -19,7 +19,7 @@ export type CrystalInteraction = { yaw: number; pitch: number; hoverX: number; h
 
 type Props = { interaction?: RefObject<CrystalInteraction>; model: ModelKind; image?: string; clip?: "CrystalOpen" | "CrystalClose"; pose?: "open" | "closed"; light: boolean; angle: number; reset: number; playing: boolean; onInteraction: () => void; onFailure: () => void; onReady: () => void; onFinished: () => void };
 const isOpening = (model: ModelKind) => model === "observatory" || model === "prism-gate";
-const modelUrl = (model: ModelKind) => `/models/${model}.glb${isOpening(model) ? "?v=prism-precision-02" : ""}`;
+const modelUrl = (model: ModelKind) => `/models/${model}.glb${isOpening(model) ? "?v=prism-optical-06" : ""}`;
 
 /** A rejected cached fetch must be evicted before an explicit retry. */
 export function clearModelCache(model: ModelKind, image?: string) {
@@ -95,17 +95,45 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
         const materials = Array.isArray(child.material) ? child.material : [child.material];
         for (const material of materials) {
           if (material instanceof MeshPhysicalMaterial && model === "prism-gate" && (child.userData.role === "gate-corner" || child.userData.role === "projector-diamond")) {
-            // Thin optical glass around the coated quartz centre: retain reflections
-            // without volume refraction duplicating the foreground machined details.
-            material.thickness = 0;
-            material.ior = 1.46;
-            material.envMapIntensity = 1.0;
+            // Rounded optical glass uses shallow refraction and broad reflections.
+            // The centre retains its separate reflective coating.
+            material.thickness = child.userData.role === "gate-corner" ? .32 : 0;
+            material.ior = 1.5;
+            material.envMapIntensity = child.userData.role === "gate-corner" ? 2.1 : 1.15;
             const isCorner = child.userData.role === "gate-corner";
-            material.transmission = isCorner ? 0.65 : 0;
+            // The wave lives in the DOM, outside the transmission capture.
+            // Blend the optical shell over that real background instead of
+            // presenting an opaque capture colour through the whole face.
+            if (isCorner) {
+              material.color.setRGB(.88, .97, 1);
+              material.transparent = true; material.opacity = .86; material.depthWrite = false;
+              // Composite clear faces and denser optical edges over the DOM wave.
+              // Schlick Fresnel follows the actual surface normals as the gate rotates.
+              const pulseUniform = { value: 0 };
+              material.userData.prismPulse = pulseUniform;
+              material.onBeforeCompile = shader => {
+                shader.uniforms.prismPulse = pulseUniform;
+                shader.fragmentShader = "uniform float prismPulse;\n" + shader.fragmentShader;
+                shader.fragmentShader = shader.fragmentShader.replace("#include <opaque_fragment>", `
+                  #include <opaque_fragment>
+                  float prismFacing = clamp(abs(dot(normal, normalize(vViewPosition))), 0.0, 1.0);
+                  float prismFresnel = 0.04 + 0.96 * pow(1.0 - prismFacing, 5.0);
+                  vec3 prismReflection = reflect(-normalize(vViewPosition), normal);
+                  float prismSoftbox = 1.8 * pow(max(dot(prismReflection, normalize(vec3(-0.35, 0.55, 1.0))), 0.0), 48.0);
+                  prismSoftbox += 0.8 * pow(max(dot(prismReflection, normalize(vec3(0.65, -0.25, 1.0))), 0.0), 32.0);
+                  // Small optical glints remain legible when the low tier omits transmission.
+                  gl_FragColor.rgb += vec3(0.55, 0.85, 1.0) * (0.65 * pow(1.0 - prismFacing, 2.0) + prismSoftbox);
+                  gl_FragColor.rgb += vec3(0.10, 0.72, 1.0) * prismPulse * (0.45 + 0.8 * prismFresnel);
+                  gl_FragColor.a = min(1.0, mix(0.20, 0.86, prismFresnel) + prismPulse * 0.22);
+                `);
+              };
+              material.customProgramCacheKey = () => "prism-optical-pulse-07";
+            }
+            material.transmission = isCorner ? .96 : 0;
             material.metalness = isCorner ? 0 : 0.72;
-            material.roughness = isCorner ? .12 : .09;
-            material.clearcoat = isCorner ? 0.6 : 0.25;
-            material.clearcoatRoughness = 0.045;
+            material.roughness = isCorner ? .035 : .09;
+            material.clearcoat = isCorner ? 1 : 0.25;
+            material.clearcoatRoughness = isCorner ? .025 : .045;
             material.dispersion = 0;
             material.side = FrontSide;
           } else if (material instanceof MeshPhysicalMaterial && material.transmission > 0 && model !== "observatory") {
@@ -136,17 +164,23 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
     // Change material cost without replacing the object or restarting its authored animation.
     for (const item of transmissiveMaterials) {
       item.material.transmission = renderProfiles[tier].transmission ? item.transmission : 0;
-      item.material.roughness = renderProfiles[tier].transmission ? item.roughness : Math.max(.22, item.roughness);
+      item.material.roughness = renderProfiles[tier].transmission || model === "prism-gate" ? item.roughness : Math.max(.22, item.roughness);
       item.material.needsUpdate = true;
     }
     invalidate();
-  }, [tier, transmissiveMaterials, invalidate]);
+  }, [tier, transmissiveMaterials, invalidate, model]);
   const { actions, mixer } = useAnimations(gltf.animations, object);
   // Scrub a single authored path in either direction so reversals preserve the exact pose.
   const action = isOpening(model) ? actions[selectAnimationName(gltf.animations.map(item => item.name), "CrystalOpen")] : model === "crystal" || model === "laptop"
     ? actions[selectAnimationName(gltf.animations.map(clip => clip.name), modelAnimationNames[model], true)]
     : undefined;
   const group = useRef<Group>(null);
+  useLayoutEffect(() => {
+    if (group.current && interaction) {
+      group.current.rotation.y = interaction.current.yaw + interaction.current.hoverX;
+      group.current.rotation.x = interaction.current.pitch + interaction.current.hoverY;
+    }
+  }, [interaction]);
   const hasPlayed = useRef(false);
   const unfolding = useRef({ time: 0, speed: 0, finished: false });
   const pulse = useRef({ request: interaction?.current.pulse ?? 0, startedAt: -Infinity, initial: 0, energy: 0 });
@@ -161,6 +195,15 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
     });
     return materials;
   }, [object, model]);
+  const opticalPulse = useMemo(() => {
+    const uniforms: { value: number }[] = [];
+    object.traverse(child => {
+      if (child instanceof Mesh) for (const material of Array.isArray(child.material) ? child.material : [child.material]) {
+        if (material.userData.prismPulse) uniforms.push(material.userData.prismPulse);
+      }
+    });
+    return uniforms;
+  }, [object]);
   const gems = useMemo(() => {
     const items: { material: MeshStandardMaterial; colours: Color[] }[] = [];
     object.traverse(child => {
@@ -274,7 +317,9 @@ function ObjectModel({ model, image, clip = "CrystalOpen", pose = "closed", angl
         const energy = prismPulseEnergy(elapsed, state.initial);
         if (state.energy !== energy) {
           for (const { material, resting } of illuminated) material.emissiveIntensity = resting * (1 + energy * 2.5);
+          for (const uniform of opticalPulse) uniform.value = energy;
           gl.domElement.style.setProperty("--prism-pulse", energy.toFixed(4));
+          gl.domElement.style.filter = energy > .001 ? `drop-shadow(0 0 ${energy * 18}px rgba(70, 215, 255, ${energy * .85}))` : "none";
           state.energy = energy;
         }
         if (elapsed < PRISM_PULSE_DURATION) invalidate();

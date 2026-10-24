@@ -14,6 +14,13 @@ const reply = (route, body, status = 200) => route.fulfill({ status, contentType
   const browser = await chromium.launch({ headless: true, executablePath: process.env.CRYSTAL_BROWSER_EXECUTABLE });
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage(); page.on('pageerror', e => report.errors.push(e.message));
+  // Keep the initial sign-in and CSRF bootstrap as isolated as the later fixtures.
+  await page.route('**/api/**', route => {
+    const endpoint = new URL(route.request().url()).pathname;
+    if (endpoint === '/api/admin/auth/session') return reply(route, { authenticated: false, mfaRequired: false, enrolmentRequired: false, setupAvailable: false });
+    if (endpoint === '/api/admin/auth/csrf') return reply(route, { token: 'local-qa-csrf', headerName: 'X-CSRF-TOKEN' });
+    return reply(route, { message: 'Local QA: no fixture for ' + endpoint }, 404);
+  });
   try {
     await page.goto(base + '/admin'); await page.getByRole('heading', { name: 'Welcome back.', exact: true }).waitFor();
     check('Focused shell removes marketing navigation and retains the public-site link', await page.locator('.owner-shell').count() === 1 && await page.getByRole('navigation', { name: 'Primary navigation', exact: true }).count() === 0 && await page.getByRole('link', { name: 'Public site', exact: true }).count() === 1);

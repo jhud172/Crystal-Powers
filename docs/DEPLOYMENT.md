@@ -1,5 +1,9 @@
 # Deployment and recovery
 
+## Incremental static packaging — 24 October 2026
+
+`processResources` regenerates only its guarded build-directory static output before copying current frontend and backend resources. This prevents retired Vite hashes entering the JAR and preserves backend-owned `robots.txt`. After building, run `python scripts/verify-packaged-assets.py`: it checks the complete frontend/backend static inventory and bytes, including missing/extra/duplicate files. Current local acceptance and external release gates: [bulk review](reviews/BULK_ACCEPTANCE_2026_10_24.md).
+
 Current release readiness and rollback limits: [RELEASE_CANDIDATE_2_0.md](RELEASE_CANDIDATE_2_0.md). Both application versions are 2.0.0; this candidate remains uncommitted/undeployed and full acceptance is open. Historical retained 83872dd rebuild/boot evidence predates V4-V60; it does not prove compatibility with current schema or identify the live backend revision.
 
 ## Current boundary
@@ -87,7 +91,7 @@ The package includes a scoped PostgreSQL custom dump, all database-referenced im
 
 ## Restore rehearsal and production restoration
 
-The script's automated restore only targets an **empty** `crystal_restore_*` database on `127.0.0.1:55432` and a new media directory:
+The script's automated restore only targets an **empty** `crystal_restore_*` database on `127.0.0.1:55432` or the guarded alternative `127.0.0.1:55447`, and a new media directory:
 
 ```powershell
 python scripts/portfolio_backup.py restore-local .codex-runtime\backup-example --media-directory .codex-runtime\restored-media
@@ -127,12 +131,12 @@ V61/V62 add private per-attempt reply/enquiry email tokens. Stop prior app write
 
 Full local H2/PostgreSQL suites95/0/0/0, V60→V62 preserved-data upgrade and matched45-table/116-row/database/media/schema/sequence restoration pass with the recorded jar. Both current and restored private browser-role boundaries pass, including a target deliberately given permissive default grants. Earlier owner-auth/device/provider/live evidence keeps its original package scope. No production deployment or real provider/email/payment action happened in this verification.
 
-The guarded local restore helper uses --no-acl, then explicitly revokes PUBLIC and existing anon/authenticated grants on the restored private tables/sequences. --no-acl alone does not prevent target default grants from exposing restored objects. For an operator-led real restore, verify effective grants and RLS before reopening traffic, preserving the intended backend access. The script still only restores into an empty crystal_restore_* target on127.0.0.1:55432 with a new media directory; it does not restore production automatically. Verify encryption keys separately and account for emails/payments completed outside the database before choosing a recovery point.
+The guarded local restore helper uses --no-acl, then explicitly revokes PUBLIC and existing anon/authenticated grants on the restored private tables/sequences. --no-acl alone does not prevent target default grants from exposing restored objects. For an operator-led real restore, verify effective grants and RLS before reopening traffic, preserving the intended backend access. The script still only restores into an empty crystal_restore_* target on127.0.0.1 at port55432 or55447 with a new media directory; it does not restore production automatically. Verify encryption keys separately and account for emails/payments completed outside the database before choosing a recovery point.
 
 
 ## Disposable populated recovery lab
 
-`scripts/verify-populated-recovery.py` requires retained local current and fallback JARs, fresh `crystal_rebuild_test_recovery_*` / `crystal_restore_*` database names, PostgreSQL CLI tools and the owned server on127.0.0.1:55432. It creates new databases only, refuses occupied8084/output directories, stops only its own Java child, disables config imports/provider secrets/workers and keeps synthetic passwords/TOTP secrets in memory. It does not read `.env`. Repeating a run requires fresh names; it never drops/overwrites a database to make a test pass.
+`scripts/verify-populated-recovery.py` requires retained local current and fallback JARs, fresh `crystal_rebuild_test_recovery_*` / `crystal_restore_*` database names, PostgreSQL CLI tools and the owned server on127.0.0.1 at port55432 (default) or55447 (`--pg-port 55447`). It creates new databases only, refuses occupied application ports/output directories, stops only its own Java child, disables config imports/provider secrets/workers and keeps synthetic passwords/TOTP secrets in memory. It does not read `.env`. Repeating a run requires fresh names; it never drops/overwrites a database to make a test pass. The application port defaults to8084; `--app-port 18084` uses the guarded alternative without stopping an existing preview. Use `PGPORT=55447` for all backup/restore/isolation helpers when the alternative database port is selected. On Windows, check `netsh interface ipv4 show excludedportrange protocol=tcp` if PostgreSQL reports socket permission denial; do not alter host networking to force a reserved QA port.
 
 Example using the retained19October artifacts (choose unused run/database names):
 

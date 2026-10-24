@@ -1,3 +1,5 @@
+import { ChapterLinks } from "../components/ChapterLinks";
+import { PageMotif } from "../features/experience/PageMotif";
 import { LiquidLightArtwork } from "../features/experience/LiquidLightArtwork";
 import { NavLink } from "react-router-dom";
 import { CollaborationChapters } from "../features/studio/CollaborationChapters";
@@ -5,10 +7,11 @@ import { WorkspaceLayers } from "../features/studio/WorkspaceLayers";
 
 export function About() {
   return <div className="studio-about studio-interior founder-page liquid-founder">
-    <header className="studio-section founder-heading">
+    <header className="studio-section founder-heading refined-heading"><PageMotif kind="orbit" />
       <div><p className="studio-eyebrow">THE STUDIO / JAMES</p><h1>One person.<br /><span className="studio-soft">A complete perspective.</span></h1><p className="studio-page-lead">I bring design and development together, so your idea has a consistent point of contact from the first conversation to handover.</p><NavLink to="/contact?intent=general" className="studio-button">Meet me with an idea ↗</NavLink></div>
-      <aside className="founder-note"><span className="founder-initial" aria-hidden="true">J.</span><p className="studio-eyebrow">JAMES / FOUNDER</p><p>Crystal Powers is my independent digital studio. I design and develop websites, apps and bespoke systems for businesses and individuals.</p><p>You work directly with me. I’ll ask questions, explain the decisions and help shape a project that fits what you need.</p></aside>
+      <aside className="founder-note" data-spotlight><span className="founder-initial" aria-hidden="true">J.</span><p className="studio-eyebrow">JAMES / FOUNDER</p><p>Crystal Powers is my independent digital studio. I design and develop websites, apps and bespoke systems for businesses and individuals.</p><p>You work directly with me. I’ll ask questions, explain the decisions and help shape a project that fits what you need.</p></aside>
     </header>
+    <ChapterLinks chapters={[{id:"artefacts-title",label:"The details"},{id:"collaboration-title",label:"The process"},{id:"expectations-title",label:"Working together"}]} />
     <section className="studio-section founder-artefacts" aria-labelledby="artefacts-title">
       <div><p className="studio-eyebrow">A LOOK INSIDE THE WORK</p><h2 id="artefacts-title">Care you can<br /><span className="studio-soft">see in the details.</span></h2><p>A distinctive opening should invite you into the work. The light on this website opens to reveal a project preview, while the main information stays within reach.</p><p>You can go straight to the portfolio, or take a closer look at the opening. Choosing less motion keeps the same content and actions available.</p><NavLink className="studio-text-link" to="/">Explore the homepage ↗</NavLink></div>
       <figure className="founder-art"><LiquidLightArtwork alt="Translucent coral light flowing across a warm ivory background"/><figcaption>Liquid Light · Crystal Powers</figcaption></figure>

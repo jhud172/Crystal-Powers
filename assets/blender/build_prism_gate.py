@@ -7,7 +7,7 @@ import bpy
 from mathutils import Vector, Euler
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_assets import SOURCE, MODELS, RENDERS, material, empty, box, area, aim
-from build_observatory import mesh, strand
+from build_observatory import mesh
 
 bpy.context.preferences.filepaths.save_version = 0
 bpy.ops.object.select_all(action='SELECT')
@@ -15,13 +15,14 @@ bpy.ops.object.delete(use_global=False)
 scene = bpy.context.scene
 scene.render.fps, scene.frame_start, scene.frame_end = 48, 0, 120
 root = empty('PrismGate')
-root['design'] = 'Prism Gate / Crystal Powers / precision 02'
+root['design'] = 'Prism Gate / Crystal Powers / optical liquid glass 06'
 
-def rounded_profile(points, radius=.075, steps=6):
-    # Shared quadratic fillets keep the optical body and both guides concentric.
+def rounded_profile(points, radii, steps=12):
+    # Broad inner bends and capsule ends are shared by every depth ring.
     result=[]
     for i, point in enumerate(points):
         vertex=Vector(point)
+        radius=radii[i]
         start=vertex+(Vector(points[i-1])-vertex).normalized()*radius
         end=vertex+(Vector(points[(i+1)%len(points)])-vertex).normalized()*radius
         for step in range(steps+1):
@@ -73,12 +74,22 @@ glass=material('Platinum-coated quartz',(.88,.95,.99),metallic=.72,roughness=.07
 optics=glass.node_tree.nodes.get('Principled BSDF')
 optics.inputs['Coat Weight'].default_value=.25
 optics.inputs['Coat Roughness'].default_value=.045
-neon_glass=material('Glacial neon glass',(.32,.64,.78),roughness=.12,transmission=.65)
+neon_glass=material('Glacial neon glass',(.88,.97,1),roughness=.035,transmission=.96)
 optics=neon_glass.node_tree.nodes.get('Principled BSDF')
-optics.inputs['Coat Weight'].default_value=.6
-optics.inputs['Coat Roughness'].default_value=.045
-optics.inputs['Emission Color'].default_value=(.015,.28,.65,1)
-optics.inputs['Emission Strength'].default_value=.10
+optics.inputs['Coat Weight'].default_value=1
+optics.inputs['Alpha'].default_value=.86
+optics.inputs['IOR'].default_value=1.5
+# Dense grazing edges and clear faces match the browser's optical shell.
+fresnel=neon_glass.node_tree.nodes.new('ShaderNodeFresnel')
+fresnel.inputs['IOR'].default_value=1.5
+edge_alpha=neon_glass.node_tree.nodes.new('ShaderNodeMath');edge_alpha.operation='MULTIPLY_ADD'
+edge_alpha.inputs[1].default_value=.66;edge_alpha.inputs[2].default_value=.20
+neon_glass.node_tree.links.new(fresnel.outputs[0],edge_alpha.inputs[0])
+alpha_link=neon_glass.node_tree.links.new(edge_alpha.outputs[0],optics.inputs['Alpha'])
+neon_glass.surface_render_method='DITHERED'
+optics.inputs['Coat Roughness'].default_value=.025
+optics.inputs['Emission Color'].default_value=(.025,.22,.38,1)
+optics.inputs['Emission Strength'].default_value=.08
 metal=material('Brushed platinum',(.7,.79,.84),metallic=.94,roughness=.19)
 light=material('Ice blue light guides',(.18,.7,1),metallic=.25,roughness=.18)
 bs=light.node_tree.nodes.get('Principled BSDF')
@@ -94,29 +105,33 @@ for sx,sz in ((-1,-1),(1,-1),(-1,1),(1,1)):
     pivot=empty('GateCorner_%s_%s'%(sx,sz),parent=root)
     closed=((sx*.76,0,2.15+sz*.76),(0,0,0))
     opened=((sx*1.02,0,2.15+sz*1.02),(0,0,0))
-    # Continuous extruded L profile; no overlapping glass blocks.
-    outline=rounded_profile([(-.64,-.64),(.64,-.64),(.64,-.34),(-.34,-.34),(-.34,.64),(-.64,.64)])
+    # A continuous rounded volume, not a bevelled rectangular extrusion.
+    # Elliptical depth rings roll the sides into the front/back optical faces.
+    verts=[]
+    depths=(-.17,-.168,-.16,-.14,-.105,-.055,0,.055,.105,.14,.16,.168,.17)
+    for depth in depths:
+        inset=.075*(1-math.sqrt(max(0,1-(depth/.17)**2)))
+        lo=-.64+inset; hi=.64-inset; inner=-.34-inset
+        end_radius=(.30-2*inset)*.49
+        outline=rounded_profile([(lo,lo),(hi,lo),(hi,inner),(inner,inner),(inner,hi),(lo,hi)],
+                                [.28-inset,end_radius,end_radius,.24+inset,end_radius,end_radius])
+        verts.extend((-sx*x,depth,-sz*z) for x,z in outline)
     count=len(outline)
-    verts=[(-sx*x,y,-sz*z) for y in (-.17,.17) for x,z in outline]
-    faces=[tuple(reversed(range(count))),tuple(range(count,2*count))]+[(i,(i+1)%count,(i+1)%count+count,i+count) for i in range(count)]
-    part=mesh('OpticalCorner',verts,faces,neon_glass,pivot)
+    faces=[tuple(reversed(range(count))),tuple(range((len(depths)-1)*count,len(depths)*count))]
+    for ring in range(len(depths)-1):
+        for i in range(count):
+            j=(i+1)%count
+            faces.append((ring*count+i,ring*count+j,(ring+1)*count+j,(ring+1)*count+i))
+    part=mesh('LiquidGlassCorner',verts,faces,neon_glass,pivot)
     part['role']='gate-corner'
-    bevel=part.modifiers.new('Optical chamfers','BEVEL'); bevel.width=.018; bevel.segments=4
-    bpy.context.view_layer.objects.active=part
-    bpy.ops.object.modifier_apply(modifier=bevel.name)
-    for polygon in part.data.polygons: polygon.use_smooth=True
-    normals=part.modifiers.new('Precision normals','WEIGHTED_NORMAL'); normals.keep_sharp=True
-    # Continuous neon perimeter on both faces, following the entire corner profile.
-    for depth in (-.174,.174):
-        points=[(-sx*x,depth,-sz*z) for x,z in outline+[outline[0]]]
-        rim=strand('Neon perimeter',points,light,pivot,radius=.0075)
-        rim['role']='neon-rim'
+    part['finish']='Continuous pillow-rounded glass; no rim or outline geometry'
+    for polygon in part.data.polygons: polygon.use_smooth=polygon.index>=2
     animate(pivot,closed,opened)
     poses.append((pivot,closed,opened))
 pivot=empty('DiamondProjectorPivot',parent=root)
 # Keep the optical table normal aligned with the viewing axis at rest.
 closed=((0,-.04,2.15),(math.pi/2,0,0))
-opened=((0,-.08,1.87),(.12,0,0))
+opened=((0,-.08,1.05),(.12,0,0))
 # Diamond with flat optical table and cut crown, facing viewer before tilting skywards.
 verts=[]
 for z,r in ((-.36,.025),(-.04,.62),(.12,.43)):
@@ -136,7 +151,10 @@ animate(pivot,closed,opened,.12);poses.append((pivot,closed,opened))
 bpy.ops.object.select_all(action='DESELECT')
 root.select_set(True)
 for obj in root.children_recursive: obj.select_set(True)
+# glTF cannot export a view-dependent alpha node graph; runtime owns that shell.
+neon_glass.node_tree.links.remove(alpha_link)
 bpy.ops.export_scene.gltf(filepath=str(MODELS/'prism-gate.glb'),export_format='GLB',use_selection=True,export_animation_mode='NLA_TRACKS',export_animations=True,export_apply=True,export_extras=True,export_cameras=False,export_lights=False,export_yup=True)
+neon_glass.node_tree.links.new(edge_alpha.outputs[0],optics.inputs['Alpha'])
 scene.render.engine='CYCLES';scene.cycles.samples=48;scene.cycles.use_denoising=True
 scene.render.resolution_x=1600;scene.render.resolution_y=1200;scene.render.resolution_percentage=100
 scene.render.image_settings.file_format='PNG';scene.render.image_settings.color_mode='RGBA'

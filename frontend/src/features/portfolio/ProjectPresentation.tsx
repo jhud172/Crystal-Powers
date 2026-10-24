@@ -1,3 +1,4 @@
+import { CopyButton } from "../../components/CopyButton";
 import { NavLink, useSearchParams } from "react-router-dom";
 import { MouseEvent, useEffect } from "react";
 import { ProjectDevicePreview } from "./ProjectDevicePreview";
@@ -28,11 +29,11 @@ export function ProjectPresentation({ project, projects = [], preview = false, p
     event.preventDefault(); event.currentTarget.ownerDocument.getElementById(chapter)?.scrollIntoView({ behavior: "instant", block: "start" });
   }
   return <article className="studio-project case-study liquid-case">
-    <header className="studio-section case-heading">
+    <header className="studio-section case-heading refined-heading">
       {preview ? <button type="button" className="admin-text-button" onClick={onExitPreview}>← Back to editor</button> : <NavLink className="studio-text-link" to={workAddress(filter)}>← All projects</NavLink>}
       <p className="studio-eyebrow">{categoryLabel[content.category]} / CRYSTAL POWERS</p>
       <h1>{content.title || "Untitled project"}</h1><div className="case-introduction"><p className="studio-page-lead">{content.summary || (preview ? "Add a project summary in the editor." : "")}</p><dl><div><dt>Project</dt><dd>{categoryLabel[content.category]}</dd></div><div><dt>By</dt><dd>Crystal Powers</dd></div></dl></div>
-      <div className="studio-actions">{content.liveUrl && <a className="studio-button" href={content.liveUrl} target="_blank" rel="noopener noreferrer">Visit live website <span aria-hidden="true">↗</span></a>}{!preview && <NavLink className="studio-text-link" to={`/contact?intent=${intent}`} onClick={startConversation}>Discuss a project like this ↗</NavLink>}</div>
+      <div className="studio-actions">{content.liveUrl && <a className="studio-button" href={content.liveUrl} target="_blank" rel="noopener noreferrer">Visit live website <span aria-hidden="true">↗</span></a>}{!preview && <NavLink className="studio-text-link" to={`/contact?intent=${intent}`} onClick={startConversation}>Discuss a project like this ↗</NavLink>}{!preview && <CopyButton label="Copy project link" value={`${window.location.origin}/portfolio/${encodeURIComponent(project.slug)}`} />}</div>
     </header>
     {cover && <figure className="studio-project-cover"><ProjectArtwork src={cover} alt={content.coverAlt} loading="eager" fetchPriority="high" /><figcaption>{content.coverAlt}</figcaption></figure>}
     <nav className="case-chapter-nav studio-section" aria-label="Explore this case study">{story.map((chapter, index) => <a href={`#${chapter.id}`} key={chapter.id} onClick={event => visitChapter(event, chapter.id)}><span>0{index + 1}</span>{chapter.title}</a>)}<a href="#project-device" onClick={event => visitChapter(event, "project-device")}><span>↗</span>Explore the screens</a>{content.gallery.length > 0 && <a href="#project-gallery" onClick={event => visitChapter(event, "project-gallery")}><span>＋</span>Gallery</a>}</nav>

@@ -1,5 +1,5 @@
 .client-entry { max-width: 760px; margin-inline: auto; }
-.client-entry > h1, .client-workspace > header h1 { font-size: clamp(2rem, 5vw, 4rem); line-height: 1.08; letter-spacing: -.04em; }
+.client-entry > h1, .client-workspace > header h1 { font-size: clamp(2rem, 5vw, 4rem); line-height: 1.2; letter-spacing: .015em; }
 .client-entry fieldset, .client-workspace fieldset { min-width: 0; border: 0; margin: 0; padding: 0; display: grid; gap: 1rem; }
 .client-workspace > header { margin-bottom: 2rem; }
 .client-workspace .support-inbox-layout { margin-top: 2rem; }

@@ -1,6 +1,6 @@
 """Guarded local recovery lab: real HTTP identities/media/business data, synthetic financial snapshots.
 
-Creates fresh databases only on 127.0.0.1:55432. Never loads .env or uses real provider credentials.
+Creates fresh databases only on 127.0.0.1 at guarded QA ports 55432 or 55447. Never loads .env or uses real provider credentials.
 Passwords and enrolment secrets exist only in process memory; reports contain checks and hashes.
 """
 import argparse
@@ -80,7 +80,7 @@ class Lab:
         self.args, self.process, self.log = args, None, None
         self.output = (ROOT / ".codex-runtime/qa" / args.run).resolve()
         self.output.mkdir(exist_ok=False)
-        self.env = dict(os.environ, PGHOST="127.0.0.1", PGPORT="55432", PGUSER="crystal_qa",
+        self.env = dict(os.environ, PGHOST="127.0.0.1", PGPORT=str(args.pg_port), PGUSER="crystal_qa",
                         PGPASSWORD="synthetic-local-fixture-only", PG_BIN=str(args.pg_bin))
         self.env.pop("PGSERVICE", None)
         self.report = {"checks": [], "scope": "Disposable local real HTTP/PG/media recovery; financial/provider states explicitly seeded, no provider calls"}
@@ -93,7 +93,7 @@ class Lab:
     def sql(self, database, statement):
         if database not in ("postgres", self.args.source, self.args.target):
             raise ValueError("SQL target is outside this disposable recovery run.")
-        result = subprocess.run([str(self.args.pg_bin / "psql.exe"), "-h", "127.0.0.1", "-p", "55432",
+        result = subprocess.run([str(self.args.pg_bin / "psql.exe"), "-h", "127.0.0.1", "-p", str(self.args.pg_port),
                                  "-U", "crystal_qa", "-d", database, "-X", "-A", "-t", "-v", "ON_ERROR_STOP=1"],
                                 input=statement, text=True, capture_output=True, env=self.env)
         if result.returncode:
@@ -114,17 +114,18 @@ class Lab:
         self.stop()
         with socket.socket() as probe:
             probe.settimeout(.3)
-            if probe.connect_ex(("127.0.0.1", 8084)) == 0:
-                raise RuntimeError("Port 8084 is occupied; no existing process will be stopped.")
+            if probe.connect_ex(("127.0.0.1", self.args.app_port)) == 0:
+                raise RuntimeError(f"Port {self.args.app_port} is occupied; no existing process will be stopped.")
         self.log = (self.output / ("app-" + phase + ".log")).open("w", encoding="utf-8")
         command = ["java", "-Xmx256m", "-jar", str(candidate),
                    "--spring.config.additional-location=file:src/test/resources/application.properties", "--spring.config.import=",
-                   "--server.address=127.0.0.1", "--server.port=8084",
-                   "--spring.datasource.url=jdbc:postgresql://127.0.0.1:55432/" + database,
+                   "--server.address=127.0.0.1", f"--server.port={self.args.app_port}",
+                   f"--spring.datasource.url=jdbc:postgresql://127.0.0.1:{self.args.pg_port}/" + database,
                    "--spring.datasource.username=crystal_qa", "--spring.datasource.password=synthetic-local-fixture-only",
                    "--app.media.directory=" + str(media), "--app.media.provider=local", "--app.public-url=" + BASE,
                    "--app.owner.setup-token=" + SETUP, "--app.security.encryption-key=" + KEY,
                    "--app.mail.provider=disabled", "--app.mail.invitation-enabled=false",
+                   "--PRISM_AI_ENABLED=false", "--PRISM_OPENAI_API_KEY=", "--PRISM_PRICING_VERIFIED=false",
                    "--app.billing.enabled=false", "--app.billing.stripe-secret=", "--app.billing.stripe-webhook-secret=", "--app.billing.event-recovery-enabled=false",
                    "--app.billing.invoice-recovery-enabled=false", "--crystal.billing.refunds-enabled=false"]
         self.process = subprocess.Popen(command, cwd=ROOT, stdout=self.log, stderr=subprocess.STDOUT,
@@ -186,6 +187,9 @@ class Lab:
             "liveUrl": "", "technologies": ["Synthetic"], "displayDevice": "laptop", "coverMediaId": None,
             "coverAlt": "Synthetic private image", "gallery": []}})
         self.project, self.content = canonical(created["id"]), created["content"]
+        business = owner.call("POST", "/api/team/projects", {"submissionKey": str(uuid.uuid4()),
+                              "slug": "synthetic-workflow-contract", "content": {**created["content"], "title": "Synthetic workflow contract project"}})
+        self.business_project = canonical(business["id"])
         boundary = "RecoveryFixtureBoundary"
         multipart = ("--" + boundary + '\r\nContent-Disposition: form-data; name="file"; filename="synthetic.png"\r\nContent-Type: image/png\r\n\r\n').encode() + image() + ("\r\n--" + boundary + "--\r\n").encode()
         media = owner.call("POST", "/api/admin/projects/" + self.project + "/media", multipart,
@@ -240,6 +244,14 @@ VALUES ({quote(self.bill)},false,'RECOVERY_FIXTURE','re_RecoveryFixture','succee
 INSERT INTO billing_stripe_event(event_id,event_type,object_id,event_created,live_mode,state,attempts,retry_after)
 VALUES ('evt_RecoveryFixture','invoice.paid','in_RecoveryFixture',100,false,'PENDING',3,2000000000);
 """)
+        tracking = owner.call("GET", "/api/team/support/requests/" + self.request + "/overview")["request"]
+        owner.call("PATCH", "/api/team/support/requests/" + self.request,
+                   {"expectedVersion": tracking["version"], "state": "IN_PROGRESS", "progress": 35,
+                    "nextStep": "Review the confirmed scope", "assignedMemberId": None,
+                    "projectScope": "Synthetic confirmed scope retained through recovery"})
+        self.has_assistant_budget = self.sql(self.args.source, "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name='assistant_budget';") == "1"
+        if self.has_assistant_budget:
+            self.sql(self.args.source, "INSERT INTO assistant_budget(month_key,reserved_pence) VALUES ('2026-10',37);")
         self.last_step = int(time.time()) // 30
         self.check("Populated fixture has real owner/team/client identities and private records", True)
         tables = ["admin_account", "project", "project_media", "team_account", "team_message", "support_request", "support_attachment", "support_message", "client_account", "client_reply", "billing_intent", "billing_provider_payment", "billing_invoice_sync", "billing_refund_request"]
@@ -256,10 +268,16 @@ VALUES ('evt_RecoveryFixture','invoice.paid','in_RecoveryFixture',100,false,'PEN
         self.check(phase + " decrypts retained team MFA and reads its channel", any(channel["id"] == self.channel for channel in team.call("GET", "/api/team/workspace")["channels"]))
         client = Http()
         client.call("POST", "/api/client/auth/login", {"email": self.client_email, "password": self.password})
+        self.prove_workflow_contracts(phase, owner, team, client)
         self.check(phase + " preserves private JPEG bytes", owner.call("GET", "/api/admin/media/" + self.media, binary=True) == self.media_bytes)
         self.check(phase + " preserves client-authorised attachment bytes", client.call("GET", "/api/client/projects/files/" + self.file, binary=True) == self.file_bytes)
         conversation = client.call("GET", "/api/client/projects/" + self.request + "/conversation")
         text = json.dumps(conversation)
+        if self.has_assistant_budget:
+            self.check(phase + " preserves assistant spend reservations without provider activation",
+                       self.sql(self.args.target, "SELECT reserved_pence FROM assistant_budget WHERE month_key='2026-10';") == "37")
+        self.check(phase + " preserves confirmed scope through current or previous-candidate writes",
+                   self.sql(self.args.target, "SELECT project_scope FROM support_request WHERE id=" + quote(self.request) + ";") == "Synthetic confirmed scope retained through recovery")
         self.check(phase + " retains shared messages and excludes internal notes", "Synthetic retained client update" in text and "Synthetic retained client reply" in text and "Synthetic confidential internal note" not in text)
         bills = client.call("GET", "/api/client/billing/page")["bills"]
         self.check(phase + " retains exact financial and cancellation state", any(row["id"] == self.bill and row["amountPence"] == 2500 and row["paymentState"] == "PAID" and row["cancelAtPeriodEnd"] for row in bills))
@@ -296,9 +314,52 @@ VALUES ('evt_RecoveryFixture','invoice.paid','in_RecoveryFixture',100,false,'PEN
         self.check(phase + " supports logout and protected subsequent reads", True)
         self.last_step = int(time.time()) // 30
 
+    def prove_workflow_contracts(self, phase, owner, moderator, client):
+        """Exercise final private-UI contracts over real HTTP and persisted state."""
+        endpoint = "/api/team/projects/" + self.business_project
+        original = owner.call("GET", endpoint)
+        presentation = {"featured": original["featured"], "archived": original["archived"],
+                        "sortOrder": 17 if original["sortOrder"] != 17 else 18,
+                        "expectedUpdatedAt": original["updatedAt"]}
+        invalid = dict(presentation, sortOrder=10001)
+        owner.call("PATCH", endpoint + "/presentation", invalid, expected=400)
+        self.check(phase + " rejects invalid display order without changing the project",
+                   owner.call("GET", endpoint)["updatedAt"] == original["updatedAt"])
+        saved = owner.call("PATCH", endpoint + "/presentation", presentation)
+        owner.call("PATCH", endpoint + "/presentation", dict(presentation, sortOrder=-12), expected=409)
+        moderator.call("PATCH", endpoint + "/presentation", dict(presentation, expectedUpdatedAt=saved["updatedAt"]), expected=403)
+        self.check(phase + " persists order and rejects stale or unauthorised overwrites",
+                   owner.call("GET", endpoint)["sortOrder"] == presentation["sortOrder"])
+        Http().call("GET", endpoint, expected=401)
+        Http().call("GET", "/api/projects/synthetic-workflow-contract", expected=404)
+        self.check(phase + " keeps the business draft private", saved["publishedVersion"] is None)
+
+        request_path = "/api/team/support/requests/" + self.request
+        before = owner.call("GET", request_path + "/overview")["request"]
+        tracking = {"expectedVersion": before["version"], "state": "IN_PROGRESS", "progress": 45,
+                    "nextStep": "Synthetic confirmed mobile review", "assignedMemberId": None}
+        owner.call("PATCH", request_path, tracking)
+        owner.call("PATCH", request_path, dict(tracking, nextStep="Stale overwrite"), expected=409)
+        staff = owner.call("GET", request_path + "/overview")["request"]
+        customer = client.call("GET", "/api/client/projects/" + self.request + "/overview")["project"]
+        self.check(phase + " exposes the same confirmed progress to staff and linked client",
+                   all(staff[key] == customer[key] == tracking[key] for key in ("state", "progress", "nextStep")))
+        client.call("GET", "/api/client/projects/" + str(uuid.uuid4()) + "/overview", expected=404)
+        self.check(phase + " rejects unrelated client project references", True)
+
+        preferences = client.call("GET", "/api/client/auth/preferences")
+        choice = "PORTAL_AND_EMAIL" if preferences["contactPreference"] == "PORTAL_ONLY" else "PORTAL_ONLY"
+        changed = client.call("PATCH", "/api/client/auth/preferences",
+                              {"version": preferences["version"], "contactPreference": choice})
+        client.call("PATCH", "/api/client/auth/preferences",
+                    {"version": preferences["version"], "contactPreference": preferences["contactPreference"]}, expected=409)
+        self.check(phase + " persists contact preference without accepting stale form saves",
+                   changed["version"] == preferences["version"] + 1 and
+                   client.call("GET", "/api/client/auth/preferences")["contactPreference"] == choice)
+
     def run(self):
         identity = self.sql("postgres", "SELECT current_user||'|'||host(inet_server_addr())||'|'||inet_server_port();")
-        self.check("Disposable server identity verified", identity == "crystal_qa|127.0.0.1|55432")
+        self.check("Disposable server identity verified", identity == f"crystal_qa|127.0.0.1|{self.args.pg_port}")
         self.sql("postgres", "CREATE DATABASE " + self.args.source + " OWNER crystal_qa;")
         source_media, restored_media = self.output / "source-media", self.output / "restored-media"
         self.start(self.args.candidate, self.args.source, source_media, "seed")
@@ -330,6 +391,7 @@ VALUES ('evt_RecoveryFixture','invoice.paid','in_RecoveryFixture',100,false,'PEN
 
 
 def main():
+    global BASE
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--candidate", type=Path, required=True)
     parser.add_argument("--rollback-candidate", type=Path, required=True)
@@ -337,11 +399,14 @@ def main():
     parser.add_argument("--target", required=True)
     parser.add_argument("--run", required=True)
     parser.add_argument("--pg-bin", type=Path, default=Path("C:/Program Files/PostgreSQL/17/bin"))
+    parser.add_argument("--pg-port", type=int, choices=(55432, 55447), default=55432)
+    parser.add_argument("--app-port", type=int, choices=(8084, 18084), default=8084)
     args = parser.parse_args()
+    BASE = f"http://127.0.0.1:{args.app_port}"
     if not re.fullmatch(r"crystal_rebuild_test_recovery_[a-z0-9_]+", args.source):
-        raise ValueError("Use a fresh crystal_rebuild_test_recovery_* source on loopback55432.")
+        raise ValueError("Use a fresh crystal_rebuild_test_recovery_* source on the guarded loopback QA server.")
     if not re.fullmatch(r"crystal_restore_[a-z0-9_]+", args.target):
-        raise ValueError("Use a fresh crystal_restore_* target on loopback55432.")
+        raise ValueError("Use a fresh crystal_restore_* target on the guarded loopback QA server.")
     if not re.fullmatch(r"populated-recovery-[a-z0-9-]+", args.run):
         raise ValueError("Use a simple populated-recovery-* evidence directory name.")
     for field in ("candidate", "rollback_candidate"):

@@ -17,7 +17,7 @@ function check(name, value) { assert.ok(value, name); report.checks.push(name); 
   try {
     await page.goto(base + '/contact'); await page.locator('#firstName').waitFor();
     for (const [label, theme] of [['Dark', 'futuristic'], ['Light', 'clean'], ['Warm dark', 'classic'], ['Fresh light', 'fresh'], ['Warm light', 'summer-vibes']]) {
-      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: label, exact: true }).click();
+      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: label, exact: true }).click(); await page.keyboard.press('Escape');
       const values = await page.evaluate(() => {
         const style = getComputedStyle(document.querySelector('.studio-shell'));
         const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true });

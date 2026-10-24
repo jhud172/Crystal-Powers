@@ -46,7 +46,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
     check('Name and description have usable control targets', await name().evaluate(element => element.getBoundingClientRect().height >= 44) && await page.getByLabel('Description', { exact: true }).evaluate(element => element.getBoundingClientRect().height >= 44));
     await page.getByLabel('Description', { exact: true }).fill('Synthetic private description for visual review');
     for (const theme of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
-      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: theme, exact: true }).click();
+      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: theme, exact: true }).click(); await page.keyboard.press('Escape');
       check(theme + ' primary action is visible, full-size and has readable contrast', await save().evaluate(element => {
         const style = getComputedStyle(element);
         const luminance = colour => { const rgb = colour.match(/[\d.]+/g).slice(0, 3).map(Number).map(value => { value /= 255; return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4; }); return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722; };

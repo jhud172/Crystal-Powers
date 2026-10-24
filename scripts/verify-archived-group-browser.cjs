@@ -49,7 +49,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
     check('Cleanup has no scan, review, rename or upload controls', await detail.locator('form, input, select').count() === 0);
     for (const theme of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
       await page.getByRole('button', { name: 'Choose appearance', exact: true }).click();
-      await page.getByRole('button', { name: theme, exact: true }).click();
+      await page.getByRole('button', { name: theme, exact: true }).click(); await page.keyboard.press('Escape');
       for (const width of [320, 390, 768, 1024, 1440, 1920]) {
         await page.setViewportSize({ width, height: 900 });
         check(theme + ' ' + width + ' cleanup has no overflow', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));

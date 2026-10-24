@@ -1,10 +1,10 @@
 .access-guide { padding-inline: var(--studio-gutter); }
 .access-heading { padding-block: var(--studio-space-section); max-width: 1050px; }
-.access-heading h1 { margin-block: 25px; font-size: clamp(54px, 8.4vw, 132px); line-height: 1.03; letter-spacing: -.065em; }
+.access-heading h1 { margin-block: 25px; font-size: clamp(54px, 8.4vw, 132px); line-height: 1.2; letter-spacing: .015em; }
 .access-heading h1 span { color: var(--studio-muted); }
 .access-heading > p:last-child { max-width: 650px; font-size: clamp(17px, 1.7vw, 23px); color: var(--studio-muted); }
 .access-guide > section { padding-block: var(--studio-space-section); border-top: 1px solid var(--studio-line); }
-.access-guide h2 { margin-block: 22px 28px; font-size: clamp(32px, 4.2vw, 62px); line-height: 1.12; letter-spacing: -.045em; }
+.access-guide h2 { margin-block: 22px 28px; font-size: clamp(32px, 4.2vw, 62px); line-height: 1.2; letter-spacing: .015em; }
 .access-views { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(30px, 8vw, 130px); align-items: center; }
 .access-views > div > p:not(.studio-eyebrow) { max-width: 660px; color: var(--studio-muted); margin-top: 22px; }
 .access-view-diagram { position: relative; border: 1px solid var(--studio-control-line); padding: clamp(25px, 4vw, 65px); background: var(--studio-raised); }
@@ -30,7 +30,7 @@
 .studio-footer { border-top: 1px solid var(--studio-line); padding-top: var(--studio-space-section); }
 .studio-footer-top { display: grid; grid-template-columns: 1fr 1.1fr 1fr; align-items: start; gap: clamp(25px, 4vw, 75px); padding-bottom: var(--studio-space-section); }
 .studio-footer-identity > p { max-width: 300px; color: var(--studio-muted); font-size: 13px; margin-top: 28px; }
-.studio-footer-conversation h2 { font-size: clamp(35px, 4.2vw, 66px); letter-spacing: -.045em; line-height: 1.08; margin: 20px 0 26px; }
+.studio-footer-conversation h2 { font-size: clamp(35px, 4.2vw, 66px); letter-spacing: .015em; line-height: 1.2; margin: 20px 0 26px; }
 .studio-footer-top nav { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 25px; }
 .studio-footer-top nav a { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; padding-block: 10px; border-bottom: 1px solid var(--studio-line); font-size: 13px; }
 .studio-footer-top nav a span { color: var(--studio-muted); }

@@ -1,5 +1,11 @@
 # Crystal Powers 2.0 — shared motion and cancellation
 
+Current24October correction: **242** automated lifecycle/Prism/delayed-entry/quality/resource/adaptive checks pass. Both Prism observers now use the latest chronological intersection entry, preventing a delayed offscreen entry from suppressing the current visible state. Actual same-window native activation and minimisation remain unavailable as hidden-state proof on this desktop session. See [final bulk review](BULK_ACCEPTANCE_2026_10_24.md) for exact candidate scope and retained before/after failures.
+
+## Current bulk acceptance — 24 October 2026
+
+Current packaged automated checks pass50 motion-lifecycle,41 optical Prism,95 rendering-quality,40 brand-resource and12 adaptive-policy assertions. The new owned headed Edge probe uses actual minimisation without overriding visibility properties or dispatching fake events; Edge still reports visible. Its report records this unavailable condition, so native background-tab acceptance remains open. Earlier deterministic hidden-signal checks establish the application's response to those signals only. The former quality failure was a test counting2D star decoration as WebGL; the verifier now distinguishes them. Current reports live in the named folders linked by [the audit](../CRYSTAL_POWERS_2_0_AUDIT.md).
+
 > Follow-on cleanup, 10 October 2026: unused legacy interaction/component source was removed after reference tracing and replacement QA. This earlier implementation record is historical for those paths. See [LEGACY_CLEANUP_2_0.md](LEGACY_CLEANUP_2_0.md) for retained owners, controls and Git recovery.
 
 Review: 10 October 2026. Implements MOTION-01/02; MOTION-03 retains a real background-tab acceptance gate. No dependency installation, data/API contract change or production publication.

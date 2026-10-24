@@ -14,8 +14,10 @@ import java.util.HashMap;
 @Service
 public class TeamRoleResolver {
     private final TeamRoleProfileRepository profiles;
-    public TeamRoleResolver(TeamRoleProfileRepository profiles) { this.profiles=profiles; }
+    private final com.crystalpower.website.security.LocalAutomationAccounts localAccounts;
+    public TeamRoleResolver(TeamRoleProfileRepository profiles, com.crystalpower.website.security.LocalAutomationAccounts localAccounts) { this.profiles=profiles; this.localAccounts=localAccounts; }
     public Set<TeamPermission> permissions(Member member) {
+        if (!localAccounts.allowed(member)) return Set.of();
         var assigned=profiles.assigned(member.id());
         if(assigned.isEmpty())return member.role().permissions();
         return profiles.profile(member.workspaceId(),assigned.get())
@@ -41,7 +43,7 @@ public class TeamRoleResolver {
         for(var assignment:profiles.assignments(workspace))if(assignment.profileId()!=null)assignments.put(assignment.memberId(),assignment.profileId());
         Map<UUID,Set<TeamPermission>> result=new HashMap<>();
         for(var member:members) {
-            if(!member.workspaceId().equals(workspace)){result.put(member.id(),Set.of());continue;}
+            if ((!management && !localAccounts.allowed(member)) || !member.workspaceId().equals(workspace)){result.put(member.id(),Set.of());continue;}
             UUID id=assignments.get(member.id());var profile=id==null ? null : definitions.get(id);
             boolean valid=profile!=null && profile.baseRole()==member.role() && member.role().permissions().containsAll(profile.permissions()) && (!management || profile.permissions().contains(TeamPermission.READ_CHANNELS));
             if(id==null)result.put(member.id(),member.role().permissions());

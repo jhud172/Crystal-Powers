@@ -5,7 +5,7 @@ const path = require('node:path');
 const { gunzipSync } = require('node:zlib');
 const { createHash } = require('node:crypto');
 const base = process.env.CRYSTAL_QA_URL || 'http://127.0.0.1:8084';
-assert.match(base, /^http:\/\/127\.0\.0\.1:8084$/);
+assert.match(base, /^http:\/\/127\.0\.0\.1:(8084|18084)$/);
 const checks = [], assets = [];
 function get(address, encoding) {
   return new Promise((resolve, reject) => {

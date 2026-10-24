@@ -70,7 +70,7 @@
 .team-navigation-toggle { display: none; }
 .team-sidebar > button { display: flex; width: 100%; justify-content: flex-start; margin-block: .5rem; text-align: left; white-space: normal; }
 .team-sidebar > .studio-eyebrow { margin-top: 1rem; }
-.team-sidebar h1 { line-height: 1.2; letter-spacing: -.04em; }
+.team-sidebar h1 { line-height: 1.2; letter-spacing: .015em; }
 .team-sidebar nav button { min-height: var(--studio-control-target); margin-block: .25rem; border-radius: .75rem; }
 .team-sidebar nav button:not([aria-current]):hover:not(:disabled) { background: var(--studio-bg); color: var(--studio-accent); }
 .team-conversation > header { padding-bottom: 1.5rem; }

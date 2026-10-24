@@ -20,7 +20,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
     const page = await context.newPage(), writes = [];
     page.on('pageerror', error => report.errors.push(error.message));
     page.on('request', request => { if (request.url().includes('/api/') && !['GET', 'HEAD'].includes(request.method())) writes.push(request.url()); });
-    async function appearance(label) { await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: label, exact: true }).click(); }
+    async function appearance(label) { await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: label, exact: true }).click(); await page.keyboard.press('Escape'); }
     const themes = [['Dark', false], ['Light', true], ['Warm dark', false], ['Fresh light', true], ['Warm light', true]];
     for (const route of ['/', '/about']) for (const width of [390, 1440]) {
       await page.setViewportSize({ width, height: 1100 }); await page.goto(base + route); await page.locator('main h1').waitFor();

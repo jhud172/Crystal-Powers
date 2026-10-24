@@ -134,7 +134,7 @@ const check = (name, value = true) => { assert.ok(value, name); report.checks.pu
       }
       for (const theme of themes) {
         await page.getByRole('button', { name: 'Choose appearance', exact: true }).click();
-        await page.getByRole('button', { name: theme, exact: true }).click();
+        await page.getByRole('button', { name: theme, exact: true }).click(); await page.keyboard.press('Escape');
         const geometry = await page.evaluate(() => ({ width: innerWidth, documentWidth: document.documentElement.scrollWidth }));
         check(`${route} ${theme} fits`, geometry.documentWidth <= geometry.width);
         const tokens = await page.evaluate(() => { const style = getComputedStyle(document.querySelector('.studio-shell')); return Object.fromEntries(['bg','text','muted','accent','focus','error','control-line'].map(key => [key, style.getPropertyValue('--studio-' + key).trim()])); });

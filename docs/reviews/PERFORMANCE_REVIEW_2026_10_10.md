@@ -1,5 +1,9 @@
 # Local performance review — 10 October 2026
 
+## Superseding acceptance checkpoint — 24 October 2026
+
+Use the current [bulk acceptance review](BULK_ACCEPTANCE_2026_10_24.md) and [2.0 audit](../CRYSTAL_POWERS_2_0_AUDIT.md). They record the actual baseline/current GPU measurements, CLS correction and final existing-feature performance profiles. Older pending-design/paused-testing text and counts below are historical. Liquid Light is selected and implemented; completed batches are tested together and corrected in scope. Companion acceptance is excluded by James. Native-background/physical/provider/deployed gates remain open.
+
 ## Current direction and working order — 12 October 2026
 
 James requested a substantially better visual design than the current Blender presentation. [Design directions and motion brief](../DESIGN_DIRECTIONS_2_0.md) preserve the three displayed options, proposed opening/reversal animations and adjustable settings. The choice is pending; do not select a concept automatically or treat still mockups as working animation. The audit retains 133 stable IDs, with **102 checked / 31 open** after reopening 13 affected design items. Earlier appearance-specific acceptance is historical.

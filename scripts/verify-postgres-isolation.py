@@ -7,9 +7,9 @@ import subprocess
 
 
 def main():
-    if (os.environ.get("PGHOST") != "127.0.0.1" or os.environ.get("PGPORT") != "55432"
+    if (os.environ.get("PGHOST") != "127.0.0.1" or os.environ.get("PGPORT") not in ("55432", "55447")
             or not re.fullmatch(r"crystal_(?:rebuild_test|restore_)[a-z0-9_]*", os.environ.get("PGDATABASE", ""))):
-        raise ValueError("Use the explicitly disposable loopback PostgreSQL target on port 55432.")
+        raise ValueError("Use the explicitly disposable loopback PostgreSQL target on port 55432 or 55447.")
     executable = str(Path(os.environ["PG_BIN"]) / ("psql.exe" if os.name == "nt" else "psql")) if "PG_BIN" in os.environ else "psql"
 
     def query(statement):

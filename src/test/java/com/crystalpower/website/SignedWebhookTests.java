@@ -48,7 +48,7 @@ class SignedWebhookTests {
     @BeforeEach void guardDatabase() throws Exception {
         try(var connection=dataSource.getConnection()){
             if(connection.getMetaData().getDatabaseProductName().equals("PostgreSQL"))
-                assertThat(connection.getMetaData().getURL()).matches("jdbc:postgresql://127\\.0\\.0\\.1:55432/crystal_rebuild_test[a-z0-9_]*");
+                assertThat(connection.getMetaData().getURL()).matches("jdbc:postgresql://127\\.0\\.0\\.1:(55432|55447)/crystal_rebuild_test[a-z0-9_]*");
             else assertThat(connection.getMetaData().getURL()).startsWith("jdbc:h2:mem:crystal-signed-webhooks");
         }
         jdbc=new JdbcTemplate(dataSource);

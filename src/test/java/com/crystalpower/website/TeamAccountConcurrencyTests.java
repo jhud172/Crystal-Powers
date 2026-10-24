@@ -83,7 +83,7 @@ class TeamAccountConcurrencyTests {
         try (var connection = dataSource.getConnection()) {
             String url = connection.getMetaData().getURL();
             postgres = connection.getMetaData().getDatabaseProductName().equals("PostgreSQL");
-            if (postgres) assertThat(url).matches("jdbc:postgresql://127\\.0\\.0\\.1:55432/crystal_rebuild_test[a-z0-9_]*");
+            if (postgres) assertThat(url).matches("jdbc:postgresql://127\\.0\\.0\\.1:(55432|55447)/crystal_rebuild_test[a-z0-9_]*");
             else assertThat(url).startsWith("jdbc:h2:mem:crystal-security-races");
         }
         jdbc = new JdbcTemplate(dataSource);

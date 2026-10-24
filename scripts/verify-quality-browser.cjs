@@ -1,10 +1,11 @@
+/* Returning-visitor feature regression; first-visit Companion is verified separately. */
 /* Real optional scenes, native preference controls and measured WebGL work; read-only local fixtures. */
 const { chromium } = require(process.env.CRYSTAL_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict'); const fs = require('node:fs/promises'); const path = require('node:path');
 const base = process.env.CRYSTAL_QA_URL || 'http://127.0.0.1:5175';
-assert.match(base, /^http:\/\/127\.0\.0\.1:(5175|8084)$/);
+assert.match(base, /^http:\/\/127\.0\.0\.1:(5175|8084|18084)$/);
 const output = path.resolve('.codex-runtime/qa/quality-pc');
-const report = { base, checks: [], errors: [], measurements: [], runtime: 'Installed Edge; actual renderer strings, emulated CSS viewports and DPR. Concurrent local build/test work may be active; draw/frame metrics are diagnostics, not isolated GPU/physical-device/thermal certification.' };
+const report = { candidateSha256:process.env.CRYSTAL_QA_CANDIDATE_SHA256, base, checks: [], errors: [], measurements: [], runtime: 'Installed Edge; actual renderer strings, emulated CSS viewports and DPR. Concurrent local build/test work may be active; draw/frame metrics are diagnostics, not isolated GPU/physical-device/thermal certification.' };
 const check = (name, value) => { assert.ok(value, name); report.checks.push(name); };
 const fixture = device => ({ id: 'qa-quality', slug: 'qa-quality', featured: false, sortOrder: 0, content: { title: 'Local rendering acceptance fixture', category: 'WEBSITE', summary: 'Synthetic local QA only; not published client work.', overview: '', approach: '', outcome: '', liveUrl: '', technologies: [], displayDevice: device, coverMediaId: null, coverAlt: '', gallery: [], screens: { desktop: { mediaId: 'qa-quality-screen', alt: 'Original studio interface for local rendering QA' }, mobile: { mediaId: 'qa-quality-screen', alt: 'Original studio interface for local rendering QA' } } } });
 (async () => {
@@ -15,6 +16,7 @@ const fixture = device => ({ id: 'qa-quality', slug: 'qa-quality', featured: fal
   try {
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 2 });
     await context.addInitScript(() => {
+    localStorage.setItem('crystal_prism_visit_v1', JSON.stringify({status:'completed',version:1}));
       window.__qualityWork = { draws: 0, targets: [] };
       for (const Constructor of [window.WebGLRenderingContext, window.WebGL2RenderingContext]) {
         for (const name of ['drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced']) {
@@ -82,7 +84,7 @@ const fixture = device => ({ id: 'qa-quality', slug: 'qa-quality', featured: fal
     }
     await select('automatic'); await page.setViewportSize({ width: 390, height: 900 });
     await stage.locator('canvas').waitFor({state:'detached'});
-    check('Compact automatic uses an intact still project view', await page.locator('canvas').count()===0 && await stage.locator('.stage-poster').isVisible());
+    check('Compact automatic uses an intact still project view', await page.locator('canvas:not(.prism-stars)').count()===0 && await stage.locator('.stage-poster').isVisible());
     await page.setViewportSize({ width: 1440, height: 1000 });
     await stage.getByRole('button',{name:/Explore this project in 3D/}).click();
     await ready(stage,'standard'); await inspect(stage,'laptop-automatic-1440',1.5);
@@ -94,22 +96,21 @@ const fixture = device => ({ id: 'qa-quality', slug: 'qa-quality', featured: fal
     await page.goto(base + '/'); const hero=page.locator('.liquid-hero'), flow=page.locator('.liquid-light-flow');
     for(const tier of ['low','standard','high']){
       await select(tier);
-      check(tier+' keeps the selected autonomous light instead of an automatic canvas',await page.locator('canvas').count()===0 && await flow.evaluate(node=>getComputedStyle(node).animationName==='liquid-light-flow'));
+      check(tier+' keeps the selected autonomous light instead of an automatic canvas',await page.locator('canvas:not(.prism-stars)').count()===0 && await flow.evaluate(node=>getComputedStyle(node).animationName==='liquid-light-flow'));
     }
-    await hero.getByRole('button',{name:'Pause animation',exact:true}).click();
-    check('Homepage light has a native pause control',await flow.evaluate(node=>getComputedStyle(node).animationPlayState==='paused'));
-    await hero.getByRole('button',{name:'Resume animation',exact:true}).click();
+    check('Homepage light has no manual pause or resume control',await hero.getByRole('button',{name:/^(Pause|Resume) animation$/}).count()===0);
+    check('Homepage light runs automatically',await flow.evaluate(node=>getComputedStyle(node).animationPlayState==='running'));
     await page.emulateMedia({reducedMotion:'reduce'});
     await page.waitForFunction(()=>document.querySelector('.liquid-hero')?.dataset.calm==='true');
-    check('Detailed never overrides system reduced motion',await page.locator('canvas').count()===0 && await flow.evaluate(node=>getComputedStyle(node).animationName==='none'));
+    check('Detailed never overrides system reduced motion',await page.locator('canvas:not(.prism-stars)').count()===0 && await flow.evaluate(node=>getComputedStyle(node).animationName==='none'));
     await page.emulateMedia({reducedMotion:'no-preference'}); await select('standard');
     await page.getByRole('button',{name:'Choose appearance',exact:true}).click();await page.getByLabel('Reduce effects',{exact:true}).check();
     check('Reduce effects disables detail control',await page.locator('.studio-quality-trigger').isDisabled());await page.keyboard.press('Escape');
     await page.reload();await hero.waitFor();
     check('Both presentation choices persist through refresh',await page.evaluate(()=>localStorage.getItem('crystal_render_quality')==='standard' && localStorage.getItem('crystal_reduce_effects')==='true'));
-    check('Refresh retains still artwork',await page.locator('canvas').count()===0 && await hero.getAttribute('data-calm')==='true');
+    check('Refresh retains still artwork',await page.locator('canvas:not(.prism-stars)').count()===0 && await hero.getAttribute('data-calm')==='true');
     for(const label of ['Dark','Light','Warm dark','Fresh light','Warm light']){
-      await page.getByRole('button',{name:'Choose appearance',exact:true}).click();await page.getByRole('button',{name:label,exact:true}).click();
+      await page.getByRole('button',{name:'Choose appearance',exact:true}).click();await page.getByRole('button',{name:label,exact:true}).click(); await page.keyboard.press('Escape');
       await page.getByRole('button',{name:'Choose appearance',exact:true}).click();await page.getByLabel('Reduce effects',{exact:true}).uncheck();
       await page.locator('.studio-quality-trigger').click();await page.getByRole('radio',{name:'Automatic',exact:true}).focus();await page.keyboard.press('ArrowDown');
       check(label+' native radio keyboard selection works',await page.getByRole('radio',{name:'Lighter',exact:true}).isChecked());

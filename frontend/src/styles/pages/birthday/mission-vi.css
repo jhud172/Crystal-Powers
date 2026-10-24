@@ -133,8 +133,8 @@ body.birthday-route-active button {
     font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
     font-size: clamp(3.8rem, 13vw, 9rem);
     font-style: italic;
-    letter-spacing: -.04em;
-    line-height: .85;
+    letter-spacing: .06em;
+    line-height: 1.2;
     text-transform: uppercase;
 }
 
@@ -290,7 +290,7 @@ body.birthday-route-active button {
     font-family: Impact, Haettenschweiler, sans-serif;
     font-size: 1.3rem;
     font-style: italic;
-    letter-spacing: -.05em;
+    letter-spacing: .06em;
 }
 
 .birthday-masthead p {
@@ -340,6 +340,7 @@ body.birthday-route-active button {
     font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
     font-weight: 900;
     text-transform: uppercase;
+    letter-spacing: .06em;
 }
 
 .birthday-hero h1 {
@@ -348,8 +349,8 @@ body.birthday-route-active button {
     gap: clamp(12px, 2vw, 28px);
     font-size: clamp(5.5rem, 12.5vw, 11.5rem);
     font-style: italic;
-    letter-spacing: -.075em;
-    line-height: .73;
+    letter-spacing: .015em;
+    line-height: 1.2;
     text-shadow: 0 18px 55px rgb(0 0 0 / 38%);
 }
 
@@ -617,8 +618,8 @@ body.birthday-route-active button {
     font-size: clamp(5.4rem, 15vw, 10rem);
     font-style: italic;
     font-weight: 900;
-    letter-spacing: -.06em;
-    line-height: .73;
+    letter-spacing: .06em;
+    line-height: 1.2;
     text-transform: uppercase;
     transform: rotate(-2deg);
 }
@@ -747,6 +748,7 @@ body.birthday-route-active button {
     font-size: clamp(3.7rem, 12vw, 6.8rem);
     font-style: italic;
     line-height: 1;
+    letter-spacing: .06em;
 }
 
 .birthday-unlock-takeover__content strong.birthday-unlock-takeover__finalising {
@@ -877,8 +879,8 @@ body.birthday-route-active button {
     font-family: Impact, Haettenschweiler, sans-serif;
     font-size: clamp(12rem, 25vw, 24rem);
     font-style: italic;
-    letter-spacing: -.18em;
-    line-height: .72;
+    letter-spacing: .06em;
+    line-height: 1.2;
     -webkit-text-stroke: 2px rgb(9 7 28 / 15%);
     transform: translateX(-20%);
 }
@@ -909,8 +911,8 @@ body.birthday-route-active button {
 .birthday-finale h2 {
     font-size: clamp(4.1rem, 8vw, 8.8rem);
     font-style: italic;
-    letter-spacing: -.055em;
-    line-height: .83;
+    letter-spacing: .015em;
+    line-height: 1.2;
 }
 
 .birthday-promise h2 em,
@@ -981,8 +983,8 @@ body.birthday-route-active button {
     max-width: 620px;
     font-size: clamp(3.3rem, 6vw, 6.5rem);
     font-style: italic;
-    letter-spacing: -.045em;
-    line-height: .88;
+    letter-spacing: .015em;
+    line-height: 1.2;
 }
 
 .birthday-countdown__clock {
@@ -1010,8 +1012,8 @@ body.birthday-route-active button {
     font-size: clamp(2.8rem, 5vw, 5.5rem);
     font-style: italic;
     font-weight: 900;
-    letter-spacing: -.04em;
-    line-height: 1;
+    letter-spacing: .06em;
+    line-height: 1.2;
 }
 
 .birthday-countdown__clock span {
@@ -1358,7 +1360,7 @@ body.birthday-route-active button {
     font-family: Impact, Haettenschweiler, sans-serif;
     font-size: clamp(2rem, 5vw, 5rem);
     font-style: italic;
-    letter-spacing: .02em;
+    letter-spacing: .06em;
     text-align: center;
     text-transform: uppercase;
 }
@@ -1589,7 +1591,7 @@ body.birthday-route-active button {
     .birthday-hero h1 {
         gap: clamp(8px, 3vw, 14px);
         font-size: clamp(4.65rem, 23.5vw, 7rem);
-        line-height: .75;
+        line-height: 1.2;
     }
 
     .birthday-hero h1 em {
@@ -1666,8 +1668,8 @@ body.birthday-route-active button {
 
     .birthday-unlock-takeover__content strong {
         font-size: clamp(4.25rem, 18vw, 5.5rem);
-        letter-spacing: -.045em;
-        line-height: .78;
+        letter-spacing: .015em;
+        line-height: 1.2;
     }
 
     .birthday-unlock-takeover__content p {

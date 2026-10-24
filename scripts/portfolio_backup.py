@@ -14,7 +14,7 @@ import subprocess
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 
 CORE_TABLES = ("admin_account", "recovery_code", "password_reset", "project", "project_revision", "project_media", "admin_audit", "flyway_schema_history")
-TABLES = CORE_TABLES + ("project_media_budget", "team_workspace", "team_account", "team_invitation", "team_audit", "team_channel", "team_message", "team_message_attachment", "support_request", "support_message", "support_event", "support_attachment", "billing_payment_request", "client_account", "client_invitation", "client_request", "client_reply", "billing_customer", "billing_intent", "billing_checkout_attempt", "billing_stripe_event", "team_group", "team_group_member", "team_channel_read", "team_mention", "team_role_profile", "team_preferences", "team_channel_preferences", "billing_observation", "billing_provider_payment", "billing_payment_link", "billing_provider_adjustment", "billing_payment_mutex", "billing_invoice_sync", "billing_invoice_allocation", "billing_client_invoice", "billing_refund_request")
+TABLES = CORE_TABLES + ("project_media_budget", "team_workspace", "team_account", "team_invitation", "team_audit", "team_channel", "team_message", "team_message_attachment", "support_request", "support_message", "support_event", "support_attachment", "billing_payment_request", "client_account", "client_invitation", "client_request", "client_reply", "billing_customer", "billing_intent", "billing_checkout_attempt", "billing_stripe_event", "team_group", "team_group_member", "team_channel_read", "team_mention", "team_role_profile", "team_preferences", "team_channel_preferences", "billing_observation", "billing_provider_payment", "billing_payment_link", "billing_provider_adjustment", "billing_payment_mutex", "billing_invoice_sync", "billing_invoice_allocation", "billing_client_invoice", "billing_refund_request", "assistant_budget")
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -78,7 +78,7 @@ def backup(args):
     available = set(json.loads(sql("SELECT COALESCE(json_agg(table_name), '[]'::json) FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'")))
     if not set(CORE_TABLES).issubset(available):
         raise ValueError("The expected application schema is incomplete; backup stopped.")
-    unknown = {name for name in available if name.startswith(("team_", "support_", "client_", "billing_", "project_")) and name not in TABLES}
+    unknown = {name for name in available if name.startswith(("team_", "support_", "client_", "billing_", "project_", "assistant_")) and name not in TABLES}
     if unknown:
         raise ValueError("New business tables require backup inventory review; no incomplete recovery point will be accepted.")
     selected = [name for name in TABLES if name in available]
@@ -120,8 +120,8 @@ def backup(args):
 
 def restore_local(args):
     manifest = verify(args.directory)
-    if os.environ.get("PGHOST") != "127.0.0.1" or os.environ.get("PGPORT") != "55432" or not re.fullmatch(r"crystal_restore_[a-z0-9_]+", os.environ.get("PGDATABASE", "")):
-        raise ValueError("Automated restore is restricted to an empty crystal_restore_* database on 127.0.0.1:55432.")
+    if os.environ.get("PGHOST") != "127.0.0.1" or os.environ.get("PGPORT") not in ("55432", "55447") or not re.fullmatch(r"crystal_restore_[a-z0-9_]+", os.environ.get("PGDATABASE", "")):
+        raise ValueError("Automated restore is restricted to an empty crystal_restore_* database on 127.0.0.1:55432 or :55447.")
     if sql("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public'") != "0":
         raise ValueError("Restore target must be empty. Existing data will not be overwritten.")
     if args.media_directory.exists():

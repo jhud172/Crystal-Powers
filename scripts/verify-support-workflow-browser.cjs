@@ -65,7 +65,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
     check('Stale email attempt offers an explicit retry', await row('Interrupted client update').getByRole('button', { name: 'Retry email', exact: true }).isEnabled());
     check('No billing management controls for a support-only fixture', await page.getByRole('button', { name: /Create payment request/ }).count() === 0);
     for (const theme of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
-      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: theme, exact: true }).click();
+      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: theme, exact: true }).click(); await page.keyboard.press('Escape');
       for (const width of [320, 390, 768, 1024, 1440, 1920]) { await page.setViewportSize({ width, height: 900 }); check(theme + ' ' + width + ' support workflow has no overflow', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); }
     }
     for (const width of [390, 1440]) { await page.setViewportSize({ width, height: 900 }); await page.screenshot({ path: path.join(output, 'support-' + width + '.png'), fullPage: true }); await page.locator('.support-tracking').scrollIntoViewIfNeeded(); await page.screenshot({ path: path.join(output, 'tracking-viewport-' + width + '.png') }); }

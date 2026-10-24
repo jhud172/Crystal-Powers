@@ -29,7 +29,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
       }
       for (const theme of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
         await page.getByRole('button', { name: 'Choose appearance', exact: true }).click();
-        await page.getByRole('button', { name: theme, exact: true }).click();
+        await page.getByRole('button', { name: theme, exact: true }).click(); await page.keyboard.press('Escape');
         check(`${route} ${theme} fits`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
       }
     }

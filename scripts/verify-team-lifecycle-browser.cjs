@@ -1,7 +1,8 @@
 /* Controlled transport/JSON interleavings and synthetic private data; no real account or mutation. */
 const {chromium}=require(process.env.CRYSTAL_PLAYWRIGHT_MODULE || 'playwright');
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
-const base='http://127.0.0.1:8084',output=path.resolve('.codex-runtime/qa/team-lifecycle-pc');
+const base=process.env.CRYSTAL_QA_URL || 'http://127.0.0.1:8084',output=path.resolve('.codex-runtime/qa/team-lifecycle-pc');
+assert.match(base, /^http:\/\/127\.0\.0\.1:(8084|18084)$/);
 const report={checks:[],errors:[],scope:'Packaged team workspace; synthetic permissions/conversations and a controlled parsed-JSON completion after a newer read'};
 const check=(name,value)=>{assert.ok(value,name);report.checks.push(name);};
 (async()=>{

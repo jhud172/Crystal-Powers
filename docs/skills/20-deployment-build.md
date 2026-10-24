@@ -9,7 +9,7 @@ Use for Vite build, Gradle packaging, Docker, Render, environment variables, fro
 - Vite builds `frontend/dist`.
 - Gradle copies `frontend/dist` into Spring static resources during `processResources`.
 - Spring Boot serves the built React app and APIs from one deployment.
-- Vite dev server proxies `/api` to `http://localhost:8080`.
+- Vite dev and preview servers proxy `/api` to `http://127.0.0.1:8080`. Built preview8084 requires the running backend; `prepreview` checks real health/projects JSON. Explicit UI-only QA may set `CRYSTAL_FRONTEND_ONLY=1`.
 - Docker builds frontend first, then packages Spring Boot with static assets.
 
 ## Rules

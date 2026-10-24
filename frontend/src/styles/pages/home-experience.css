@@ -2,7 +2,7 @@
 .home-proof { scroll-margin-top: 24px; }
 .home-proof:has(.home-project) { background: var(--studio-raised); padding-top: 72px; padding-bottom: 72px; }
 .home-project { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(24px, 4vw, 64px); margin-top: 44px; align-items: center; }
-.home-project-story h3 { font-size: clamp(28px, 3vw, 48px); letter-spacing: -.04em; line-height: 1.2; margin: 24px 0; }
+.home-project-story h3 { font-size: clamp(28px, 3vw, 48px); letter-spacing: .015em; line-height: 1.2; margin: 24px 0; }
 .home-project-story h3, .studio-home .studio-featured-list h3 { overflow-wrap: anywhere; }
 .home-project-story > p:not(.studio-eyebrow) { color: var(--studio-muted); font-size: 14px; max-width: 440px; }
 .home-project-story .studio-button { margin-top: 28px; }

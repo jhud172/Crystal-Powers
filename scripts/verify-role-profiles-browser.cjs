@@ -2,7 +2,7 @@ const inspectPrivateDesign = require('./lib/private-design-audit.cjs').createPri
 /* Synthetic role-editor responses only; real grants/revocation are integration-tested separately. */
 const { chromium } = require(process.env.CRYSTAL_PLAYWRIGHT_MODULE || 'playwright');
 const fs = require('node:fs/promises'), path = require('node:path'), assert = require('node:assert/strict');
-const base = process.env.CRYSTAL_QA_URL || 'http://127.0.0.1:8084'; assert.equal(base, 'http://127.0.0.1:8084');
+const base = process.env.CRYSTAL_QA_URL || 'http://127.0.0.1:8084'; assert.match(base, /^http:\/\/127\.0\.0\.1:(8084|18084)$/);
 const output = path.resolve('.codex-runtime/qa/roles-pc');
 const report = { checks: [], errors: [], runtime: 'Packaged Edge UI; explicitly synthetic team/management/profile/conflict responses; no real account mutation' };
 const check = (name, value) => { assert.ok(value, name); report.checks.push(name); };
@@ -61,7 +61,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
   check('Stale save keeps edits and original version',await name.inputValue()==='Scoped member refined'&&lastUpdate.expectedVersion===4&&lastUpdate.archived===false);
   check('Dirty role edits block member reassignment and refresh',await assignment('Scoped member').isDisabled()&&await page.getByRole('button',{name:'Reload roles and members',exact:true}).isDisabled());
   for(const theme of ['Dark','Light','Warm dark','Fresh light','Warm light']){
-   await page.getByRole('button',{name:'Choose appearance',exact:true}).click();await page.getByRole('button',{name:theme,exact:true}).click();
+   await page.getByRole('button',{name:'Choose appearance',exact:true}).click();await page.getByRole('button',{name:theme,exact:true}).click(); await page.keyboard.press('Escape');
    for(const width of [320,390,768,1024,1440,1920]){await page.setViewportSize({width,height:900});check(theme+' '+width+' role editor has no horizontal overflow',await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
   }
   for(const width of [390,1440]){await page.setViewportSize({width,height:900});await page.screenshot({path:path.join(output,'role-editor-'+width+'.png'),fullPage:true});}

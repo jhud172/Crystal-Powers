@@ -1,5 +1,13 @@
 # Crystal Powers 2.0 release readiness and recovery
 
+## Authorised main deployment — 24 October 2026
+
+James explicitly requested committing all current work and pushing to main for the existing live service. The pending changes include the optical Studio/Prism design, public/private workflow polish and integration fixes, the separate Companion source, approved Clare source package, explicit Home navigation and the guarded local Codex tooling. The Companion's independent feature acceptance remains excluded from the existing-feature audit; this push does not label all2.0 gates complete.
+
+Current frontend production build and offline bootJar pass; full H2 backend suite272/0/0/0, local browser batches33 full-stack +33 Clare/team +38 Home navigation pass. Animation/font contracts and the162-file static inventory pass. Secret/file scan found no credential files or high-confidence token/private-key patterns among208 staged files; ignored runtime databases, owner/Codex keys, DPAPI credentials and logs remain outside Git. Whitespace correction only removes a stray blank-line space in the separate Companion source.
+
+Render service identity has been freshly verified: Crystal Powers, srv-d7giag77f7vs73bd36sg, jhud172/Crystal-Powers, main, Docker, existing Starter plan; auto-deploy on commit. Before this push its live revision is ea48e65. Preserve existing hosting/provider settings and production identity/data. Clare's local H2 publication and the local Codex account are not copied by Git. Local automation identities are denied outside the loopback local H2 runtime. Production/provider/operating-fact gates retain their recorded scope; deployed status must be verified after pushing.
+
 Latest laptop handoff: `89de812ded2e78fcbb060693cd30e478c06927e1861b70e1682896713d3dc116` packages the private editor/password/modal corrections. Build/bootJar pass;1,295 relevant preview/functional/private assertions pass with the stated scope.146 frontend outputs match and615 non-frontend ZIP entries match earlier candidates. Earlier backend tests remain exact-byte evidence, not fresh packaged-browser execution. Full release is still unaccepted; use [laptop handover](LAPTOP_HANDOVER_2_0.md).
 
 Current frontend checkpoint: candidate `1ab93293afec317b5056fdc802fc521aefbd3052b8de3d74c3e14fe94954f64e` adds only the D5 metadata/increased-contrast CSS batch. All146 output files match and all615 non-frontend ZIP entries exactly match `f754…`; previous backend/recovery evidence retains that identical-byte scope.578 relevant built-preview checks pass, including actual native browser zoom, rendered/layered contrast and repeated GPU retirement. These are scoped preview results, not a fresh rerun of all35 packaged browser suites. Full design/release acceptance remains open; see the new D5 evidence in the design goal.
@@ -40,11 +48,11 @@ Use already authorised dependency restoration if needed; do not install implicit
 .\gradlew.bat postgresTest --no-daemon --rerun-tasks
 ```
 
-The script currently performs frontend production compilation, animation/font/model/poster checks and Gradle test/bootJar. It does not prove every role/workflow, browser journey, external provider, physical device, container or backup gate. PostgreSQL checks require an explicitly disposable database at `127.0.0.1:55432/crystal_rebuild_test...` through `PG_TEST_DATABASE_*`; never point tests at the application/production database. Do not print credential values. Record exact source/commit, commands, test coverage/results/skips, startup/package identity and browser/provider evidence separately.
+The script currently performs frontend production compilation, animation/font/model/poster checks and Gradle test/bootJar. It does not prove every role/workflow, browser journey, external provider, physical device, container or backup gate. PostgreSQL checks require an explicitly disposable database at `127.0.0.1:55432/crystal_rebuild_test...` or guarded alternative `127.0.0.1:55447/crystal_rebuild_test...` through `PG_TEST_DATABASE_*`; never point tests at the application/production database. Do not print credential values. Record exact source/commit, commands, test coverage/results/skips, startup/package identity and browser/provider evidence separately.
 
 `postgresTest` always executes rather than reusing a cached/up-to-date result. Its guarded URL also feeds test-local datasource overrides; TeamWorkspaceTests asserts the actual JDBC product. Keep synthetic fixtures isolated from production and preserve their transaction rollback.
 
-Additional read-only local checks use PostgreSQL CLI settings `PGHOST=127.0.0.1`, `PGPORT=55432`, `PGUSER`, `PGDATABASE` and optional `PG_BIN`; supply authentication privately. Isolation checks require representative `anon`/`authenticated` roles to exist in the disposable cluster. Source databases must be named `crystal_rebuild_test...`, and restore targets `crystal_restore_...`:
+Additional read-only local checks use PostgreSQL CLI settings `PGHOST=127.0.0.1`, `PGPORT=55432` (or guarded alternative55447), `PGUSER`, `PGDATABASE` and optional `PG_BIN`; supply authentication privately. Isolation checks require representative `anon`/`authenticated` roles to exist in the disposable cluster. Source databases must be named `crystal_rebuild_test...`, and restore targets `crystal_restore_...`:
 
 ```powershell
 python scripts/verify-postgres-isolation.py

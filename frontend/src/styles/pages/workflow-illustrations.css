@@ -22,7 +22,7 @@
 .support-map p, .support-map figcaption { font-size: var(--studio-type-small); color: var(--studio-muted); line-height: 1.8; }
 .support-map figcaption { border-top: 1px solid var(--studio-line); padding-top: 20px; }
 .service-example { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(28px, 5vw, 72px); align-items: center; margin-top: 56px; padding-top: 40px; border-top: 1px solid var(--studio-line); }
-.service-example h2 { font-size: clamp(28px, 3vw, 44px); line-height: 1.15; letter-spacing: -.035em; margin: 20px 0; }
+.service-example h2 { font-size: clamp(28px, 3vw, 44px); line-height: 1.2; letter-spacing: .015em; margin: 20px 0; }
 .service-example-copy > p:not(.studio-eyebrow) { font-size: 14px; line-height: 1.8; color: var(--studio-muted); margin-bottom: 20px; }
 .service-example-note { border-left: 2px solid var(--studio-control-line); padding-left: 16px; }
 .service-interface { margin: 0; min-width: 0; border: 1px solid var(--studio-control-line); box-shadow: var(--studio-elevation); background: var(--studio-bg); }
@@ -31,7 +31,7 @@
 .interface-chrome-dots { margin-left: auto; letter-spacing: 3px; }
 .service-interface-art > div:not(.interface-chrome) { padding: clamp(20px, 3vw, 36px); }
 .interface-kicker { display: block; font-size: 10px; letter-spacing: .1em; color: var(--studio-muted); margin-bottom: 20px; }
-.service-interface strong { display: block; font-size: clamp(28px, 3.4vw, 48px); line-height: 1.15; letter-spacing: -.035em; font-weight: 500; color: var(--studio-text); overflow-wrap: anywhere; }
+.service-interface strong { display: block; font-size: clamp(28px, 3.4vw, 48px); line-height: 1.2; letter-spacing: .015em; font-weight: 500; color: var(--studio-text); overflow-wrap: anywhere; }
 .interface-artwork { display: flex; justify-content: center; align-items: center; gap: 10px; min-height: 100px; margin: 24px 0; background: var(--studio-raised); }
 .interface-artwork i { display: block; width: 30px; height: 54px; border: 1px solid var(--studio-accent); transform: skewY(-20deg); }
 .interface-artwork i:nth-child(2) { height: 76px; background: var(--studio-accent); }

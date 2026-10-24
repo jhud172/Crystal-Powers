@@ -13,3 +13,10 @@ button { cursor: pointer; }
 body.reveal-ready .studio-shell [data-reveal] { opacity: 1; transform: none; }
 body.reveal-ready .studio-shell [data-reveal].is-visible { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { body.reveal-ready .studio-shell [data-reveal] { opacity: 1; transform: none; } }
+
+/* Keep the footer below the first view while asynchronous forms/policy states resolve. */
+.studio-shell:is(.owner-shell, [data-route="privacy"]) > .studio-main { min-block-size: 100svh; }
+
+/* Readability is a site-wide contract, including the separate birthday route. */
+html { font-kerning:none; font-variant-ligatures:none; letter-spacing:.01em; }
+:where(h1,h2,h3,h4,h5,h6) { overflow-wrap:anywhere; }

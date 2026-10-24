@@ -13,13 +13,13 @@ public class ClientRepository {
     public record Account(UUID id, UUID workspaceId, String email, String displayName, String passwordHash, String state, int version) {}
     public record Preferences(UUID clientId, UUID workspaceId, String contactPreference, int version) {}
     public record Invitation(UUID accountId, OffsetDateTime expiresAt) {}
-    public record Project(UUID id, String subject, String state, int progress, String nextStep, OffsetDateTime updatedAt) {}
+    public record Project(UUID id, String subject, String state, int progress, String nextStep, OffsetDateTime updatedAt, String projectScope) {}
     public record ProjectAnchor(UUID id,OffsetDateTime createdAt) {}
     public record Message(UUID id, String author, String body, String direction, OffsetDateTime createdAt) {}
     public record ReplySubmission(UUID id, UUID requestId, UUID accountId, String body) {}
     private final JdbcTemplate db;
     private final RowMapper<Account> accountRow = (r, n) -> new Account(r.getObject("id", UUID.class), r.getObject("workspace_id", UUID.class), r.getString("email"), r.getString("display_name"), r.getString("password_hash"), r.getString("state"), r.getInt("credentials_version"));
-    private final RowMapper<Project> projectRow = (r,n) -> new Project(r.getObject("id", UUID.class), r.getString("subject"), r.getString("state"), r.getInt("progress"), r.getString("next_step"), r.getObject("updated_at", OffsetDateTime.class));
+    private final RowMapper<Project> projectRow = (r,n) -> new Project(r.getObject("id", UUID.class), r.getString("subject"), r.getString("state"), r.getInt("progress"), r.getString("next_step"), r.getObject("updated_at", OffsetDateTime.class), r.getString("project_scope"));
     private final RowMapper<Message> messageRow = (r,n) -> new Message(r.getObject("id", UUID.class), r.getString("author"), r.getString("body"), r.getString("direction"), r.getObject("created_at", OffsetDateTime.class));
     private static final String CONVERSATION="SELECT * FROM (SELECT m.id,'Crystal Powers' AS author,m.body,'TEAM' AS direction,m.created_at FROM support_message m WHERE m.request_id=? AND m.kind='CLIENT' AND m.portal_visible=TRUE UNION ALL SELECT cr.id,c.display_name AS author,cr.body,'CLIENT' AS direction,cr.created_at FROM client_reply cr JOIN client_account c ON c.id=cr.account_id WHERE cr.request_id=?) conversation ";
     public ClientRepository(JdbcTemplate db) { this.db = db; }

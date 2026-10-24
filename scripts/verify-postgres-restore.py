@@ -15,10 +15,10 @@ def main():
     parser.add_argument("--media-directory", type=Path, required=True)
     args = parser.parse_args()
     source = os.environ.get("PGDATABASE", "")
-    if (os.environ.get("PGHOST") != "127.0.0.1" or os.environ.get("PGPORT") != "55432"
+    if (os.environ.get("PGHOST") != "127.0.0.1" or os.environ.get("PGPORT") not in ("55432", "55447")
             or not re.fullmatch(r"crystal_rebuild_test[a-z0-9_]*", source)
             or not re.fullmatch(r"crystal_restore_[a-z0-9_]+", args.target)):
-        raise ValueError("Use distinct disposable source and restore databases on 127.0.0.1:55432.")
+        raise ValueError("Use distinct disposable source and restore databases on 127.0.0.1:55432 or :55447.")
     manifest = verify(args.backup)
     executable = str(Path(os.environ["PG_BIN"]) / ("psql.exe" if os.name == "nt" else "psql")) if "PG_BIN" in os.environ else "psql"
 

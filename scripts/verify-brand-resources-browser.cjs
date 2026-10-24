@@ -1,17 +1,19 @@
+/* Returning-visitor feature regression; first-visit Companion is verified separately. */
 /* Repeated real WebGL acquisition/retirement; read-only local API fixtures.
    Counters observe native calls without retaining GPU objects/canvases or adding a render loop. */
 const { chromium } = require(process.env.CRYSTAL_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises'), path = require('node:path');
-const base = process.env.CRYSTAL_QA_URL || 'http://127.0.0.1:8084'; assert.equal(base, 'http://127.0.0.1:8084');
-const output = path.resolve('.codex-runtime/qa/brand-resources-d5');
-const report = { checks: [], cycles: [], errors: [], scope: 'Installed Edge, repeated actual liquid/original WebGL opens, changes, idle and retirement in one document. Native allocation/deletion/context-loss observations; not GPU-driver memory/thermal or physical-device certification.' };
+const base = process.env.CRYSTAL_QA_URL || 'http://127.0.0.1:8084'; assert.match(base, /^http:\/\/127\.0\.0\.1:(8084|18084)$/);
+const output = path.resolve('.codex-runtime/qa/brand-resources-studio-20261024');
+const report = { candidateSha256:process.env.CRYSTAL_QA_CANDIDATE_SHA256, checks: [], cycles: [], errors: [], scope: 'Installed Edge, repeated actual liquid/original WebGL opens, changes, idle and retirement in one document. Native allocation/deletion/context-loss observations; not GPU-driver memory/thermal or physical-device certification.' };
 const check = (name, value) => { assert.ok(value, name); report.checks.push(name); };
 (async () => {
   await fs.mkdir(output, { recursive: true });
   const browser = await chromium.launch({ headless: true, executablePath: process.env.CRYSTAL_BROWSER_EXECUTABLE });
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   await context.addInitScript(() => {
+    localStorage.setItem('crystal_prism_visit_v1', JSON.stringify({status:'completed',version:1}));
     const observed = new WeakSet(), tracked = new WeakSet();
     const state = { records: [], peakCanvases: 0 }; window.__brandResources = state;
     const getContext = HTMLCanvasElement.prototype.getContext;

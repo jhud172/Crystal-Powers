@@ -74,7 +74,7 @@ class BillingWorkflowTests {
         try(var connection=dataSource.getConnection()){
             String product=connection.getMetaData().getDatabaseProductName();
             if(product.equals("PostgreSQL")){
-                assertThat(connection.getMetaData().getURL()).matches("jdbc:postgresql://127\\.0\\.0\\.1:55432/crystal_rebuild_test[a-z0-9_]*");
+                assertThat(connection.getMetaData().getURL()).matches("jdbc:postgresql://127\\.0\\.0\\.1:(55432|55447)/crystal_rebuild_test[a-z0-9_]*");
                 assertThat(org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()).isTrue();
                 new JdbcTemplate(dataSource).execute("TRUNCATE TABLE public.admin_account CASCADE");
             }else assertThat(connection.getMetaData().getURL()).startsWith("jdbc:h2:mem:crystal-billing-tests");

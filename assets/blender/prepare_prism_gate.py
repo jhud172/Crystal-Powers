@@ -13,12 +13,15 @@ roles = [node.get('extras', {}).get('role') for node in gltf['nodes']]
 assert roles.count('gate-corner') == 4
 assert roles.count('projector-diamond') == 1
 assert roles.count('opening-pivot') == 5
-assert roles.count('neon-rim') == 8
+assert roles.count('neon-rim') == 0, 'Separate luminous edge outlines must not return'
+assert not any('Neon perimeter' in node.get('name','') for node in gltf['nodes'])
 assert len(raw) < 5 * 1024 * 1024
 assert all('bufferView' in image for image in gltf['images'])
 materials = {material['name']: material for material in gltf['materials']}
 neon = materials['Glacial neon glass']
-assert neon['extensions']['KHR_materials_transmission']['transmissionFactor'] > .5
+assert neon.get('alphaMode') == 'BLEND'
+assert .8 < neon['pbrMetallicRoughness']['baseColorFactor'][3] < .9
+assert neon['extensions']['KHR_materials_transmission']['transmissionFactor'] >= .85
 assert neon['emissiveFactor'][2] > neon['emissiveFactor'][0]
 coating = materials['Platinum-coated quartz']
 assert coating['pbrMetallicRoughness']['metallicFactor'] >= .7
@@ -60,6 +63,8 @@ for name,clip in clips.items():
             assert all(math.dist(a,b)<.03 for a,b in zip(samples,samples[1:])), 'Sudden translation'
         paths[name][(channel['target']['node'],kind)]=samples
 assert paths['CrystalOpen'].keys()==paths['CrystalClose'].keys()
+projector = next(i for i, node in enumerate(gltf['nodes']) if node.get('name') == 'DiamondProjectorPivot')
+assert abs(paths['CrystalOpen'][(projector, 'translation')][-1][1] - 1.05) < 1e-4, 'Open projector must sit below the hologram'
 for key,opening in paths['CrystalOpen'].items():
     closing=paths['CrystalClose'][key]
     assert all(math.dist(a,b)<1e-5 or key[1]=='rotation' and math.dist(a,tuple(-v for v in b))<1e-5 for a,b in zip(opening,reversed(closing))), 'Open/close path mismatch'

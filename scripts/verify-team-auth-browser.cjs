@@ -1,7 +1,8 @@
 /* Synthetic invitation/login/MFA transport fixtures; no real account or delivery. */
 const { chromium } = require(process.env.CRYSTAL_PLAYWRIGHT_MODULE || 'playwright');
 const fs = require('node:fs/promises'), path = require('node:path'), assert = require('node:assert/strict');
-const base = 'http://127.0.0.1:8084', output = path.resolve('.codex-runtime/qa/team-auth-pc');
+const base = process.env.CRYSTAL_QA_URL || 'http://127.0.0.1:8084', output = path.resolve('.codex-runtime/qa/team-auth-pc');
+assert.match(base, /^http:\/\/127\.0\.0\.1:(8084|18084)$/);
 const report = { checks: [], errors: [], scope: 'Packaged team entry, synthetic transport/link/MFA responses, no real credentials/accounts/provider' };
 const check = (name, value) => { assert.ok(value, name); report.checks.push(name); };
 (async () => {
@@ -43,7 +44,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
     await page.goForward(); await page.getByLabel('Email', { exact: true }).waitFor();
     check('Forward returns to a clean sign-in form', await page.getByLabel('Email', { exact: true }).inputValue() === '' && await page.getByLabel('Password', { exact: true }).inputValue() === '');
     for (const theme of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
-      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: theme, exact: true }).click();
+      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: theme, exact: true }).click(); await page.keyboard.press('Escape');
       for (const width of [320, 390, 768, 1024, 1440, 1920]) { await page.setViewportSize({ width, height: 1000 }); check(theme + ' ' + width + ' team entry has no overflow', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); }
     }
     await page.getByLabel('Email', { exact: true }).fill('synthetic-team@example.invalid'); await page.getByLabel('Password', { exact: true }).fill('Synthetic-login-password-2026');
@@ -56,7 +57,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
     releaseLogin(); await page.getByLabel('Authenticator code', { exact: true }).waitFor(); await page.getByRole('button', { name: 'Copy authenticator setup key', exact: true }).waitFor();
     check('MFA step removes login passwords and shows only synthetic setup', await page.locator('input[name=password]').count() === 0 && await page.locator('.admin-enrolment code').count() === 1);
     for (const theme of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
-      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: theme, exact: true }).click();
+      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: theme, exact: true }).click(); await page.keyboard.press('Escape');
       for (const width of [320, 390, 768, 1024, 1440, 1920]) { await page.setViewportSize({ width, height: 1000 }); check(theme + ' ' + width + ' authenticator step has no overflow', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); }
     }
     await page.getByLabel('Authenticator code', { exact: true }).fill('123 456'); await page.getByRole('button', { name: 'Open workspace', exact: true }).click(); await page.getByText('Synthetic authenticator code refused.', { exact: true }).waitFor();

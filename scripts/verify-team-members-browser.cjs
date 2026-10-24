@@ -2,7 +2,7 @@ const inspectPrivateDesign = require('./lib/private-design-audit.cjs').createPri
 /* Packaged UI with explicit synthetic account/management/mail responses. No real account or email mutations. */
 const { chromium } = require(process.env.CRYSTAL_PLAYWRIGHT_MODULE || 'playwright');
 const fs = require('node:fs/promises'), path = require('node:path'), assert = require('node:assert/strict');
-const base=process.env.CRYSTAL_QA_URL || 'http://127.0.0.1:8084';assert.equal(base,'http://127.0.0.1:8084');
+const base=process.env.CRYSTAL_QA_URL || 'http://127.0.0.1:8084';assert.match(base, /^http:\/\/127\.0\.0\.1:(8084|18084)$/);
 const output=path.resolve('.codex-runtime/qa/team-members-pc');
 const report={checks:[],errors:[],runtime:'Installed Edge and packaged app; synthetic member, access, conflict and delivery responses only'};
 const check=(name,value)=>{assert.ok(value,name);report.checks.push(name);};
