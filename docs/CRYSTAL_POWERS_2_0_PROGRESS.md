@@ -1,5 +1,16 @@
 # Crystal Powers 2.0 progress — 24 October 2026
 
+## Live main deployment verified — 24 October 2026
+
+- [x] Commit all208 pending source/asset/documentation files as5e9cdf3 and fast-forward/push main without force. Ignored runtime data and encrypted credentials remain outside Git.
+- [x] Diagnose the initial Render build failure, correct the Docker source layout/approved JSON context, and patch Vite6.4.3→6.4.5 (npm audit0 vulnerabilities). Correction committed/pushed asfd9c5ef67742b49a0115be55fd5e73e55171584b.
+- [x] Verify Render deploy dep-dbe9ekijnfac73digcr0 is **live**, finished24 October2026 at11:37:40UTC. The existing Crystal Powers Starter service/plan and provider settings are preserved. Its real PostgreSQL database successfully applied62 migrations fromV3 throughV65 and started normally. New runtime error log query returns0 entries.
+- [x] Verify https://crystal-powers.com serves the exact new frontend entry hash. **46 deployed read-only browser/HTTP checks pass**: real health/projects JSON; Home/Work/Studio/Services/Support/Contact plus owner/team/client entries at390/1440px; explicit Home links; no horizontal overflow/runtime errors/5xx; all three anonymous account sessions remain unauthenticated. Scope is existing features/returning visitor, excluding the separately tracked Companion acceptance and real provider/private-auth transactions. First smoke ran during routing propagation and still saw the previous asset hash; retained as live-main-pre-routing-report.json. Repeat after the switch passes without an application change. Evidence: `.codex-runtime/qa/live-main-report.json` and live-main screenshots.
+
+Clare's approved captures/content source is committed, but its published revision and local Codex account live in the ignored local database. Production `/api/projects` currently returns an empty list. No local account/credential/database was copied to production, no owner credential was reset, and no production project was published by Git. Production Clare publication still requires the authorised live owner workflow. Broader legal/provider/physical/private/deployment acceptance items must not be marked complete from this smoke result alone.
+
+This documentation-only checkpoint uses Render's documented `[skip render]` commit phrase so recording live evidence does not trigger another application rollout. The deployed application revision staysfd9c5ef; the main branch can additionally contain this release-note-only commit.
+
 ## Local Codex publisher and approved Clare publication — 24 October 2026
 
 - [x] Create a dedicated temporary Codex team login without resetting the protected owner. Ordinary password/MFA/CSRF/session controls; restricted custom publisher role with exactly READ_CHANNELS, EDIT_PROJECTS and PUBLISH_PROJECTS. Deny reserved automation identities outside the loopback local H2 runtime; retain normal account behaviour and management removal visibility.
