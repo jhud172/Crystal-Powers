@@ -32,10 +32,13 @@ const reply = (route, body, status = 200) => route.fulfill({ status, contentType
     }
     await page.setViewportSize({ width: 390, height: 844 });
     for (const appearance of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
-      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: appearance, exact: true }).click();
+      const appearanceToggle = page.getByRole('button', { name: 'Choose appearance', exact: true });
+      if (await appearanceToggle.getAttribute('aria-expanded') !== 'true') await appearanceToggle.click();
+      await page.getByRole('region', { name: 'Appearance settings', exact: true }).getByRole('button', { name: appearance, exact: true }).click();
       check(`${appearance} owner layout fits`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
       await page.screenshot({ path: path.join(output, `signin-${appearance.replaceAll(' ', '-')}.png`) });
     }
+    await page.getByRole('button', { name: 'Close appearance', exact: true }).click();
     await page.getByLabel('Password', { exact: true }).fill('synthetic-ui-password');
     await page.getByRole('button', { name: 'Show password', exact: true }).focus(); await page.keyboard.press('Enter');
     check('Keyboard shows password without changing value', await page.getByLabel('Password', { exact: true }).getAttribute('type') === 'text' && await page.getByRole('button', { name: 'Hide password', exact: true }).getAttribute('aria-pressed') === 'true');

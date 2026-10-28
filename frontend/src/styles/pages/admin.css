@@ -26,6 +26,8 @@
 .admin-enrolment dt { font-size: 11px; color: var(--studio-muted); margin-top: 15px; }
 .admin-enrolment dd { margin: 5px 0; }
 .admin-enrolment code { overflow-wrap: anywhere; font-size: 15px; }
+.admin-authenticator-qr { display: block; width: min(100%, 256px); height: auto; margin-block: 20px; background: #fff; color: #000; forced-color-adjust: none; border-radius: 0; user-select: none; }
+.admin-enrolment .admin-qr-note { font-size: 12px; color: var(--studio-muted); margin-bottom: 20px; }
 .admin-recovery-codes { display: grid; gap: 8px; padding: 22px; background: var(--studio-raised); margin-bottom: 25px; }
 .admin-recovery-codes code { overflow-wrap: anywhere; font-size: 13px; }
 .admin-check { display: flex !important; align-items: center; gap: 10px !important; margin: 12px 0; font-size: 12px; }
