@@ -1,5 +1,7 @@
 # Crystal Powers project structure
 
+Owner studio composition: styles/pages/owner-workspace.css owns admin panel/form/card spacing and policy-aware interaction finish after shared/refinement CSS. routes/Admin.tsx owns labelled owner action navigation; TeamMembers.tsx uses shared admin-form-fields for the creation fieldset. scripts/verify-owner-design-browser.cjs owns synthetic responsive/theme/spacing/focus checks, separate from actual session/authority acceptance.
+
 
 Current logo studio: [Crystal Studio](CRYSTAL_STUDIO.md). `build_liquid_brand.py` owns Blender geometry/native scene/GLB/portrait; `BrandIdentity.tsx` owns public logo controls/lifecycle; `BrandLogoCanvas.tsx` and `LiquidBrandModel.tsx` own the lazy imported model, prepared environment, materials and orbit. Shared rendering and motion policy remain authoritative.
 

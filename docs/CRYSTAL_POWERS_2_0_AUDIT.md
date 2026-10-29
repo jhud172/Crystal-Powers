@@ -1,5 +1,13 @@
 # Crystal Powers 2.0 — design, workflow and usability audit
 
+## Owner studio spacing and interaction batch — 29 October 2026
+
+- [x] Replace crowded owner actions with a labelled responsive navigation group, visible current member state and separated touch targets. Introduce owner-scoped optical panels, generous section/form spacing, responsive member/profile cards, distinct permission tiles, rounded inputs and clearer project/editor action groups. New composition belongs to styles/pages/owner-workspace.css; existing theme tokens and shared controls remain authoritative.
+- [x] Add180–220ms hover/focus/background/border transitions and fine-pointer button lift only under full motion. Panel changes use a260ms opacity arrival; no sticky/fixed ancestor transforms, perpetual loops, new listeners/dependencies or hidden content. Touch has no required hover; reduced motion removes animation/transitions. Existing business/authentication/permission contracts are unchanged.
+- [x] Fix the member-creation fieldset missing the existing admin-form-fields layout class; this was the remaining collapsed field/button spacing found during visual review.
+- [x] End-of-batch checks: production frontend build passes;103 synthetic local presentation checks cover dashboard/members/roles at320,390,768,1024,1440,1920px across all five verified appearance IDs, navigation collisions/target sizes, form spacing, keyboard focus, reduced motion and runtime errors. Existing owner authentication/security UI suite passes41checks. Final0failures; initial focus check needed actual keyboard navigation and theme fixtures needed real IDs before final acceptance. Evidence: .codex-runtime/qa/owner-design/ and owner-pc/. Existing deferred Three.js chunk warning remains; CSS217.06kB/37.88gzip, main JS159.15kB/47.91gzip.
+- [ ] Deploy and verify these new owner styles against the real hosted sessions. This batch is local source/build/browser evidence, not a production update or full backend/provider/physical-device acceptance. No credentials or business data changed; pending Codex activation remains a separate handoff.
+
 ## Live main deployment verified — 24 October 2026
 
 - [x] Commit all208 pending source/asset/documentation files as5e9cdf3 and fast-forward/push main without force. Ignored runtime data and encrypted credentials remain outside Git.

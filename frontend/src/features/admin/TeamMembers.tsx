@@ -90,7 +90,7 @@ export function TeamMembers({ onBack, onSessionExpired, backLabel = "Back to pro
     {canManageRoles && <button ref={roleProfilesButton} className="admin-secondary" disabled={busy || loading || !management} onClick={() => {if(formDirty && !window.confirm("Discard unsaved member details before opening role profiles?"))return;setFormDirty(false);setRolesOpen(true);}}>Manage custom role profiles</button>}
     {loading && <p role="status">Checking current member-management access…</p>}
     {!loading && management && !allowedRoles.length && <p>Your custom role cannot grant any full base role. Ask an authorised admin or the owner to provision the account.</p>}
-    <form ref={creationForm} className="admin-form" onInput={()=>setFormDirty(true)} onSubmit={event => { event.preventDefault(); void create(event.currentTarget); }}><fieldset disabled={busy || loading || !allowedRoles.length}>
+    <form ref={creationForm} className="admin-form" onInput={()=>setFormDirty(true)} onSubmit={event => { event.preventDefault(); void create(event.currentTarget); }}><fieldset className="admin-form-fields" disabled={busy || loading || !allowedRoles.length}>
       <label>Display name<input name="displayName" required maxLength={120} autoComplete="name" /></label>
       <label>Email<input name="email" type="email" required maxLength={254} autoComplete="email" /></label>
       <label>Role<select name="role" value={creationRole} onChange={event=>{setCreationRole(event.target.value as Role);setFormDirty(true);}}>{allowedRoles.map(role => <option key={role}>{role}</option>)}</select></label>

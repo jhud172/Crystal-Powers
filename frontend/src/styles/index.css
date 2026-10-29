@@ -27,6 +27,7 @@
 @import "./pages/workspace-design.css";
 @import "./pages/immersive-refinement.css";
 @import "./pages/private-workflows.css";
+@import "./pages/owner-workspace.css";
 
 html { scroll-behavior: smooth; }
 body { margin: 0; min-width: 320px; background: #0b1018; }

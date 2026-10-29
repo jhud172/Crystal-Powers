@@ -1,5 +1,11 @@
 # Crystal Powers 2.0 current handover
 
+## Owner studio design batch — 29 October 2026
+
+Implemented owner-workspace.css after existing feature/refinement styles: spacious responsive panels/forms, owner navigation action group, member/profile cards, selectable permission tiles, project/action separation, input focus, hover/pressed feedback and short policy-aware opacity arrivals. Admin.tsx adds a labelled nav and Team members pressed state; TeamMembers.tsx reuses admin-form-fields on the creation fieldset to fix collapsed spacing. No backend/security/session logic change or dependency installation. Original unrelated mail/provider changes remain untouched.
+
+Build passes;103 new local synthetic dashboard/member/role design assertions plus41existing owner auth/security UI assertions pass,0final failures. Five real themes and six widths320–1920px, overflow/navigation geometry/touch targets, field spacing, keyboard focus and reduced motion covered. Screenshots visually reviewed; initial visual review exposed the fieldset spacing bug and it was fixed/rebuilt/retested. Report: .codex-runtime/qa/owner-design/report.json; synthetic previews members-desktop.png and roles-mobile.png. Main JS unchanged159.15kB/47.91gzip; CSS217.06kB/37.88gzip; existing Three.js warning remains. No backend tests/full packaged release suite rerun because business/backend code is untouched. Styles are not yet committed/pushed/deployed; do not claim the live admin changed. Codex activation still needs the user's direct new-password/MFA entry.
+
 ## Live main deployment verified — 24 October 2026
 
 - [x] Commit all208 pending source/asset/documentation files as5e9cdf3 and fast-forward/push main without force. Ignored runtime data and encrypted credentials remain outside Git.
