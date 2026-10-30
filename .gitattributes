@@ -1,0 +1,3 @@
+# Font provenance records hash the original upstream LF text bytes on every OS.
+frontend/public/fonts/manrope/OFL.txt text eol=lf
+frontend/public/fonts/manrope/FONTLOG.txt text eol=lf

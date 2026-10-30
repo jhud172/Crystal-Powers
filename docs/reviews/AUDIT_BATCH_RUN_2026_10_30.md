@@ -1,0 +1,70 @@
+# Completion batch execution — 30 October 2026
+
+Working plan: [remaining audit checklists](../AUDIT_COMPLETION_BATCHES_2_0.md). Source baseline: main `8d5bf15`, with the local changes below. James subsequently requested commit, push and a live view. This report retains the local evidence; current publication/deployment status is recorded in the session handover. The current named-item count is **133 checked / 23 open / 156 total**, plus eight owner phase sign-offs. HUB-11 is accepted for the isolated local workflow; hosted acceptance stays in HUB-18/CLIENT-04/RELEASE-02.
+
+## Current evidence
+
+| Check | Observed result and boundary |
+| --- | --- |
+| Current package | SHA256 `c8b7c9801b55fa131036f9a607d54deb81f5f53c1c68deffd7552bd3a2d00cb0`; exact 162-file static inventory, zero stale files |
+| Frontend | Production build passes; main 159.15 kB / 47.91 gzip, CSS 218.88 kB / 38.04 gzip. Optional Three.js 1007.39 kB / 276.31 gzip retains its existing warning. All 161 frontend files match the reviewed fixed production snapshot |
+| Full backend suites | H2 and PostgreSQL each pass **284 tests / 17 suites**, zero failures/errors/skips, after the multipart correction |
+| Subsequent key-configuration batch | After adding restricted-key support, H2 and PostgreSQL each pass **48 tests / 4 suites**: billing workflows, signed webhooks, real multipart parsing and three new key-mode tests. This focused result is separate from the preceding full-suite result |
+| Private UI fixtures | All 23 suites pass after the two documented corrections below. Affected workspace production-preview regression passes 85 checks; settings rerun passes 54 |
+| Actual local identities | 31 actual role-lifecycle and 38 actual owner/team/client session browser checks pass on earlier candidate `2d02845d...`; no API interception or external delivery |
+| Populated recovery | 57 checks pass on `2d02845d...` and compatible previous `20ea3fcc...`, including 46 tables / 139 rows, schema/constraints/RLS, two sequences, media, browser-role denials, resumed writes and one-use recovery codes |
+| Motion | Six deterministic suites pass 254 checks: motion 50, Prism 53, delayed observer 4, quality 95, resources 40, adaptive quality 12. Actual native visibility remains unavailable; the wrapper reports partial acceptance |
+| Trusted scanner | Real ClamAV 1.5.4 / definitions 28169 (30 October 06:26:48): seven protocol/application checks plus stopped-daemon fail-closed. A separately labelled simulated drip peer proves the whole-operation deadline at 20027 ms and retires cleanly |
+| Actual upload workflow | Current `c8b7c980...` package: 25 local HTTP/DB checks with ClamAV, including a browser-acceptance gate whose actual reviewer/member UI report passes 17 checks. Scanner-stopped run passes 18 local checks and 16 actual browser checks. Do not sum repeated runs as unique coverage |
+| Stripe | CLI 1.55.3 installed, official vendor checksum verified, authorised by James and read-only `/v1/account` verified as the selected sandbox `acct_1TFxT1FtqSI9Oxmn`. Application API key remains pending private entry; no provider payment/customer/subscription/refund/webhook endpoint was created by this run |
+
+Ignored evidence is under `.codex-runtime/qa/audit-batches-2026-10-30/`. Full summaries are `multipart-fixed-test-summary.json` and `multipart-fixed-postgresTest-summary.json`; subsequent focused summaries are `restricted-payment-*-summary.json`. Fixture reruns are reconciled without erasing initial failures in `private-ui-consolidated.json`. Final inventory is `final-candidate-inventory.json`.
+
+## Implemented corrections
+
+- Pinned the original Manrope licence/history files to LF in `.gitattributes`. Their normalised bytes matched the recorded originals; the font verifier was not weakened.
+- Regenerated all 12 original live-scene photographs after detecting stale renderer provenance. Reviewed the contact sheet: all silhouette bounds match, maximum whole-image mean channel difference 0.04173/255. Promoted the captures and 24 responsive WebPs through the existing guarded recipe. Animation, font, Liquid Light, Blender web, Liquid Brand and live-poster contracts pass.
+- Fixed mobile project-card actions wrapping beside the card: the owner stylesheet now retains a wrapping row direction. The workspace regression verifies every action remains inside its card and viewport at 320/390/768/1024/1440/1920 px, then exercises actual fixture archive/restore controls.
+- Added a global handler for `MaxUploadSizeExceededException` only. Real multipart parsing can fail before a controller is selected, so the existing scoped handlers did not catch it. Error dispatch then masked 413 as 401/403. The new handler returns the established `success`/`message` JSON with 413; authentication, CSRF, limits, routing and schema remain unchanged.
+- Extended Stripe's existing mode guard to accept `rk_test_`/`rk_live_` alongside secret keys. Restricted keys still require the matching mode, webhook signing secret and safe return origin; live operation still requires explicit live mode and HTTPS. Disabled issuance stays disabled while existing management configuration retains its prior semantics. Configuration tests use synthetic key shapes and make no Stripe requests.
+- Existing guarded QA runners now accept `PG_BIN` for the authorised portable installation while retaining loopback/database-name boundaries. Added reproducible real scanner/HTTP/browser helpers. The public QA wrapper validates the native report's candidate hash and prints `BATCH_PARTIAL` when native acceptance is unavailable.
+
+## HUB-11 local acceptance
+
+Final clean evidence: `populated-recovery-scanner-20261030115442/report.json` and `actual-upload-browser-report.json`. Final stopped-scanner evidence: `populated-recovery-scanner-20261030115840/`.
+
+The real HTTP workflow checks anonymous and foreign-author denial, quarantine, hidden unapproved metadata, clean scanning followed by separate human approval, exact private download bytes and attachment/no-store/nosniff/sandbox headers, stale versions, unsafe filenames/type mismatches, actual over-15-MB rejection and stored-byte removal. Simultaneous requests verify one scan lease and one saved review. Cross-channel uploads cannot overcommit an explicit **506-byte acceptance quota**; removal frees that quota and permits safe retry of a refused submission key. This is a deliberately small isolated test configuration, not a production quota change.
+
+Actual reviewer/member browsers perform keyboard scanning/review, download the approved bytes, retain denied approval/download when scanning fails, fit compact/tablet/desktop viewports and restore keyboard focus on closing. No API fixture is installed in these runs. Existing dual-database contracts cover group, credential, foreign-resource and five-file boundaries. Harmless EICAR detection is real protocol evidence; no live malware or host-file EICAR is used. Physical devices and deployed scanner operation remain separate release checks.
+
+## Actual sessions, recovery and motion scope
+
+Actual role evidence: `populated-recovery-browser-20261030105824/roles-browser-report.json`. Actual session evidence: `populated-recovery-browser-20261030110004/browser-report.json`. Recovery evidence: `populated-recovery-audit-20261030110112/report.json`. These earlier packages precede the multipart/key-configuration corrections; do not relabel their hashes as the current candidate. The recovery pair shares its backend/schema and does not prove rollback across schema-changing backend code. Financial snapshots are explicitly synthetic and providers are disabled.
+
+Motion evidence: `motion-full.log` plus the candidate-tagged reports under the existing QA folders. The unchanged frontend matches the fixed production snapshot byte-for-byte. Quality samples report the actual Iris Xe renderer and frame intervals, not physical-phone thermals or field interaction performance. Native headed Edge keeps `document.hidden=false` after real other-tab activation and minimisation; zero native observations are accepted. No visibility property or event was invented for that native probe. Deterministic emulation remains labelled separately. The excluded Companion remains outside this acceptance scope.
+
+## Stripe handoff and unresolved operating facts
+
+James authorised the CLI device flow and selected the separate **Crystal Production LTD sandbox**, not shared test mode or live mode. CLI profile `crystal-powers-sandbox-audit` is verified. Its current device login stores no application API key in the profile; it does not replace a server integration credential. [Stripe's API-key guidance](https://docs.stripe.com/keys) distinguishes those server keys and webhook signing secrets.
+
+`scripts/local/Save-StripeSandboxCredentials.ps1` accepts a test key in a masked local prompt, verifies the exact sandbox account and stores it with Windows-user DPAPI under ignored security files. No key belongs in chat. The folder is open for James's private entry. The local listener secret will be obtained separately; no production webhook or public laptop endpoint is needed. Actual application/provider payment tests remain unrun. CLI account verification alone does not close PAY-01/03/04/05/07/08.
+
+James confirms legal/trading identity, business contact address, retention/deletion periods and included aftercare/support terms are all undecided. B1 remains open and no policy was fabricated or published. A read-only public DNS snapshot confirms three Lark MX records, Lark SPF include with -all, and monitoring DMARC p=none. No DNS record was changed; actual provider sender/DKIM selectors, inbox ownership, authenticated receipt and approved routing remain unverified. Evidence: public-mail-dns.json. Public DNS reporting addresses are not treated as confirmed business-contact facts. Real company email receipt/correspondence, hosted controlled roles, physical/assistive checks, native visibility and eight owner sign-offs remain open. Existing owner MFA and invited restricted account boundaries are preserved.
+
+## Initial failures and corrections retained
+
+- First H2 run: one publication metadata assertion failed because old 23 October frontend resources lacked `twitter:image`. Refreshing resources corrected it. A tool-runtime interruption stopped one corrective run and is not counted as a pass; later full runs pass.
+- First workspace UI suite: real mobile control overflow, corrected in its owning stylesheet. A cold development-server rerun timed out before assertions; warmed and production-preview reruns pass.
+- Settings fixture: the test toggled an intentionally still-open appearance panel closed before selecting Light. Explicit Escape restores the actual interaction sequence; 54 checks pass.
+- Real oversized upload: authenticated private route returned 403, anonymous form regression returned 401; the new real-servlet test first fails, then passes with the global multipart handler.
+- Browser harness: nested select-label text required a role/name locator. An independent minimal browser reproduction shows Playwright `option.isDisabled()` false while native `option.disabled` is true; the test now inspects the native property. No approval control was enabled to make the test pass.
+- Restricted-key tests initially fail two of three cases, then pass after the bounded key-type correction. One grouped command put `--tests` after `bootJar` and failed before executing tests; the corrected command passes 48 tests on each database.
+- Automatic approval review rejected an explicit generated-folder replacement command. The normal repository build completed safely instead. No rejected deletion was bypassed.
+
+## Installed QA tools and remaining release boundary
+
+Authorised exact-lock `npm ci` restores 152 packages; `npm ls` passes and npm reports zero vulnerabilities. No manifest/lockfile upgrade. Portable PostgreSQL 17.11 is SCRAM-authenticated on `127.0.0.1:55447`, with disposable QA databases only. ClamAV's owned daemons bind only `127.0.0.1:13310` and are stopped by their helpers. The application fixtures bind loopback 18084 and force mail/billing/AI providers off. No host antivirus exclusion or production setting was changed. Docker startup did not establish a usable daemon; native portable tools are used instead.
+
+Download receipts: PostgreSQL archive SHA256 `80379b2c04d51c30225532e0ae04509899141e9957ed096fe749d7fd9df8f82f`; ClamAV archive `0d9e0228b2674137ea1a2853566c98a0278ad52ab2582c3d6dbd75373848c395`. These are receipts, not claims of separate vendor-signature verification. Sources: [PostgreSQL Windows distribution](https://www.postgresql.org/download/windows/), [EDB binaries](https://www.enterprisedb.com/download-postgresql-binaries), [ClamAV release](https://github.com/Cisco-Talos/clamav/releases/tag/clamav-1.5.4), [Stripe CLI release](https://github.com/stripe/stripe-cli/releases/tag/v1.55.3).
+
+The full audit and release are not complete. Keep ignored credentials, databases, downloads and screenshots out of commits; preserve unrelated untracked `clipmind/`. Necessary installation/routine setup has standing authorisation from James; no further routine installation question is required. Final release still needs the applicable remaining checklists, current combined QA/provider/hosted evidence and owner acceptance.

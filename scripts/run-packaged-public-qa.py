@@ -2,6 +2,7 @@
 import argparse
 import importlib.util
 import hashlib
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -30,7 +31,7 @@ def fixture(suffix, port, candidate):
         source="crystal_rebuild_test_recovery_" + suffix + "_" + stamp,
         target="crystal_restore_" + suffix + "_" + stamp,
         run="populated-recovery-" + suffix + "-" + stamp,
-        pg_bin=Path("C:/Program Files/PostgreSQL/17/bin"), pg_port=55447, app_port=port))
+        pg_bin=Path(os.environ.get("PG_BIN", "C:/Program Files/PostgreSQL/17/bin")), pg_port=55447, app_port=port))
 
 current = fixture("public", 18084, "build/libs/crystal-power-website-2.0.0.jar")
 previous = None
@@ -90,7 +91,16 @@ try:
             failed.append(name)
     if failed:
         raise RuntimeError("Grouped " + args.stage + " failures: " + ", ".join(failed))
-    print("PACKAGED_" + args.stage.upper() + "_BATCH_PASS", flush=True)
+    if "verify-native-visibility-browser.cjs" in scripts:
+        native = json.loads((module.ROOT / ".codex-runtime/qa/native-visibility-bulk/report.json").read_text())
+        if native.get("candidateSha256") != environment["CRYSTAL_QA_CANDIDATE_SHA256"]:
+            raise RuntimeError("Native visibility evidence does not match this candidate.")
+        if native.get("passed") is not True:
+            print("PACKAGED_" + args.stage.upper() + "_BATCH_PARTIAL: native visibility unavailable; acceptance remains open", flush=True)
+        else:
+            print("PACKAGED_" + args.stage.upper() + "_BATCH_PASS", flush=True)
+    else:
+        print("PACKAGED_" + args.stage.upper() + "_BATCH_PASS", flush=True)
 finally:
     if previous:
         previous.stop()

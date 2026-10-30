@@ -51,7 +51,7 @@ const check = (name, value) => { assert.ok(value, name); report.checks.push(name
     check('Saved-state feedback starts independently for each settings form',await page.locator('.workspace-save-state[data-dirty="false"]').count()===2);
     check('Unchanged forms cannot be saved', await personal().isDisabled() && await workspace().isDisabled());
     for (const appearance of ['Dark', 'Light', 'Warm dark', 'Fresh light', 'Warm light']) {
-      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: appearance, exact: true }).click();
+      await page.getByRole('button', { name: 'Choose appearance', exact: true }).click(); await page.getByRole('button', { name: appearance, exact: true }).click(); await page.keyboard.press('Escape');
       for (const width of [320, 390, 768, 1024, 1440, 1920]) { await page.setViewportSize({ width, height: 900 }); check(appearance + ' ' + width + ' settings do not overflow', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); }
     }
     await page.getByLabel('Workspace name', { exact: true }).fill('Unsent workspace identity');

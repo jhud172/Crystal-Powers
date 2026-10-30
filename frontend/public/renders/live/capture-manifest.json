@@ -14,8 +14,8 @@
       "fov": 34,
       "posterWidth": 1600,
       "posterHeight": 1000,
-      "bytes": 78396,
-      "sha256": "972979869e93bb4df6bd514945064fd8c0a2a09413c4ecf9b108804b504ebb74"
+      "bytes": 78247,
+      "sha256": "fc2f050a29938374997fa011b2ae7afc275391fb10ae85ae9f175975208ccc6f"
     },
     {
       "filename": "crystal-light.png",
@@ -30,8 +30,8 @@
       "fov": 34,
       "posterWidth": 1600,
       "posterHeight": 1000,
-      "bytes": 56089,
-      "sha256": "414689feaac96b78f5857b83af75d5274d990d3d30e8b7c3dfa25a8581226168"
+      "bytes": 55770,
+      "sha256": "0d16ab0944e3148a2d52bb648f7f13698005cc5ad1b4a19605cb003f553a03e2"
     },
     {
       "filename": "laptop-dark.png",
@@ -46,8 +46,8 @@
       "fov": 34,
       "posterWidth": 1600,
       "posterHeight": 1120,
-      "bytes": 272461,
-      "sha256": "2a49df8de15faabdb04bfe499bdf936354afbf4902ec65cc0a4eac4d515fad39"
+      "bytes": 271030,
+      "sha256": "7223812d1b212014bbf8a2834d648681007757b800e87d6bef04be4c7ef53cb8"
     },
     {
       "filename": "laptop-light.png",
@@ -62,8 +62,8 @@
       "fov": 34,
       "posterWidth": 1600,
       "posterHeight": 1120,
-      "bytes": 271171,
-      "sha256": "a128e44ae013443a402c2bcf741a2a942116e1e7b30884e81bd0ec1fb3a9a4e1"
+      "bytes": 269731,
+      "sha256": "d42f77f0a4639f5fa8b23c2ab0c90f876bd0e1c48c87bdd40675b72be3bc2973"
     },
     {
       "filename": "monitor-dark.png",
@@ -78,8 +78,8 @@
       "fov": 34,
       "posterWidth": 1600,
       "posterHeight": 1120,
-      "bytes": 234277,
-      "sha256": "ccfb49aad3023515eff53cc1015b0d24b3feb816d0b66aa3d810e1e9297ecb12"
+      "bytes": 232663,
+      "sha256": "9e43e56068cbde5e48aa56408c2beae5a24c773926d36828832ed71b8dc99a57"
     },
     {
       "filename": "monitor-light.png",
@@ -94,8 +94,8 @@
       "fov": 34,
       "posterWidth": 1600,
       "posterHeight": 1120,
-      "bytes": 233172,
-      "sha256": "2b2780a1d6ff4630f0da8b45ac155dae9d2c6f166e02ec768ab311f85bc96b6f"
+      "bytes": 231856,
+      "sha256": "ff8e834aa48daa33559c267d492e4f0020a5858316b05b0a1d9252f5017e4911"
     },
     {
       "filename": "phone-dark.png",
@@ -110,8 +110,8 @@
       "fov": 30,
       "posterWidth": 1600,
       "posterHeight": 1120,
-      "bytes": 211503,
-      "sha256": "1e47f105738f6bd35e92975078eccfb882dde8557562e190450df4a1bd8bc1e8"
+      "bytes": 209272,
+      "sha256": "36de1e188f0bbc0a27485202b960fc6650631454c7fa00609ef5714011f7fae9"
     },
     {
       "filename": "phone-light.png",
@@ -126,8 +126,8 @@
       "fov": 30,
       "posterWidth": 1600,
       "posterHeight": 1120,
-      "bytes": 211366,
-      "sha256": "a26dbddc7dbf9770716f11506a9ec4ba619d363384bd1b42168e06f2eed72c37"
+      "bytes": 209091,
+      "sha256": "337a3c986ec98352012fbe218f0f652ce82de21ba0baefb8ecd854846387770a"
     },
     {
       "filename": "observatory-dark.png",
@@ -142,8 +142,8 @@
       "fov": 30,
       "posterWidth": 1600,
       "posterHeight": 1000,
-      "bytes": 304673,
-      "sha256": "8a4da57a80fa035abf6c2e6a30c8b74f4cea431146e6aa71f6c9ed1636f96140"
+      "bytes": 305513,
+      "sha256": "a65a4c48570ec7f7c5adad362c546ba5f999d4d561854558d2953786d9ec18ea"
     },
     {
       "filename": "observatory-dark-open.png",
@@ -158,8 +158,8 @@
       "fov": 30,
       "posterWidth": 1600,
       "posterHeight": 1000,
-      "bytes": 390510,
-      "sha256": "f1e0f5dd766ff5be2d3f95125ba66915913e5fc3126c882f1fc1a1bed058f522"
+      "bytes": 390879,
+      "sha256": "4f71d0cbbe4efb38a20bad1c987d6d8db05f3912d876189de40fc33b608ce682"
     },
     {
       "filename": "observatory-light.png",
@@ -174,8 +174,8 @@
       "fov": 30,
       "posterWidth": 1600,
       "posterHeight": 1000,
-      "bytes": 307527,
-      "sha256": "41250d35ae0b068ee0aaaae286d0d623063efc7ca8bef783617b795a547649e6"
+      "bytes": 308401,
+      "sha256": "d6957a7c40e3c487ac6b8f5e49e55145948e373f6aca8b2f13c0dbb3e6c94f76"
     },
     {
       "filename": "observatory-light-open.png",
@@ -190,18 +190,18 @@
       "fov": 30,
       "posterWidth": 1600,
       "posterHeight": 1000,
-      "bytes": 391921,
-      "sha256": "8f23d85d3f54f6087ca5a038914c15ba8531d91739bc3432736a444d5af5650c"
+      "bytes": 392650,
+      "sha256": "52baa907bad416cacc4a1141f2c5d7a5dffb6dc071e4ccbcfef3f311fda32a67"
     }
   ],
   "errors": [],
   "sourceHashes": {
-    "frontend/src/features/experience/ModelCanvas.tsx": "684c59d00b720679c72958b05113aa67bbbe57aed7436c4f4d2d2411234fc79c",
-    "frontend/src/features/experience/PreparedScene.tsx": "83d08a0e60984496d5876b2071887d54f3cfe7da025f850a8f6f98e1d43da9df",
+    "frontend/src/features/experience/ModelCanvas.tsx": "1cbb4e183b159861fc340f15a03b119379c27d4e26e0c7434a1063727c9c0b37",
+    "frontend/src/features/experience/PreparedScene.tsx": "3775b44477c258c192f072e72a06903a5e806bc16ab063265cc6fab8b920c793",
     "frontend/src/features/experience/useEnvironmentPreparation.ts": "fd4b6950b4fb5773e43bdde5a2c58a6bbc39bfda763e4e05c53f92759caa7388",
     "frontend/src/features/experience/waitForScenePrograms.ts": "71135e96f735648a3c16fe0c57502bd0935617f53f7778b083c23f95349de471",
-    "frontend/src/features/experience/scenePresentation.ts": "fa5f74f63cbdde32932f8ffa3bd0c2e82fe5d51860ed1a9b4e4310bcc109a067",
-    "frontend/src/features/experience/renderQuality.ts": "48a7d77d7bcf51a47cb801f9c6f5a2c236d38d246da426a68deecf8c1d7f5449",
+    "frontend/src/features/experience/scenePresentation.ts": "82d48f08324fcf380234034e795e67fe1388410fce8d479bcfe307b80fed8867",
+    "frontend/src/features/experience/renderQuality.ts": "7e69c81e166aed2052a9fd2768012fadc747a6649639abd1a48d2bffea69ca16",
     "frontend/public/renders/studio-screen.png": "559f2e19208f86acf68504fa4a450bac4a6a762f027f8411a07dc6d1a7a8ed3c",
     "frontend/public/renders/studio-mobile.png": "f6b55df433d2b88ceb051978ec647b45c23a25f69ebfc5d8b0619e792ab35c07"
   },

@@ -18,7 +18,7 @@ options = parser.parse_args()
 stamp = time.strftime("%Y%m%d%H%M%S")
 args = SimpleNamespace(candidate=Path("build/libs/crystal-power-website-2.0.0.jar").resolve(),
     source="crystal_rebuild_test_recovery_browser_" + stamp, target="crystal_restore_browser_" + stamp,
-    run="populated-recovery-browser-" + stamp, pg_bin=Path("C:/Program Files/PostgreSQL/17/bin"),
+    run="populated-recovery-browser-" + stamp, pg_bin=Path(os.environ.get("PG_BIN", "C:/Program Files/PostgreSQL/17/bin")),
     pg_port=55447, app_port=18084)
 lab = lab_module.Lab(args)
 try:

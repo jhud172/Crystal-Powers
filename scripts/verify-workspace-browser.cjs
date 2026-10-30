@@ -85,6 +85,13 @@ const reply=(route,body,status=200)=>route.fulfill({status,contentType:'applicat
   let restorePrompt='';page.once('dialog',d=>{restorePrompt=d.message();d.accept();});await page.getByRole('button',{name:'Restore project',exact:true}).click();await page.getByText('Project restored.',{exact:true}).waitFor();check('Editor restore explains which published version becomes visible',restorePrompt.includes('Published revision 5') && !projects[0].archived);
   page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Unpublish project',exact:true}).click();await page.getByText('Unpublished. Your draft and images are still here.',{exact:true}).waitFor();check('Unpublish keeps saved content and clears publication',projects[0].version===5 && projects[0].publishedVersion===null);
   await page.getByRole('button',{name:'← All projects',exact:true}).click();const dashboardTarget=page.locator('.admin-project-row').filter({has:page.getByRole('button',{name:projects[1].content.title,exact:true})});
+  for(const width of [320,390,768,1024,1440,1920]){
+   await page.setViewportSize({width,height:900});
+   check(`Dashboard ${width}px keeps every project action inside its card and viewport`,await page.locator('.admin-project-row').evaluateAll(rows=>rows.every(row=>{
+    const card=row.getBoundingClientRect();return [...row.querySelectorAll('.admin-project-actions button,.admin-project-actions input')].every(control=>{const r=control.getBoundingClientRect();return r.left>=Math.max(0,card.left)-1 && r.right<=Math.min(innerWidth,card.right)+1 && r.top>=card.top-1 && r.bottom<=card.bottom+1;});
+   })));
+  }
+  await page.setViewportSize({width:390,height:844});
   page.once('dialog',d=>d.dismiss());await dashboardTarget.getByRole('button',{name:'Archive project',exact:true}).click();check('Cancelling dashboard archive preserves public status',!projects[1].archived && projects[1].publishedVersion===2);
   page.once('dialog',d=>d.accept());await dashboardTarget.getByRole('button',{name:'Archive project',exact:true}).click();await dashboardTarget.waitFor({state:'hidden'});await page.getByRole('button',{name:'Archived',exact:true}).click();await dashboardTarget.waitFor();check('Dashboard archive moves the row into its separate archive view',projects[1].archived);
   let dashboardRestorePrompt='';page.once('dialog',d=>{dashboardRestorePrompt=d.message();d.accept();});await dashboardTarget.getByRole('button',{name:'Restore project',exact:true}).click();await dashboardTarget.waitFor({state:'hidden'});check('Dashboard restore explains prior public revision and preserves the newer private draft',dashboardRestorePrompt.includes('published revision 2') && projects[1].version===4 && projects[1].publishedVersion===2 && !projects[1].archived);

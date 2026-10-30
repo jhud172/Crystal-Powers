@@ -398,7 +398,7 @@ def main():
     parser.add_argument("--source", required=True)
     parser.add_argument("--target", required=True)
     parser.add_argument("--run", required=True)
-    parser.add_argument("--pg-bin", type=Path, default=Path("C:/Program Files/PostgreSQL/17/bin"))
+    parser.add_argument("--pg-bin", type=Path, default=Path(os.environ.get("PG_BIN", "C:/Program Files/PostgreSQL/17/bin")))
     parser.add_argument("--pg-port", type=int, choices=(55432, 55447), default=55432)
     parser.add_argument("--app-port", type=int, choices=(8084, 18084), default=8084)
     args = parser.parse_args()

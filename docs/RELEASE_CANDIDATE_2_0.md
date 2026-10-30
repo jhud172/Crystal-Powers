@@ -1,5 +1,7 @@
 # Crystal Powers 2.0 release readiness and recovery
 
+> Current release, checked 30 October: main is 8d5bf15; Render application 62f933c is live (dep-dbi5kkbm8hqs73aptnsg). Health is up and Clare's approved project is public. The 24 October empty-portfolio/deployment notes below are historical. Continue using the [current batch checklist](AUDIT_COMPLETION_BATCHES_2_0.md) and [overview](reviews/AUDIT_OVERVIEW_2026_10_30.md); full provider/device/policy and phase acceptance remains open.
+
 ## Live main deployment verified — 24 October 2026
 
 - [x] Commit all208 pending source/asset/documentation files as5e9cdf3 and fast-forward/push main without force. Ignored runtime data and encrypted credentials remain outside Git.

@@ -41,7 +41,7 @@ public class StripeGateway {
     public boolean configured() {
         return enabled && connected();
     }
-    public boolean connected() { return secret.matches(liveMode ? "sk_live_[A-Za-z0-9]+" : "sk_test_[A-Za-z0-9]+") && webhookSecret.matches("whsec_[A-Za-z0-9]+") && validPublicUrl(); }
+    public boolean connected() { return secret.matches(liveMode ? "(?:sk|rk)_live_[A-Za-z0-9]+" : "(?:sk|rk)_test_[A-Za-z0-9]+") && webhookSecret.matches("whsec_[A-Za-z0-9]+") && validPublicUrl(); }
     public void requireConnected() { if(!connected()) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,"Stripe billing management is not configured. Contact the team for help with an existing payment or subscription."); }
     public boolean liveMode() { return liveMode; }
     public void requireConfigured() { if (!configured()) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Payments are not configured. No charge or subscription has been created."); }

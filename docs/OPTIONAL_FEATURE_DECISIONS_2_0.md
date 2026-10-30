@@ -1,5 +1,7 @@
 # Optional feature decisions for Crystal Powers 2.0
 
+> Historical evaluation, 10 October. Later implementation supersedes the original future/no-feature decisions for client workspaces, the separately tracked Companion and private MFA QR. Those features exist in current source; their actual acceptance boundaries belong to the [current audit](CRYSTAL_POWERS_2_0_AUDIT.md), [handover](CODEX_SESSION_HANDOVER.md) and [batch checklist](AUDIT_COMPLETION_BATCHES_2_0.md). Preserve the original evaluation below without treating it as the current delivery inventory.
+
 Reviewed 10 October 2026 after local connected public journeys, saved/published owner boundaries, account/recovery/session journeys and responsive preview checks passed. These decisions complete NEW-02’s value/cost evaluation; they do not replace whole-page, physical, hosted or release acceptance.
 
 The 2.0 work already adds original interactive artwork, matched still/live views, bounded quality/motion choices, guided briefs, actual responsive project screens, story/gallery navigation, private revision preview, publishing review and owner recovery/navigation protection. Optional additions should help a real visitor or owner task and have a supportable operating model. No additional provider, dependency, account or recurring subscription is committed by this review.
