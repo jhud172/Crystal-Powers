@@ -1,6 +1,6 @@
 # Crystal Powers 2.0 laptop handover —19 October2026
 
-> Current continuation, 30 October: this checkout has successfully pulled **main at 8d5bf15**. Use main and the [current batch checklist](AUDIT_COMPLETION_BATCHES_2_0.md), [handover](CODEX_SESSION_HANDOVER.md) and [overview](reviews/AUDIT_OVERVIEW_2026_10_30.md). The branch, non-deployed publication state and pending provider statements below describe the historical 19 October handoff. Current production includes the 30 October application release and Clare's approved live publication; full acceptance remains open.
+> Current continuation, 30 October: this checkout pulled main at8d5bf15 and subsequently committed/pushed the completion batch as **f200fca**, now verified LIVE on Render with20read-only checks. Use main and the [current batch checklist](AUDIT_COMPLETION_BATCHES_2_0.md), [handover](CODEX_SESSION_HANDOVER.md) and [overview](reviews/AUDIT_OVERVIEW_2026_10_30.md). The branch, non-deployed publication state and pending provider statements below describe the historical 19 October handoff. Current production includes the 30 October application release and Clare's approved live publication; full acceptance remains open.
 
 Continue on `James/crystal-powers-2-completion`. All current source, assets, migrations, QA scripts and audit notes belong to this handoff. This is a development handoff, not a production release or deployment. The full goal remains unfinished.
 

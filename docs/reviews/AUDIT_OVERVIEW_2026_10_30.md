@@ -1,6 +1,6 @@
 # Full audit overview — 30 October 2026
 
-Completion-run update: **133/156 checked,23 open** after actual local HUB-11 scanner/HTTP/browser acceptance. The overview below records the initial132/156 pull checkpoint. Current code/test/provider boundaries are in [the execution report](AUDIT_BATCH_RUN_2026_10_30.md) and [batch checklist](../AUDIT_COMPLETION_BATCHES_2_0.md). No new commit or deployment has been performed.
+Completion-run update: **133/156 checked,23 open** after actual local HUB-11 scanner/HTTP/browser acceptance. The overview below records the initial132/156 pull checkpoint. Current code/test/provider boundaries are in [the execution report](AUDIT_BATCH_RUN_2026_10_30.md) and [batch checklist](../AUDIT_COMPLETION_BATCHES_2_0.md). Subsequent publication is verified: `f200fca` is LIVE on Render (`dep-dbi8js942hec73fcle5g`), with20read-only hosted checks passed.
 
 ## Current source and live release
 

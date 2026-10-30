@@ -2,6 +2,8 @@
 
 Working plan: [remaining audit checklists](../AUDIT_COMPLETION_BATCHES_2_0.md). Source baseline: main `8d5bf15`, with the local changes below. James subsequently requested commit, push and a live view. This report retains the local evidence; current publication/deployment status is recorded in the session handover. The current named-item count is **133 checked / 23 open / 156 total**, plus eight owner phase sign-offs. HUB-11 is accepted for the isolated local workflow; hosted acceptance stays in HUB-18/CLIENT-04/RELEASE-02.
 
+Publication verified: application commit `f200fcaa80e4c3fafbabf557188de04f047079ab`, Render `dep-dbi8js942hec73fcle5g` LIVE at12:16:03UTC. Twenty read-only hosted checks pass, five served files match reviewed local bytes, no new error logs returned, and the live homepage is open. This is release verification of the reviewed batch, not completion of the remaining audit/provider/physical gates.
+
 ## Current evidence
 
 | Check | Observed result and boundary |

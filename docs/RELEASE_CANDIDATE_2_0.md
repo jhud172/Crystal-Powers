@@ -1,6 +1,6 @@
 # Crystal Powers 2.0 release readiness and recovery
 
-> Current release, checked 30 October: main is 8d5bf15; Render application 62f933c is live (dep-dbi5kkbm8hqs73aptnsg). Health is up and Clare's approved project is public. The 24 October empty-portfolio/deployment notes below are historical. Continue using the [current batch checklist](AUDIT_COMPLETION_BATCHES_2_0.md) and [overview](reviews/AUDIT_OVERVIEW_2026_10_30.md); full provider/device/policy and phase acceptance remains open.
+> Current application release, verified30October12:16UTC: main contains `f200fcaa80e4c3fafbabf557188de04f047079ab`; Render deploy `dep-dbi8js942hec73fcle5g` is LIVE. Twenty read-only hosted checks pass, including exact reviewed asset bytes; the live homepage is open for James. Earlier62f933c/8d5bf15 and24October empty-portfolio checkpoints below are historical. Full provider/device/policy and owner phase acceptance remain open; follow the [current batch checklist](AUDIT_COMPLETION_BATCHES_2_0.md) and [handover](CODEX_SESSION_HANDOVER.md).
 
 ## Live main deployment verified — 24 October 2026
 

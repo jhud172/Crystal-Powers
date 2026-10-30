@@ -1,8 +1,10 @@
 # Crystal Powers 2.0 current handover
 
-## Publication requested — 30 October 2026
+## Publication verified — 30 October 2026
 
-James explicitly requests commit, push and a live view. The reviewed application/audit batch is being published to the existing Crystal Powers Render service from main. Deployment verification is pending; keep provider activation and the remaining23 audit items separate from this release. No environment variables, new services or payment/mail activation are part of this publication.
+Committed/pushed the reviewed61-file batch as `f200fcaa80e4c3fafbabf557188de04f047079ab` on main. Render auto-deploy `dep-dbi8js942hec73fcle5g` is LIVE, finished30October12:16:03UTC, on the existing Crystal Powers service. Fresh read-only production verification passes20checks: health, approved Clare publication, nine direct routes, anonymous private-API denial, exact HTML asset references and five served-file byte comparisons with the tested local build. No new Render error logs were returned. Evidence: ignored `.codex-runtime/qa/audit-batches-2026-10-30/live-release-verification.json`. The live homepage is opened as a browser deliverable at https://crystal-powers.com/.
+
+This publication does not activate providers, change environment variables, create services or close the remaining23 audit items/eight phase sign-offs. The follow-up documentation-only checkpoint uses `[skip render]` to avoid another restart. Unrelated untracked `clipmind/` remains outside the commit.
 
 ## Completion batches started — 30 October 2026
 
