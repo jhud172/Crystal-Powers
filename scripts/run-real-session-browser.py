@@ -1,5 +1,6 @@
-"""Create a fresh disposable PostgreSQL fixture and pipe its credentials to Edge in memory only."""
+"""Create a fresh disposable PostgreSQL fixture and pipe its credentials to the browser in memory only."""
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -13,7 +14,9 @@ lab_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(lab_module)
 lab_module.BASE = "http://127.0.0.1:18084"
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--roles", action="store_true")
+modes = parser.add_mutually_exclusive_group()
+modes.add_argument("--roles", action="store_true")
+modes.add_argument("--polling", action="store_true", help="Real native foreground/background conversation acceptance")
 options = parser.parse_args()
 stamp = time.strftime("%Y%m%d%H%M%S")
 args = SimpleNamespace(candidate=Path("build/libs/crystal-power-website-2.0.0.jar").resolve(),
@@ -29,8 +32,10 @@ try:
     payload = dict(ownerEmail=lab.owner_email, teamEmail=lab.team_email, clientEmail=lab.client_email,
         password=lab.password, ownerSecret=lab.owner_secret, teamSecret=lab.team_secret,
         lastStep=lab.last_step, project=lab.project, businessProject=lab.business_project,
-        request=lab.request, channel=lab.channel, output=str(lab.output))
-    result = subprocess.run(["node", "scripts/verify-real-roles-browser.cjs" if options.roles else "scripts/verify-real-session-browser.cjs"],
+        request=lab.request, channel=lab.channel, output=str(lab.output),
+        candidateSha256=hashlib.sha256(args.candidate.read_bytes()).hexdigest())
+    script = "verify-real-polling-browser.cjs" if options.polling else "verify-real-roles-browser.cjs" if options.roles else "verify-real-session-browser.cjs"
+    result = subprocess.run(["node", "scripts/" + script],
         input=json.dumps(payload), text=True, cwd=lab_module.ROOT)
     if result.returncode:
         raise RuntimeError("Real-session browser batch failed; inspect its sanitised report.")

@@ -1,8 +1,8 @@
 # Full audit overview — 30 October 2026
 
-Completion-run update: **133/156 checked,23 open** after actual local HUB-11 scanner/HTTP/browser acceptance. The overview below records the initial132/156 pull checkpoint. Current code/test/provider boundaries are in [the execution report](AUDIT_BATCH_RUN_2026_10_30.md) and [batch checklist](../AUDIT_COMPLETION_BATCHES_2_0.md). Subsequent publication is verified: `f200fca` is LIVE on Render (`dep-dbi8js942hec73fcle5g`), with20read-only hosted checks passed.
+Completion-run update: **135/156 checked,21 open** after actual local HUB-11 scanner/HTTP/browser and MOTION-03/HUB-10 native motion/polling acceptance. The latter adds four motion and15 conversation checks on the current packaged candidate, without API mocks or synthetic visibility. The overview below records the initial132/156 pull checkpoint. Current code/test/provider boundaries are in [the execution report](AUDIT_BATCH_RUN_2026_10_30.md) and [batch checklist](../AUDIT_COMPLETION_BATCHES_2_0.md). Subsequent publication is verified: `f200fca` is LIVE on Render (`dep-dbi8js942hec73fcle5g`), with20read-only hosted checks passed.
 
-## Current source and live release
+## Initial pull checkpoint — superseded by the completion-run update above
 
 - Pulled `main` with `git pull --ff-only origin main`: 12 commits from `ea48e65` to `8d5bf15`, with no tracked local changes or merge conflicts. HEAD and origin/main agree.
 - Render freshly reports `62f933c41c9f716dc3cb566d4001ca6a96dc206a` live, deployment `dep-dbi5kkbm8hqs73aptnsg`, completed 30 October at 08:53 UTC. The newer `8d5bf15` is a documentation-only `[skip render]` checkpoint.
@@ -38,8 +38,8 @@ Earlier bulk records include PostgreSQL, populated recovery, real local role/ses
 1. **Company email and delivery:** complete independent staff inbox provisioning/first sign-ins and aliases, verify receiving destinations before department overrides, then perform agreed invitation/support/enquiry delivery, reply, bounce/outage and uncertain-outcome acceptance. A provider's Sent/Accepted status does not establish inbox receipt. MAIL-01–06 and client correspondence gates remain open.
 2. **Operating facts and privacy:** confirm legal/trading identity, public contact arrangements, retention/deletion, service inclusions and aftercare; apply accurate public policy/support copy. CONTACT-08, NEW-01, CONTENT-03/05 and MAIL-05 depend on this.
 3. **Payment provider:** complete agreed Stripe sandbox setup and real sandbox one-off, recurring, customer portal, cancellation, required-action, refund and signed-webhook journeys. PAY-01/03/04/05/07/08 remain open; do not use real customer charges as tests.
-4. **Trusted upload scanning:** configure and validate an actual scanner through private upload/quarantine/review/download acceptance. HUB-11 remains open.
-5. **Native, physical and assistive acceptance:** verify actual hidden-tab cancellation/polling and representative phone/tablet/touch/GPU/thermal and assistive-technology behaviour. MOTION-03, PERF-03, HUB-10/18 and broader client acceptance retain these boundaries.
+4. **Hosted trusted uploads:** HUB-11 is now accepted locally with actual ClamAV, HTTP/database and reviewer/member browser evidence. Production scanner configuration and authenticated hosted acceptance remain within HUB-18/CLIENT-04/RELEASE-02.
+5. **Physical and assistive acceptance:** MOTION-03/HUB-10 now pass actual native Chrome cancellation/polling acceptance. Representative physical phone/tablet/touch/GPU/thermal and assistive observations remain PERF-03 and broader HUB-18/client/release gates.
 6. **Final private and design/release acceptance:** finish CLIENT-03/04 and hosted role/session/provider exceptional-state journeys, then review the complete phase/design scope and final release candidate. PHASE-A–H and RELEASE-02 remain open. Companion retains its separately tracked acceptance scope.
 
 Separate account handoff: the restricted live Codex publisher has the correct profile assigned according to the latest 29 October checkpoint, but activation password/authenticator enrolment and actual allowed/denied session verification remain pending. Owner MFA itself is already complete; do not repeat first-owner setup or reset credentials.

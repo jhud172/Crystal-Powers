@@ -1,6 +1,6 @@
 # Crystal Powers 2.0 — completion checklists and batch execution
 
-Started 30 October 2026 against `8d5bf15`, tracking the initial **24 open named audit items** and **eight phase sign-offs**. HUB-11 is now accepted locally: **133/156 checked,23 named items still open**. The main audit remains the acceptance authority. Completed implementation, local test evidence, real-provider evidence and owner sign-off are recorded separately.
+Started 30 October 2026 against `8d5bf15`, tracking the initial **24 open named audit items** and **eight phase sign-offs**. HUB-11, MOTION-03 and HUB-10 are now accepted locally: **135/156 checked,21 named items still open**. The main audit remains the acceptance authority. Completed implementation, local test evidence, real-provider evidence and owner sign-off are recorded separately.
 
 ## Execution contract
 
@@ -23,7 +23,7 @@ Installation authority, 30 October: James grants standing permission to install 
 | B2 | Company email and client correspondence | Technical preparation available; real inbox/account and controlled delivery acceptance required |
 | B3 | Stripe sandbox billing | CLI authorised and selected sandbox verified; restricted-key mode guards tested; private application key/listener and actual payment journeys pending |
 | B4 | Trusted private upload scanning | Local acceptance complete: actual engine/protocol, HTTP concurrency/quota and reviewer/member browser checks pass; hosted acceptance stays in B6/B8 |
-| B5 | Motion, background lifecycle and polling | Actual native probe remains unavailable on this desktop; complete motion and conversation polling acceptance remain open |
+| B5 | Motion, background lifecycle and polling | Passed: four actual native motion checks and15 actual conversation checks in installed Chrome, with no API mocks or synthetic visibility |
 | B6 | Full private workflow acceptance |23 UI suites,31 actual role and38 actual session browser checks,57 populated recovery checks pass; hosted/provider/device gates remain |
 | B7 | Physical-device and assistive acceptance | Needs representative physical hardware and assistive-technology observations |
 | B8 | Final candidate and phase sign-offs | Depends on applicable preceding gates and James's review |
@@ -157,17 +157,17 @@ Exit: real scanner protocol and application end-to-end proof; mocked CLEAN resul
 ## B5 — native motion and polling
 
 ### MOTION-03 — cancellation and render lifecycle
-- [x] Run the existing motion, Prism, delayed-observer, quality, resource and adaptive grouped checks on final2d02845d: all six deterministic suites pass; native probe explicitly remains unavailable and the group reports partial acceptance.
-- [ ] Exercise rapid navigation, repeated activation, reverse/reset, offscreen return and context failure.
-- [ ] Observe genuine native tab hiding/minimisation and return; confirm retirement/pause and exactly one restored scene.
-- [x] Verify listener/canvas/request counts settle and reduced motion retains essential content in current deterministic regression; native hiding is separately unproven.
+- [x] Retain the six passing deterministic suites:254 checks on final2d02845d, whose frontend files match the current packaged candidate. Later changes concern backend guards and QA only.
+- [x] Exercise rapid navigation, repeated activation, reverse/reset, offscreen return and context failure in those motion/Prism/resource suites.
+- [x] Observe genuine native tab hiding, minimisation and return on currentc8b7c980: four checks pass in installed Chrome; both hidden states retire the canvas and pause the wave, each return restores exactly one scene.
+- [x] Verify listener/canvas/request bounds and essential reduced-motion content in the existing deterministic regression, supplemented by actual native hiding.
 
 ### HUB-10 — foreground conversation updates
-- [ ] Test bounded polling, unread/read positions, reconnect and group/channel/project access changes.
-- [ ] Observe real hidden-tab request retirement and deliberate foreground recovery.
-- [ ] Verify revoked access cannot recover forbidden history and no unconfirmed write is replayed.
+- [x] Actual packaged PostgreSQL/session acceptance passes15 checks: two unread and two conversation requests in15.5seconds, explicit read positions, offline/reconnect, group membership and channel-audience changes. Existing actual role/project/session suites retain their unchanged source boundary.
+- [x] A real hidden tab issues zero further requests across15.5seconds after settling; foreground return loads permitted new messages.
+- [x] Removed membership and changed audience clear displayed history and return404 to direct requests; reload discards forbidden drafts. Failed offline sends never reach persisted history or replay on reconnect; invalidated sessions clear the composer.
 
-Exit: local regression and actual native visibility observations. If the environment never exposes hidden state, record unavailable and retain the native gate.
+Exit passed locally: current candidatec8b7c980, installed Chrome, provider-disabled disposable loopback lab. The QA helper attaches without Playwright focus emulation; no document visibility property or event is overridden. Initial Edge attachment/retirement checks failed or timed out under memory pressure, and its earlier fixed-delay result is not accepted. Chrome completes both native gates; physical devices, real assistive technology and authenticated hosted acceptance remain B6/B7/B8. See the execution report for exact commands and evidence.
 
 ## B6 — complete private acceptance
 
