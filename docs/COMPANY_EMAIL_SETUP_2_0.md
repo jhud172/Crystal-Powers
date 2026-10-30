@@ -1,5 +1,9 @@
 # Company email setup for Crystal Powers 2.0
 
+## Routing source deployed — 30 October 2026
+
+The reviewed department-routing source/config/tests are included in62f933c, deployed live in Render dep-dbi5kkbm8hqs73aptnsg. Full backend test task passes283tests,0failures/errors/skips. Existing destinations and reply addresses remain the defaults when department overrides are unset. No provider/DNS/new-mailbox/invitation enablement was performed, and no new delivery/receipt test was sent. Mailbox/provider acceptance below remains separate from this code deployment.
+
 ## Live Lark setup checkpoint — 25 October 2026
 
 - James completed Lark registration and Cloudflare sign-in, authorised continuing on the free plan, and confirmed that the new organisation has no linked third-party mail to preserve. All provider browser work uses ChatGPT's in-app browser at his request.
