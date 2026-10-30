@@ -15,7 +15,7 @@ public class SupportReplyEmailService {
     private final SupportRequestService requests;
     private final EmailTransport mail;
     private final String replyTo;
-    public SupportReplyEmailService(SupportRequestService requests, EmailTransport mail, @Value("${app.mail.reply-to:}") String replyTo) { this.requests = requests; this.mail = mail; this.replyTo = replyTo; }
+    public SupportReplyEmailService(SupportRequestService requests, EmailTransport mail, @Value("${app.mail.support-reply-to:${app.mail.reply-to:}}") String replyTo) { this.requests = requests; this.mail = mail; this.replyTo = replyTo; }
     public SupportRepository.Message send(Authentication authentication, UUID requestId, UUID messageId) {
         var delivery = requests.claimDelivery(authentication, requestId, messageId);
         if (!delivery.claimed()) return delivery.message();

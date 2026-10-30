@@ -1,5 +1,9 @@
 # Approved portfolio content — Clare’s Life Celebrations
 
+## Production publication — 28 October 2026
+
+The approved content and original desktop/mobile captures are now published and featured at [the live case study](https://crystal-powers.com/portfolio/clares-life-celebrations). Normal owner UI saved/reviewed/published revision2; live project2c27be56-b57f-4d92-91c7-88dc5c7f81bb. Desktop/cover media e1a9a956-e597-4f94-94d5-c9ab06803b71 and separate mobile604af876-f99d-4fb6-9a67-c2d49ec450f3 are real production uploads with approved descriptions. Public API checks pass18/18; live Home, portfolio and case-study/device views were checked at desktop/tablet/phone sizes. Evidence: ignored .codex-runtime/qa/clare-live/. No other project was published. Historical preparation/local-only statements below retain their earlier dates and are superseded by this production checkpoint.
+
 James approved only `https://clareslifecelebrations.com` for public portfolio use on 10 October 2026. No other client/project is approved. The approved package was published and featured in the saved **local** portfolio on24 October2026 through a normal, restricted Codex team session authorised by James. Production publication remains separate.
 
 Local case study: `http://127.0.0.1:8084/portfolio/clares-life-celebrations`, saved/published revision2. Real owned desktop/mobile media, saved fields and private image responses were reviewed before publication. Public responsive/device/Home journeys pass33 checks with no mocks or runtime errors. Evidence: `.codex-runtime/qa/clare-local/`. Account lifecycle: [temporary Codex publisher](LOCAL_CODEX_ACCOUNT.md). The preparation notes below retain their dated context.

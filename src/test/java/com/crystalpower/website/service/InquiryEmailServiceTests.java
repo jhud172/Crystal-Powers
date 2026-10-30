@@ -2,6 +2,8 @@ package com.crystalpower.website.service;
 
 import com.crystalpower.website.dto.ContactForm;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.mock.web.MockMultipartFile;
 
@@ -11,6 +13,37 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 class InquiryEmailServiceTests {
+    @ParameterizedTest
+    @CsvSource({"support,support", "website,sales", "app,sales", "system,sales", "general,hello"})
+    void routesEachEnquiryToItsConfiguredTeamAndPreservesReplyAndRetryIdentity(String intent, String team) {
+        var transport = mock(EmailTransport.class);
+        var service = new InquiryEmailService(transport, "owner@example.invalid",
+                " support@example.invalid ", "sales@example.invalid", "hello@example.invalid");
+        var form = new ContactForm();
+        form.setIntent(intent); form.setFirstName("Synthetic");
+        form.setEmail(" visitor@example.invalid "); form.setMessage("Routing verification");
+        service.sendInquiry(form, null, "Contact page", "stable-enquiry-key");
+        var captured = ArgumentCaptor.forClass(EmailTransport.Message.class);
+        verify(transport).send(captured.capture(), eq("stable-enquiry-key"));
+        assertThat(captured.getValue().to()).isEqualTo(team + "@example.invalid");
+        assertThat(captured.getValue().replyTo()).isEqualTo("visitor@example.invalid");
+        verifyNoMoreInteractions(transport);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"support", "website", "app", "system", "general", "unknown"})
+    void unsetDepartmentsKeepTheExistingInbox(String intent) {
+        var transport = mock(EmailTransport.class);
+        var service = new InquiryEmailService(transport, "owner@example.invalid", "", "  ", "");
+        var form = new ContactForm();
+        form.setIntent(intent); form.setFirstName("Synthetic");
+        form.setEmail("visitor@example.invalid"); form.setMessage("Fallback verification");
+        service.sendInquiry(form, null, "Contact page");
+        var captured = ArgumentCaptor.forClass(EmailTransport.Message.class);
+        verify(transport).send(captured.capture());
+        assertThat(captured.getValue().to()).isEqualTo("owner@example.invalid");
+    }
+
     @Test
     void supportMessageIncludesEscapedIssueDetailsWithoutWebsitePackageQuestions() {
         var transport = mock(EmailTransport.class);

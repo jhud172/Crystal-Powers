@@ -41,6 +41,12 @@ Use `.env.example` as a variable reference. Spring Boot reads process/deployment
 | `RESEND_API_KEY` | Server-only sending credential. |
 | `APP_MAIL_FROM` | Verified sender email address. |
 | `APP_MAIL_TO` | James's enquiry inbox. Set explicitly. |
+| `APP_MAIL_SUPPORT_TO` | Optional destination for support enquiries; blank uses `APP_MAIL_TO`. |
+| `APP_MAIL_SALES_TO` | Optional destination for website, app and system enquiries; blank uses `APP_MAIL_TO`. |
+| `APP_MAIL_GENERAL_TO` | Optional destination for general enquiries; blank uses `APP_MAIL_TO`. |
+| `APP_MAIL_REPLY_TO` | Default reply address for application messages. |
+| `APP_MAIL_SUPPORT_REPLY_TO` | Optional reply address for staff support emails; omit to inherit the default. |
+| `APP_MAIL_ADMIN_REPLY_TO` | Optional reply address for account invitations; omit to inherit the default. |
 | `PORT` | Supplied by Render. |
 
 Use your password manager to generate and retain the encryption key and setup token. The encryption key must be base64 of 32 random bytes, not an arbitrary 32-character password.
@@ -58,6 +64,8 @@ The browser never connects directly to Supabase. Public screenshots are served t
 Reference: [Supabase private downloads](https://supabase.com/docs/guides/storage/serving/downloads), [bucket access models](https://supabase.com/docs/guides/storage/buckets/fundamentals).
 
 ## Resend
+
+Company inbox provisioning, department routing and activation checks are recorded in [company email setup](COMPANY_EMAIL_SETUP_2_0.md). These settings route website notifications; they do not import incoming mailbox messages into the private Support Inbox.
 
 Verify the sending domain in the Resend account and configure its required DNS records after approval. Set a sending key, verified `APP_MAIL_FROM` and `APP_MAIL_TO`. The implementation calls `POST https://api.resend.com/emails` over HTTPS with bounded timeouts; provider errors return a friendly failure to the visitor. It does not silently claim that an email was sent when delivery failed.
 

@@ -17,10 +17,34 @@ public class InquiryEmailService {
 
     private final EmailTransport transport;
     private final String recipientAddress;
+    private final String supportAddress;
+    private final String salesAddress;
+    private final String generalAddress;
 
-    public InquiryEmailService(EmailTransport transport, @Value("${app.mail.to}") String recipientAddress) {
+    public InquiryEmailService(EmailTransport transport, String recipientAddress) {
+        this(transport, recipientAddress, "", "", "");
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public InquiryEmailService(EmailTransport transport, @Value("${app.mail.to}") String recipientAddress,
+            @Value("${app.mail.support-to:}") String supportAddress,
+            @Value("${app.mail.sales-to:}") String salesAddress,
+            @Value("${app.mail.general-to:}") String generalAddress) {
         this.transport = transport;
         this.recipientAddress = recipientAddress;
+        this.supportAddress = supportAddress;
+        this.salesAddress = salesAddress;
+        this.generalAddress = generalAddress;
+    }
+
+    private String recipient(ContactForm form) {
+        String address = switch (form.getIntent() == null ? "" : form.getIntent()) {
+            case "support" -> supportAddress;
+            case "website", "app", "system" -> salesAddress;
+            case "general" -> generalAddress;
+            default -> "";
+        };
+        return StringUtils.hasText(address) ? address.trim() : recipientAddress;
     }
 
     public void sendInquiry(ContactForm form, MultipartFile[] referenceFiles, String sourceLabel) {
@@ -35,7 +59,7 @@ public class InquiryEmailService {
             for (MultipartFile file : getPopulatedFiles(referenceFiles)) {
                 attachments.add(new EmailTransport.Attachment(file.getOriginalFilename(), file.getContentType(), file.getBytes()));
             }
-            var message = new EmailTransport.Message(recipientAddress, form.getEmail().trim(),
+            var message = new EmailTransport.Message(recipient(form), form.getEmail().trim(),
                     buildSubject(form, sourceLabel).replaceAll("[\\r\\n]", " "), buildHtmlBody(form, sourceLabel, referenceFiles), attachments);
             if (idempotencyKey == null) transport.send(message); else transport.send(message, idempotencyKey);
         } catch (EmailTransport.DeliveryException | IOException exception) {

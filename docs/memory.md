@@ -9,7 +9,7 @@ This repository note points to current decisions. The older June implementation 
 - Security: singleton owner remains protected; admins provision team accounts with trusted roles, private activation, MFA and server-side capability/resource checks. No public elevated-role selector.
 - Expanded hub: text channels/groups/customisation, moderation and support tracking. See [team scope](TEAM_HUB_2_0.md) for implemented foundations and missing features.
 - Dependency migration authorised 12 October. Tailwind 4/PostCSS adapter installed; no GSAP/Motion consumers remain. Rescan and visual compatibility acceptance are still required.
-- Company mailbox/provider, legal operator and retention/support policies are undecided; do not invent them or make outbound/provider changes without actual details.
+- Company email: Lark/domain/founder mailbox were partially verified on25 October; staff provisioning, departmental routing deployment and final website-notification receipt remain incomplete. Legal operator, public contact choice and retention/support policies remain undecided. Use docs/COMPANY_EMAIL_SETUP_2_0.md and current evidence; do not invent operational facts or send provider tests without authority.
 - Working order: complete implementation, then final test/fix/retest. The12October cleanup check is an explicitly requested exception, not full release acceptance.
 
 Use [handover](CODEX_SESSION_HANDOVER.md), [audit](CRYSTAL_POWERS_2_0_AUDIT.md) and source as current evidence. Historical accumulated test counts are not fresh passes.

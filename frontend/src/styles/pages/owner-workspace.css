@@ -1,9 +1,9 @@
 /* Owner workspace composition. Shared controls and theme tokens remain authoritative. */
-.owner-shell .admin-studio {
+.owner-shell :is(.admin-studio, .team-conversation) {
   --owner-space: clamp(20px, 3vw, 40px);
   --owner-surface: linear-gradient(135deg, var(--studio-highlight), transparent 55%), var(--studio-panel-fill);
 }
-.owner-shell .admin-studio.studio-section {
+.owner-shell :is(.admin-studio, .team-conversation).studio-section {
   width: min(100%, 1520px);
   margin-inline: auto;
   padding: clamp(24px, 4vw, 56px) clamp(16px, 4vw, 64px) 80px;
@@ -31,7 +31,7 @@
   border-color: var(--studio-accent);
   background: var(--studio-highlight);
 }
-.owner-shell .admin-studio :is(.admin-panel, .admin-account-settings) {
+.owner-shell :is(.admin-studio, .team-conversation) :is(.admin-panel, .admin-account-settings) {
   display: grid;
   gap: 24px;
   min-width: 0;
@@ -41,12 +41,12 @@
   background: var(--owner-surface);
   box-shadow: var(--studio-panel-shadow);
 }
-.owner-shell .admin-studio :is(.admin-panel, .admin-account-settings) > :is(h1,h2,h3,p,ul) { margin: 0; }
+.owner-shell :is(.admin-studio, .team-conversation) :is(.admin-panel, .admin-account-settings) > :is(h1,h2,h3,p,ul) { margin: 0; }
 .owner-shell .admin-panel > :is(h1,h2) { font-size: clamp(30px, 4vw, 48px); line-height: 1.25; }
 .owner-shell .admin-panel > h3 { padding-top: 12px; font-size: 22px; }
 .owner-shell .admin-panel > p { max-width: 78ch; color: var(--studio-muted); line-height: 1.85; }
 .owner-shell .admin-panel > button { justify-self: start; max-width: 100%; }
-.owner-shell .admin-studio :is(.admin-form, .admin-create) {
+.owner-shell :is(.admin-studio, .team-conversation) :is(.admin-form, .admin-create) {
   min-width: 0;
   gap: 24px;
   padding: clamp(20px, 3vw, 32px);
@@ -57,19 +57,19 @@
 .owner-shell .admin-form :is(label, .admin-password-field, .admin-code-field) { gap: 10px; line-height: 1.65; }
 .owner-shell .admin-form > :is(h2,h3,p) { margin: 0; }
 .owner-shell .admin-panel > .admin-form { width: 100%; max-width: 840px; }
-.owner-shell .admin-studio :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select) {
+.owner-shell :is(.admin-studio, .team-conversation) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select) {
   border-radius: 12px;
   min-height: 50px;
   padding: 14px 16px;
   transition: border-color 180ms var(--studio-ease), box-shadow 180ms var(--studio-ease), background 180ms;
 }
-.owner-shell .admin-studio :is(input,textarea,select):focus-visible {
+.owner-shell :is(.admin-studio, .team-conversation) :is(input,textarea,select):focus-visible {
   outline: 2px solid var(--studio-focus);
   outline-offset: 3px;
   border-color: var(--studio-focus);
 }
-.owner-shell .admin-studio .team-member-list { display: grid; gap: 20px; min-width: 0; margin: 0; }
-.owner-shell .admin-studio .team-member-list > li {
+.owner-shell :is(.admin-studio, .team-conversation) .team-member-list { display: grid; gap: 20px; min-width: 0; margin: 0; }
+.owner-shell :is(.admin-studio, .team-conversation) .team-member-list > li {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
@@ -81,12 +81,12 @@
   background: var(--studio-bg);
   transition: border-color 220ms, box-shadow 220ms;
 }
-.owner-shell .admin-studio .team-member-list > li > :is(strong,span,label,p) { grid-column: 1 / -1; }
-.owner-shell .admin-studio .team-member-list > li > strong { font-size: 18px; line-height: 1.6; }
-.owner-shell .admin-studio .team-member-list > li > span { color: var(--studio-muted); line-height: 1.7; }
-.owner-shell .admin-studio .team-member-list button { width: 100%; white-space: normal; }
-.owner-shell .admin-studio .team-role-permissions { padding: 20px; gap: 12px; border-radius: 16px; }
-.owner-shell .admin-studio .team-role-permissions label {
+.owner-shell :is(.admin-studio, .team-conversation) .team-member-list > li > :is(strong,span,label,p) { grid-column: 1 / -1; }
+.owner-shell :is(.admin-studio, .team-conversation) .team-member-list > li > strong { font-size: 18px; line-height: 1.6; }
+.owner-shell :is(.admin-studio, .team-conversation) .team-member-list > li > span { color: var(--studio-muted); line-height: 1.7; }
+.owner-shell :is(.admin-studio, .team-conversation) .team-member-list button { width: 100%; white-space: normal; }
+.owner-shell :is(.admin-studio, .team-conversation) .team-role-permissions { padding: 20px; gap: 12px; border-radius: 16px; }
+.owner-shell :is(.admin-studio, .team-conversation) .team-role-permissions label {
   padding: 14px;
   min-height: 54px;
   border: 1px solid var(--studio-line);
@@ -94,13 +94,29 @@
   background: var(--studio-panel-fill);
   transition: background 180ms, border-color 180ms;
 }
-.owner-shell .admin-studio .team-role-permissions label:has(input:checked) {
+.owner-shell :is(.admin-studio, .team-conversation) .team-role-permissions label:has(input:checked) {
   border-color: var(--studio-accent);
   background: var(--studio-highlight);
 }
-.owner-shell .admin-studio .team-role-permissions label:focus-within { outline: 2px solid var(--studio-focus); outline-offset: 3px; }
+.owner-shell :is(.admin-studio, .team-conversation) .team-role-permissions label:focus-within { outline: 2px solid var(--studio-focus); outline-offset: 3px; }
 .owner-shell .admin-dashboard-heading { padding-block: 12px 20px; gap: 28px; }
 .owner-shell .admin-dashboard-heading h1 { font-size: clamp(36px, 4.8vw, 68px); margin-top: 16px; }
+.owner-shell .admin-list-summary { margin-block: 18px 24px; }
+.owner-shell .admin-editor > .studio-soft { margin-block: 12px 24px; }
+.owner-shell .admin-account-settings { width: min(100%, 960px); max-width: 960px; margin-inline: auto; }
+.owner-shell .admin-account-settings > h1 { font-size: clamp(32px, 4vw, 48px); margin: 0; }
+.owner-shell .admin-account-settings > .admin-text-button { justify-self: start; padding-inline: 12px; }
+.owner-shell .admin-account-settings > section { display: grid; gap: 22px; min-width: 0; }
+.owner-shell .admin-account-settings > section > :is(h2,p) { margin: 0; }
+.owner-shell .admin-security-choices { margin: 0; gap: 14px; }
+.owner-shell .admin-security-choices button {
+  border-radius: 16px;
+  min-height: 112px;
+  padding: 20px;
+  line-height: 1.7;
+  transition: background 180ms, border-color 180ms, box-shadow 220ms;
+}
+.owner-shell .admin-security-choices button:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: 4px; }
 .owner-shell .admin-collection-controls {
   padding: 24px;
   border: 1px solid var(--studio-line);
@@ -119,43 +135,44 @@
 .owner-shell .admin-publish-panel { display: grid; gap: 18px; }
 .owner-shell .admin-publish-panel > :is(h2,p,ul) { margin: 0; }
 .owner-shell .admin-publish-panel .admin-team-project-access { display: grid; gap: 16px; }
-.owner-shell .admin-studio :is(.admin-primary,.admin-secondary,.admin-text-button,.studio-button) {
+.owner-shell :is(.admin-studio, .team-conversation) :is(.admin-primary,.admin-secondary,.admin-text-button,.studio-button) {
   line-height: 1.6;
   white-space: normal;
   transition: background 180ms var(--studio-ease), border-color 180ms, box-shadow 220ms, transform 180ms var(--studio-ease);
 }
-.owner-shell .admin-studio :is(.admin-secondary,.admin-text-button):focus-visible {
+.owner-shell :is(.admin-studio, .team-conversation) :is(.admin-secondary,.admin-text-button):focus-visible {
   outline: 2px solid var(--studio-focus);
   outline-offset: 4px;
 }
 @media (hover: hover) and (pointer: fine) {
-  .owner-shell .admin-studio :is(.admin-secondary,.admin-text-button):hover:not(:disabled) {
+  .owner-shell :is(.admin-studio, .team-conversation) :is(.admin-secondary,.admin-text-button):hover:not(:disabled) {
     background: var(--studio-highlight);
     border-color: var(--studio-accent);
     box-shadow: 0 5px 18px color-mix(in srgb, var(--studio-signal) 10%, transparent);
   }
-  .owner-shell .admin-studio .team-member-list > li:hover { border-color: var(--studio-control-line); }
-  .owner-shell[data-motion="full"] .admin-studio :is(.admin-primary,.admin-secondary,.studio-button):hover:not(:disabled) { transform: translateY(-2px); }
-  .owner-shell[data-motion="full"] .admin-studio button:active:not(:disabled) { transform: translateY(0); }
+  .owner-shell :is(.admin-studio, .team-conversation) .team-member-list > li:hover { border-color: var(--studio-control-line); }
+  .owner-shell .admin-security-choices button:hover:not(:disabled) { background: var(--studio-highlight); border-color: var(--studio-accent); }
+  .owner-shell[data-motion="full"] :is(.admin-studio, .team-conversation) :is(.admin-primary,.admin-secondary,.studio-button):hover:not(:disabled) { transform: translateY(-2px); }
+  .owner-shell[data-motion="full"] :is(.admin-studio, .team-conversation) button:active:not(:disabled) { transform: translateY(0); }
 }
 /* A short opacity arrival never moves sticky controls or fixed descendants. */
 @media (prefers-reduced-motion: no-preference) {
-  .owner-shell[data-motion="full"] .admin-studio :is(.admin-panel,.admin-editor,.admin-projects) { animation: owner-panel-arrive 260ms var(--studio-ease); }
+  .owner-shell[data-motion="full"] :is(.admin-studio, .team-conversation) :is(.admin-panel,.admin-editor,.admin-projects,.admin-account-settings,.admin-account-settings > section) { animation: owner-panel-arrive 260ms var(--studio-ease); }
 }
 @keyframes owner-panel-arrive { from { opacity: .72; } to { opacity: 1; } }
 @media (max-width: 760px) {
   .owner-shell .admin-topbar { padding: 20px; }
   .owner-shell .admin-workspace-nav { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
   .owner-shell .admin-workspace-nav button { width: 100%; }
-  .owner-shell .admin-studio :is(.admin-panel,.admin-account-settings) { border-radius: 20px; }
-  .owner-shell .admin-studio .team-member-list > li { grid-template-columns: minmax(0,1fr); }
+  .owner-shell :is(.admin-studio, .team-conversation) :is(.admin-panel,.admin-account-settings) { border-radius: 20px; }
+  .owner-shell :is(.admin-studio, .team-conversation) .team-member-list > li { grid-template-columns: minmax(0,1fr); }
   .owner-shell .admin-collection-controls { padding: 18px; }
   .owner-shell .admin-project-identity { flex-basis: 100%; }
   .owner-shell .admin-project-actions > :is(button,.admin-order-controls) { flex: 1 1 130px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .owner-shell .admin-studio *, .owner-shell .admin-studio *::before, .owner-shell .admin-studio *::after { animation: none !important; transition: none !important; }
+  .owner-shell :is(.admin-studio, .team-conversation) *, .owner-shell :is(.admin-studio, .team-conversation) *::before, .owner-shell :is(.admin-studio, .team-conversation) *::after { animation: none !important; transition: none !important; }
 }
 @media (forced-colors: active) {
-  .owner-shell .admin-studio :is(.admin-panel,.team-member-list > li,.admin-collection-controls) { border-color: CanvasText; }
+  .owner-shell :is(.admin-studio, .team-conversation) :is(.admin-panel,.team-member-list > li,.admin-collection-controls) { border-color: CanvasText; }
 }

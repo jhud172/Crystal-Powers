@@ -25,6 +25,10 @@ const content = { title: 'Example project with a longer descriptive title', cate
     else if (url === '/api/team/members/management') body = { actorScope: 'OWNER', members: [{ member, manageable: true }], creatableRoles: ['ADMIN','MODERATOR','SUPPORT','MEMBER'] };
     else if (url === '/api/team/roles') body = { profiles: [profile], assignments: [{ memberId: member.id, profileId: profile.id, credentialsVersion: 1 }], bases: { ADMIN: permissions, MEMBER: ['READ_CHANNELS'], SUPPORT: ['READ_CHANNELS'], MODERATOR: ['READ_CHANNELS'] }, managementGrants: permissions, manageableMembers: [member.id], editableProfiles: [profile.id] };
     else if (url === '/api/admin/auth/csrf') body = { token: 'synthetic', headerName: 'X-CSRF-TOKEN' };
+    else if (url === '/api/team/auth/session') body = { authenticated: true, member: {displayName:'Synthetic owner',role:'OWNER'}, permissions:['READ_CHANNELS','MANAGE_MEMBERS','MANAGE_ROLES'] };
+    else if (url === '/api/team/workspace') body = { displayName:'Synthetic owner',memberId:null,ownerId:'90000000-0000-4000-8000-000000000001',permissions:['READ_CHANNELS','MANAGE_MEMBERS','MANAGE_ROLES'],channels:[],settings:{branding:{name:'Synthetic workspace',tagline:'',version:0},preferences:{compact:false,unreadBadges:false,mentionAlerts:false,version:0},displayName:'Synthetic owner',editableName:false,channelPreferences:[]} };
+    else if (url === '/api/team/unread') body=[];
+    else if (url === '/api/team/mentions') body={mentions:[],nextCursor:null};
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
   });
   async function layout(name) {
@@ -53,12 +57,29 @@ const content = { title: 'Example project with a longer descriptive title', cate
       await page.getByRole('button',{name:'Edit Example restricted publisher',exact:true}).waitFor();
       for (const width of [320,390,768,1024,1440,1920]) { await page.setViewportSize({width,height:1000}); await layout(`${theme} roles ${width}`); }
       if(theme==='futuristic') { await page.setViewportSize({width:390,height:844}); await page.screenshot({path:path.join(output,'roles-mobile.png'),fullPage:true}); }
+      await page.getByRole('button',{name:'Account security',exact:true}).click();
+      for (const action of ['Password','Authenticator','Recovery codes']) {
+        await page.getByRole('button',{name:action,exact:true}).click();
+        for (const width of [320,390,768,1024,1440,1920]) { await page.setViewportSize({width,height:1000}); await layout(`${theme} security ${action} ${width}`); }
+      }
+      check(`${theme}: security panel centred and choice cards rounded`, await page.locator('.admin-account-settings').evaluate(el=>{const r=el.getBoundingClientRect();return Math.abs(r.left-(innerWidth-r.right))<18 && parseFloat(getComputedStyle(el.querySelector('.admin-security-choices button')).borderRadius)>=12;}));
+      if(theme==='futuristic') { await page.setViewportSize({width:1440,height:1000}); await page.screenshot({path:path.join(output,'security-desktop.png'),fullPage:true}); await page.setViewportSize({width:390,height:844}); await page.screenshot({path:path.join(output,'security-mobile.png'),fullPage:true}); }
+      await page.getByRole('button',{name:'← All projects',exact:true}).click();
+      await page.getByRole('button',{name:'Team members',exact:true}).click();
+      await page.getByRole('button',{name:'Manage custom role profiles',exact:true}).click();
+      await page.getByRole('button',{name:'New profile',exact:true}).waitFor();
     }
     await page.emulateMedia({ reducedMotion: 'reduce' });
     check('Reduced motion disables panel animation and control transitions', await page.locator('.admin-panel').evaluate(el => getComputedStyle(el).animationName === 'none' && getComputedStyle(el.querySelector('button')).transitionDuration === '0s'));
     await page.getByRole('button',{name:'New profile',exact:true}).focus();
     await page.keyboard.press('Tab'); await page.keyboard.press('Shift+Tab');
     check('Keyboard focus remains visible', await page.getByRole('button',{name:'New profile',exact:true}).evaluate(el=>el.matches(':focus-visible') && parseFloat(getComputedStyle(el).outlineWidth)>=2));
+    await page.goto(base+'/team');
+    await page.getByRole('button',{name:'Team members',exact:true}).click();
+    await page.getByRole('button',{name:'Create invitation',exact:true}).waitFor();
+    for (const width of [320,390,768,1024,1440,1920]) { await page.setViewportSize({width,height:1000}); await layout(`embedded team members ${width}`); }
+    check('Embedded team panel has the same spaced fieldset',await page.locator('.team-conversation .admin-form-fields').evaluate(el=>parseFloat(getComputedStyle(el).rowGap)>=20));
+    await page.setViewportSize({width:1440,height:1000}); await page.screenshot({path:path.join(output,'embedded-members-desktop.png'),fullPage:true});
     check('No uncaught runtime errors', report.errors.length===0);
     await fs.writeFile(path.join(output,'report.json'),JSON.stringify(report,null,2));
     console.log('OWNER_DESIGN_PASS:',report.checks.length);
