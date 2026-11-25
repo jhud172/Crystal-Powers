@@ -27,7 +27,7 @@ public class DocksEmailSignIn {
     private final EmailTransport mail;
     private final boolean enabled;
 
-    public record Session(String accessToken, OffsetDateTime expiresAt) {}
+    public record Session(String accessToken, OffsetDateTime expiresAt, UUID accountId) {}
 
     public DocksEmailSignIn(JdbcTemplate db, TransactionTemplate transaction, EmailTransport mail,
             @Value("${app.docks.email-enabled:false}") boolean enabled) {
@@ -101,7 +101,7 @@ public class DocksEmailSignIn {
             var expires = now.plusDays(7);
             db.update("INSERT INTO docks_session(token_hash, account_id, expires_at) VALUES (?, ?, ?)",
                     digest(access), accountId, expires);
-            return Optional.of(new Session(access, expires));
+            return Optional.of(new Session(access, expires, accountId));
         });
     }
 

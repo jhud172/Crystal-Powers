@@ -39,7 +39,7 @@ class DocksEmailSignInTests {
             var session = signIn.exchange(code).orElseThrow();
             assertTrue(signIn.exchange(code).isEmpty());
             String bearer = "Bearer " + session.accessToken();
-            assertTrue(signIn.account(bearer).isPresent());
+            assertEquals(session.accountId(), signIn.account(bearer).orElseThrow());
             assertTrue(signIn.account(null).isEmpty());
             signIn.signOut(bearer);
             assertTrue(signIn.account(bearer).isEmpty());
