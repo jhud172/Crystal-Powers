@@ -20,7 +20,8 @@ public class DocksStripeEvents {
     private final DocksBillingMode mode;
     private final DocksStripeRisk paymentRisk;
 
-    private record Reference(String subscriptionId, UUID attemptId, String sessionId) {}
+    record Reference(String subscriptionId, UUID attemptId, String sessionId) {}
+    record Delivery(String id, String type, boolean live, Reference subscription, DocksStripeRisk.Pointer risk) {}
     private record Attempt(UUID id, UUID account, String price, String plan, String sessionId) {}
     private record Status(String providerState, Long paidUntil) {}
     private record RiskTarget(Attempt attempt, Reference reference, String invoice) {}
@@ -37,7 +38,7 @@ public class DocksStripeEvents {
         this.paymentRisk = paymentRisk;
     }
 
-    public void receive(byte[] raw, String signature) {
+    Optional<Delivery> authenticate(byte[] raw, String signature) {
         if (!mode.enabled()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         if (mode.webhook().isBlank())
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Docks subscription events are unavailable.");
@@ -47,15 +48,28 @@ public class DocksStripeEvents {
         String eventId = event.path("id").asText();
         if (!eventId.matches("evt_[A-Za-z0-9]{1,96}"))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Stripe event ID.");
-        if (handled(eventId)) return;
-        var kind = DocksStripeRisk.kind(event.path("type").asText());
+        String type = event.path("type").asText();
+        var kind = DocksStripeRisk.kind(type);
         if (kind != null) {
-            receiveRisk(kind, event.path("data").path("object"), eventId);
-            return;
+            var pointer = DocksStripeRisk.pointer(kind, event.path("data").path("object"));
+            return Optional.of(new Delivery(eventId, type, mode.live(), null, pointer));
         }
         var reference = reference(event);
-        if (reference == null) return;
+        if (reference == null || (reference.attemptId() == null && resolveAttempt(reference).isEmpty()))
+            return Optional.empty();
+        return Optional.of(new Delivery(eventId, type, mode.live(), reference, null));
+    }
 
+    void process(Delivery delivery) {
+        if (!mode.enabled() || delivery.live() != mode.live())
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Stripe billing mode is unavailable.");
+        String eventId = delivery.id();
+        if (handled(eventId)) return;
+        if (delivery.risk() != null) {
+            receiveRisk(DocksStripeRisk.kind(delivery.type()), delivery.risk(), eventId);
+            return;
+        }
+        var reference = delivery.subscription();
         var attempt = resolveAttempt(reference);
         if (attempt.isEmpty()) return;
         var matched = attempt.get();
@@ -79,8 +93,8 @@ public class DocksStripeEvents {
                     row.getString(5), row.getBoolean(6), row.getLong(7)), mode.live());
     }
 
-    private void receiveRisk(DocksStripeRisk.Kind kind, JsonNode object, String eventId) {
-        var source = paymentRisk.source(kind, object);
+    private void receiveRisk(DocksStripeRisk.Kind kind, DocksStripeRisk.Pointer pointer, String eventId) {
+        var source = paymentRisk.source(kind, pointer);
         if (source.isEmpty()) return;
         var targets = new ArrayList<RiskTarget>();
         for (var invoice : paymentRisk.invoices(source.get())) {

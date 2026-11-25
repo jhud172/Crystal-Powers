@@ -17,6 +17,7 @@ public class DocksStripeRisk {
         Kind(String value) { this.value = value; }
     }
     record Source(Kind kind, String id, String chargeId, String paymentIntent, String customer) {}
+    record Pointer(String id, String chargeId) {}
     record Invoice(String id, String subscriptionId, String attemptId) {}
     record Outcome(String value, boolean holdsAccess) {}
 
@@ -32,19 +33,24 @@ public class DocksStripeRisk {
         };
     }
 
-    Optional<Source> source(Kind kind, JsonNode object) {
+    static Pointer pointer(Kind kind, JsonNode object) {
         String id = id(object.path("id"), switch (kind) {
             case REFUND -> "ch_";
             case DISPUTE -> "dp_";
             case FRAUD_WARNING -> "issfr_";
         });
         String chargeId = kind == Kind.REFUND ? id : id(object.path("charge"), "ch_");
-        if (id == null || chargeId == null) throw unexpected();
-        var charge = charge(chargeId);
+        if (id == null || chargeId == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Stripe payment reference.");
+        return new Pointer(id, chargeId);
+    }
+
+    Optional<Source> source(Kind kind, Pointer pointer) {
+        var charge = charge(pointer.chargeId());
         String paymentIntent = id(charge.path("payment_intent"), "pi_");
         String customer = id(charge.path("customer"), "cus_");
         if (paymentIntent == null || customer == null) return Optional.empty();
-        return Optional.of(new Source(kind, id, chargeId, paymentIntent, customer));
+        return Optional.of(new Source(kind, pointer.id(), pointer.chargeId(), paymentIntent, customer));
     }
 
     List<Invoice> invoices(Source source) {

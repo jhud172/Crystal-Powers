@@ -1,6 +1,6 @@
 package com.crystalpower.website.api;
 
-import com.crystalpower.website.service.DocksStripeEvents;
+import com.crystalpower.website.service.DocksStripeDeliveryQueue;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Map;
@@ -14,9 +14,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 public class DocksStripeWebhookController {
-    private final DocksStripeEvents events;
+    private final DocksStripeDeliveryQueue deliveries;
 
-    public DocksStripeWebhookController(DocksStripeEvents events) { this.events = events; }
+    public DocksStripeWebhookController(DocksStripeDeliveryQueue deliveries) { this.deliveries = deliveries; }
 
     @PostMapping("/api/docks/billing/stripe/webhook")
     public Map<String, Boolean> receive(HttpServletRequest request,
@@ -24,7 +24,7 @@ public class DocksStripeWebhookController {
         var bytes = request.getInputStream().readNBytes(262145);
         if (bytes.length > 262144)
             throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "The Stripe event is too large.");
-        events.receive(bytes, signature);
+        deliveries.receive(bytes, signature);
         return Map.of("received", true);
     }
 

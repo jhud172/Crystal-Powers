@@ -30,6 +30,14 @@ The risk handler follows the charge's payment intent to paid Stripe invoice paym
 
 Use **Account security → Crystal Docks payment review** to find the charge, invoice and subscription in Stripe. Docks records provider outcomes and the resulting access decision. Refunds and disputes are handled in Stripe. Pilot the webhook with a restricted key that can read Charges, Invoice Payments, Invoices, Subscriptions, Disputes and Early Fraud Warnings. [Stripe subscription risk events](https://docs.stripe.com/billing/subscriptions/webhooks#refund-events)
 
+## Recover a delivery
+
+The webhook acknowledges delivery after signature validation and durable storage of the event references. The worker retrieves current Stripe records in the background. Event IDs are deduplicated and the queue retains identifiers and timing, without the original payment payload. A failed attempt backs off automatically. After eight failures the delivery moves to **Needs review**. Completed queue entries are eligible for cleanup after 30 days.
+
+Open **Account security → Crystal Docks payment review → Stripe delivery queue**. Match the event ID in Stripe and correct the cause of failure. Choose **Retry** to make the item eligible for processing again. The queue records the latest manual retry and its owner. Use Stripe Workbench to resend a delivery that never reached Crystal Powers. [Stripe webhook delivery and retries](https://docs.stripe.com/webhooks#event-delivery-behaviors)
+
+Migration `V104__docks_stripe_event_queue.sql` passed in an isolated PostgreSQL run with signed receipt, deduplication and background completion. Local tests covered provider failure, restart, competing workers and manual retry. Include a deliberate transient failure during the Stripe HTTPS pilot and verify that access reconciles after recovery.
+
 Keep `DOCKS_STRIPE_LIVE_ENABLED=false` until the sandbox and HTTPS pilot exercise payment, automatic renewal, failed payment, cancellation, refunds, fraud and dispute handling, account and device limits, and the portal. Confirm pricing and tax treatment before live checkout. [Stripe go-live checklist](https://docs.stripe.com/get-started/checklist/go-live)
 
 On staging, verify payment, renewal, failure, cancellation, duplicate event delivery, household acceptance and seat transfer. The desktop app must point to that staging environment for the checks. Customer billing management and live billing still require implementation and verification.

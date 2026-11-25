@@ -89,6 +89,11 @@ class CrystalPowerApplicationTests {
         mockMvc.perform(post("/api/docks/reports/support-access"))
                 .andExpect(status().isUnauthorized());
         mockMvc.perform(get("/api/admin/docks/payment-review")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/admin/docks/payment-deliveries")).andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/admin/docks/payment-deliveries/evt_Fixture/retry"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/admin/docks/payment-deliveries/evt_Fixture/retry").with(csrf()))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

@@ -79,10 +79,10 @@ class DocksStripeEventsTests {
             var completed = event("evt_Complete", "checkout.session.completed", """
                     {"id":"cs_test_Fixture","subscription":"sub_Fixture","client_reference_id":"%s"}
                     """.formatted(attempt));
-            assertThrows(ResponseStatusException.class, () -> events.receive(completed, sign(completed, "whsec_FixtureWebsite")));
+            assertThrows(ResponseStatusException.class, () -> events.authenticate(completed, sign(completed, "whsec_FixtureWebsite")));
             verify(stripe, never()).subscription(anyString());
-            events.receive(completed, sign(completed, HOOK));
-            events.receive(completed, sign(completed, HOOK));
+            deliver(events, completed);
+            deliver(events, completed);
             assertEquals(end, db.queryForObject("SELECT paid_until_epoch FROM docks_subscription_status", Long.class));
             verify(stripe, times(1)).subscription("sub_Fixture");
             assertFalse(disabled.status(account, installation).orElseThrow().canRepair());
@@ -94,11 +94,11 @@ class DocksStripeEventsTests {
             var live = new DocksEntitlements(db, tx, new DocksSubscriptionSeats(db, liveMode));
             assertFalse(live.status(account, installation).orElseThrow().canRepair());
             var liveEvents = new DocksStripeEvents(db, tx, liveStripe, liveMode, new DocksStripeRisk(liveStripe));
-            assertThrows(ResponseStatusException.class, () -> liveEvents.receive(completed, sign(completed, HOOK)));
+            assertThrows(ResponseStatusException.class, () -> deliver(liveEvents, completed));
             var crossMode = event("evt_CrossMode", "checkout.session.completed", """
                     {"id":"cs_live_Fixture","subscription":"sub_CrossMode","client_reference_id":"%s"}
                     """.formatted(attempt), true);
-            liveEvents.receive(crossMode, sign(crossMode, HOOK));
+            deliver(liveEvents, crossMode);
             verify(liveStripe, never()).subscription(anyString());
 
             var billing = new DocksSubscriptions(db, tx, stripe, sandbox, "", "price_Fixture", "", "", "");
@@ -107,10 +107,10 @@ class DocksStripeEventsTests {
 
             doReturn(cancelled).when(stripe).subscription("sub_Fixture");
             var deletion = event("evt_Cancel", "customer.subscription.deleted", "{\"id\":\"sub_Fixture\"}");
-            events.receive(deletion, sign(deletion, HOOK));
+            deliver(events, deletion);
             var late = event("evt_Late", "invoice.paid",
                     "{\"parent\":{\"subscription_details\":{\"subscription\":\"sub_Fixture\"}}}");
-            events.receive(late, sign(late, HOOK));
+            deliver(events, late);
             assertEquals("canceled", db.queryForObject("SELECT provider_state FROM docks_subscription_status", String.class));
             assertNull(db.queryForObject("SELECT paid_until_epoch FROM docks_subscription_status", Long.class));
             assertEquals(3, db.queryForObject("SELECT COUNT(*) FROM docks_subscription_event", Integer.class));
@@ -129,7 +129,7 @@ class DocksStripeEventsTests {
             var paid = event("evt_LiveAsync", "checkout.session.async_payment_succeeded", """
                     {"id":"cs_live_Fixture","subscription":"sub_LiveFixture","client_reference_id":"%s"}
                     """.formatted(liveAttempt), true);
-            liveEvents.receive(paid, sign(paid, HOOK));
+            deliver(liveEvents, paid);
             assertEquals(end, live.status(account, next).orElseThrow().subscriptionExpiresAt().toEpochSecond());
             assertFalse(live.status(account, installation).orElseThrow().canRepair());
             assertFalse(entitlements.status(account, next).orElseThrow().canRepair());
@@ -199,7 +199,11 @@ class DocksStripeEventsTests {
 
     private static void send(DocksStripeEvents events, String id, String type, String object) throws Exception {
         byte[] body = event(id, type, object, true);
-        events.receive(body, sign(body, HOOK));
+        deliver(events, body);
+    }
+
+    private static void deliver(DocksStripeEvents events, byte[] body) throws Exception {
+        events.authenticate(body, sign(body, HOOK)).ifPresent(events::process);
     }
 
     private static byte[] event(String id, String type, String object) {

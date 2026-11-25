@@ -11,13 +11,71 @@ type Review = {
   holdsAccess: boolean;
   observedAtEpoch: number;
 };
+type Delivery = {
+  eventId: string;
+  type: string;
+  attempts: number;
+  state: "pending" | "processing" | "review";
+  nextAttemptEpoch: number;
+  lastRetryEpoch: number | null;
+};
+const deliveryLabels = { pending: "Waiting to retry", processing: "Processing", review: "Needs review" };
+const deliveriesEndpoint = "/api/admin/docks/payment-deliveries";
 
 export function DocksPaymentReview({ onSessionExpired }: { onSessionExpired: () => void }) {
   const [open, setOpen] = useState(false);
   return <details onToggle={event => setOpen(event.currentTarget.open)}>
     <summary>Crystal Docks payment review</summary>
-    {open && <PaymentReviews onSessionExpired={onSessionExpired} />}
+    {open && <>
+      <PaymentReviews onSessionExpired={onSessionExpired} />
+      <PaymentDeliveries onSessionExpired={onSessionExpired} />
+    </>}
   </details>;
+}
+
+function PaymentDeliveries({ onSessionExpired }: { onSessionExpired: () => void }) {
+  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [loaded, setLoaded] = useState(false);
+
+  async function load(retry?: string) {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      if (retry) {
+        await api(`${deliveriesEndpoint}/${encodeURIComponent(retry)}/retry`, { method: "POST" });
+        setNotice("Delivery queued for another attempt.");
+      }
+      setDeliveries(await api<Delivery[]>(deliveriesEndpoint));
+      setLoaded(true);
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Could not open the delivery queue.");
+      if (failure instanceof ApiError && failure.status === 401) onSessionExpired();
+    } finally { setBusy(false); }
+  }
+
+  return <section aria-label="Stripe delivery queue" aria-busy={busy}>
+    <h3>Stripe delivery queue</h3>
+    <p>See pending Docks payment updates and retry a delivery after checking it in Stripe.</p>
+    <button className="admin-secondary" type="button" disabled={busy} onClick={() => void load()}>
+      {loaded ? "Refresh deliveries" : "Load pending deliveries"}
+    </button>
+    {notice && <p role="status">{notice}</p>}
+    <OwnerError message={error} />
+    {loaded && deliveries.length === 0 && <p role="status">No pending deliveries.</p>}
+    {deliveries.length > 0 && <ul>{deliveries.map(item => <li key={item.eventId}>
+      <strong>{deliveryLabels[item.state]}</strong> · <code>{item.eventId}</code>
+      <p>{item.type} · {item.attempts} {item.attempts === 1 ? "attempt" : "attempts"}</p>
+      {item.state === "pending" && <p>Next attempt {new Date(item.nextAttemptEpoch * 1000).toLocaleString("en-GB")}</p>}
+      {item.lastRetryEpoch !== null && <p>Last manual retry {new Date(item.lastRetryEpoch * 1000).toLocaleString("en-GB")}</p>}
+      {item.state !== "processing" && <button className="admin-secondary" type="button" disabled={busy}
+        onClick={() => void load(item.eventId)}>Retry {item.eventId}</button>}
+    </li>)}</ul>}
+  </section>;
 }
 
 function PaymentReviews({ onSessionExpired }: { onSessionExpired: () => void }) {
