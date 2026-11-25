@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.crystalpower.website.api.DocksOnlineExplanationController;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.YearMonth;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,10 +48,43 @@ class DocksOnlineExplanationTests {
             for (var result : executor.invokeAll(calls, 10, TimeUnit.SECONDS)) if (result.get()) successes++;
             assertEquals(2, successes);
             assertEquals(6L, jdbc.queryForObject("SELECT reserved_pence FROM docks_ai_budget", Long.class));
+            var month = YearMonth.now(ZoneOffset.UTC);
+            assertEquals(6L, allowance.reservedPence(month));
+            assertEquals(0L, allowance.reservedPence(month.plusMonths(1)));
         } finally {
             executor.shutdownNow();
             db.shutdown();
         }
+    }
+
+    @Test
+    void ownerBudgetRemainsReadableWhenProviderIsDisabledOrConfigIsInvalid() {
+        var env = new MockEnvironment()
+                .withProperty("DOCKS_AI_ENABLED", "false")
+                .withProperty("DOCKS_AI_PRICING_VERIFIED", "true")
+                .withProperty("DOCKS_AI_OPENAI_KEY", "synthetic-credential")
+                .withProperty("DOCKS_AI_ACCOUNT_MONTHLY_LIMIT", "4")
+                .withProperty("DOCKS_AI_MONTHLY_BUDGET_PENCE", "10")
+                .withProperty("DOCKS_AI_REQUEST_RESERVE_PENCE", "2");
+        var allowance = mock(DocksAiAllowance.class);
+        when(allowance.reservedPence(any(YearMonth.class))).thenReturn(6L);
+        var service = new DocksOnlineExplanation(env, new ObjectMapper(), mock(DocksEntitlements.class), allowance);
+        assertFalse(service.available());
+        var disabled = service.budgetStatus();
+        assertEquals(6L, disabled.reservedPence());
+        assertEquals(4L, disabled.remainingPence());
+        assertEquals(2L, disabled.requestReservePence());
+        assertEquals(4, disabled.accountMonthlyLimit());
+        env.setProperty("DOCKS_AI_ENABLED", "true");
+        env.setProperty("DOCKS_AI_MONTHLY_BUDGET_PENCE", "5");
+        assertTrue(service.available());
+        assertEquals(0L, service.budgetStatus().remainingPence());
+        env.setProperty("DOCKS_AI_MONTHLY_BUDGET_PENCE", "invalid-value");
+        assertFalse(service.available());
+        assertNull(service.budgetStatus().remainingPence());
+        assertEquals(6L, service.budgetStatus().reservedPence());
+        env.setProperty("DOCKS_AI_ENABLED", "not-a-boolean");
+        assertFalse(service.available());
     }
 
     @Test

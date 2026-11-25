@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OwnerDocksConfigurationController {
     public record Configuration(boolean emailSignIn, boolean googleSignIn, boolean testBilling,
                                  int checkoutPlans, boolean subscriptionPortal, boolean onlineExplanations,
-                                 String windowsVersion) {}
+                                 String windowsVersion, DocksOnlineExplanation.BudgetStatus onlineAiBudget) {}
 
     private final DocksEmailSignIn email;
     private final DocksGoogleSignIn google;
@@ -36,6 +36,6 @@ public class OwnerDocksConfigurationController {
         String version = releases.current().map(DocksWindowsRelease.Release::version).orElse(null);
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(new Configuration(
                 email.available(), google.enabled(), billing.testMode(), billing.availablePlans().size(),
-                billing.portalConfigured(), explanations.available(), version));
+                billing.portalConfigured(), explanations.available(), version, explanations.budgetStatus()));
     }
 }

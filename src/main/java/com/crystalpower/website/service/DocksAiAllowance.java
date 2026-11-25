@@ -2,6 +2,7 @@ package com.crystalpower.website.service;
 
 import java.time.YearMonth;
 import java.time.ZoneOffset;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -27,8 +28,7 @@ public class DocksAiAllowance {
                     SELECT attempts FROM docks_ai_allowance WHERE account_id = ? AND month_key = ?
                     """, (row, i) -> row.getInt(1), account, month).stream().findFirst().orElse(0);
             if (attempts >= accountLimit) return false;
-            var reserved = db.query("SELECT reserved_pence FROM docks_ai_budget WHERE month_key = ?",
-                    (row, i) -> row.getLong(1), month).stream().findFirst();
+            var reserved = reserved(month);
             if (reserved.orElse(0L) > monthlyPence - requestPence) return false;
             if (reserved.isEmpty()) {
                 db.update("INSERT INTO docks_ai_budget(month_key, reserved_pence) VALUES (?, ?)", month, requestPence);
@@ -42,5 +42,14 @@ public class DocksAiAllowance {
             }
             return true;
         }));
+    }
+
+    long reservedPence(YearMonth month) {
+        return reserved(month.toString()).orElse(0L);
+    }
+
+    private Optional<Long> reserved(String month) {
+        return db.query("SELECT reserved_pence FROM docks_ai_budget WHERE month_key = ?",
+                (row, i) -> row.getLong(1), month).stream().findFirst();
     }
 }

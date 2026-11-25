@@ -7,10 +7,13 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.YearMonth;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.core.env.Environment;
+import org.springframework.core.convert.ConversionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -25,7 +28,10 @@ public class DocksOnlineExplanation {
     private final DocksEntitlements entitlements;
     private final DocksAiAllowance allowance;
 
-    private record Settings(String key, int accountLimit, long monthlyPence, long requestPence) {}
+    private record Caps(int accountLimit, long monthlyPence, long requestPence) {}
+    private record Settings(String key, Caps caps) {}
+    public record BudgetStatus(String monthUtc, long reservedPence, Long monthlyBudgetPence, Long remainingPence,
+                               Long requestReservePence, Integer accountMonthlyLimit) {}
 
     public DocksOnlineExplanation(Environment config, ObjectMapper json, DocksEntitlements entitlements, DocksAiAllowance allowance) {
         this.config = config;
@@ -36,13 +42,22 @@ public class DocksOnlineExplanation {
 
     public boolean available() { return settings().isPresent(); }
 
+    public BudgetStatus budgetStatus() {
+        var month = YearMonth.now(ZoneOffset.UTC);
+        long reserved = allowance.reservedPence(month);
+        return caps().map(caps -> new BudgetStatus(month.toString(), reserved, caps.monthlyPence(),
+                Math.max(0, caps.monthlyPence() - reserved), caps.requestPence(), caps.accountLimit()))
+                .orElseGet(() -> new BudgetStatus(month.toString(), reserved, null, null, null, null));
+    }
+
     public String explain(UUID account, UUID installation, Integer cpu, Integer memory) {
         if (!reading(cpu) || !reading(memory) || (cpu == null && memory == null))
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Run a check with a processor or memory reading.");
         var settings = settings().orElseThrow(DocksOnlineExplanation::unavailable);
         boolean premium = entitlements.status(account, installation).map(DocksEntitlements.Status::canRepair).orElse(false);
         if (!premium) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "An enrolled device with Premium is required.");
-        if (!allowance.reserve(account, settings.accountLimit(), settings.monthlyPence(), settings.requestPence()))
+        var caps = settings.caps();
+        if (!allowance.reserve(account, caps.accountLimit(), caps.monthlyPence(), caps.requestPence()))
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "The monthly online explanation allowance is unavailable or used up.");
         return requestExplanation(settings.key(), cpu, memory).orElseThrow(DocksOnlineExplanation::unavailable);
     }
@@ -82,15 +97,26 @@ public class DocksOnlineExplanation {
     }
 
     private Optional<Settings> settings() {
-        String key = config.getProperty("DOCKS_AI_OPENAI_KEY", "");
-        int limit = config.getProperty("DOCKS_AI_ACCOUNT_MONTHLY_LIMIT", Integer.class, 0);
-        long budget = config.getProperty("DOCKS_AI_MONTHLY_BUDGET_PENCE", Long.class, 0L);
-        long reserve = config.getProperty("DOCKS_AI_REQUEST_RESERVE_PENCE", Long.class, 0L);
-        if (config.getProperty("DOCKS_AI_ENABLED", Boolean.class, false)
-                && config.getProperty("DOCKS_AI_PRICING_VERIFIED", Boolean.class, false)
-                && !key.isBlank() && limit > 0 && reserve > 0 && budget >= reserve)
-            return Optional.of(new Settings(key, limit, budget, reserve));
-        return Optional.empty();
+        try {
+            if (!config.getProperty("DOCKS_AI_ENABLED", Boolean.class, false)
+                    || !config.getProperty("DOCKS_AI_PRICING_VERIFIED", Boolean.class, false)) return Optional.empty();
+            String key = config.getProperty("DOCKS_AI_OPENAI_KEY", "");
+            return key.isBlank() ? Optional.empty() : caps().map(caps -> new Settings(key, caps));
+        } catch (ConversionException | IllegalArgumentException invalid) {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<Caps> caps() {
+        try {
+            int limit = config.getProperty("DOCKS_AI_ACCOUNT_MONTHLY_LIMIT", Integer.class, 0);
+            long budget = config.getProperty("DOCKS_AI_MONTHLY_BUDGET_PENCE", Long.class, 0L);
+            long reserve = config.getProperty("DOCKS_AI_REQUEST_RESERVE_PENCE", Long.class, 0L);
+            return limit > 0 && reserve > 0 && budget >= reserve
+                    ? Optional.of(new Caps(limit, budget, reserve)) : Optional.empty();
+        } catch (ConversionException | IllegalArgumentException invalid) {
+            return Optional.empty();
+        }
     }
 
     private static boolean reading(Integer value) { return value == null || (value >= 0 && value <= 100); }

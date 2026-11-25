@@ -99,7 +99,11 @@ class DocksCustomerJourneyTests {
                 .andExpect(content().json("""
                         {"emailSignIn":true,"googleSignIn":false,"testBilling":true,"checkoutPlans":0,
                          "subscriptionPortal":false,"onlineExplanations":false,"windowsVersion":null}
-                        """, true));
+                        """, false))
+                .andExpect(jsonPath("$.onlineAiBudget.monthUtc").isNotEmpty())
+                .andExpect(jsonPath("$.onlineAiBudget.reservedPence").value(0))
+                .andExpect(jsonPath("$.onlineAiBudget.remainingPence").isEmpty())
+                .andExpect(jsonPath("$.onlineAiBudget.key").doesNotExist());
         asCustomer(body(post(ownerPath).with(csrf()), Map.of("reference", reference)), customer)
                 .andExpect(status().isUnauthorized());
         http.perform(body(post(ownerPath).with(csrf()).with(authentication(owner)), Map.of("reference", reference)))

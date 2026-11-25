@@ -21,6 +21,11 @@ const content = { title: 'Example project with a longer descriptive title', cate
     const url = new URL(route.request().url()).pathname;
     let body = {};
     if (url === '/api/admin/auth/session') body = { authenticated: true, email: 'owner@example.invalid' };
+    else if (url === '/api/admin/docks/configuration') body = {
+      emailSignIn: false, googleSignIn: false, testBilling: true, checkoutPlans: 0, subscriptionPortal: false,
+      onlineExplanations: false, windowsVersion: null,
+      onlineAiBudget: { monthUtc: '2026-11', reservedPence: 6, monthlyBudgetPence: 10, remainingPence: 4, requestReservePence: 2, accountMonthlyLimit: 4 },
+    };
     else if (url === '/api/admin/projects') body = [{ id: 'synthetic-project', slug: 'example-project', featured: false, sortOrder: 0, content, version: 1, publishedVersion: null, archived: false, updatedAt: '2026-10-29T12:00:00Z' }];
     else if (url === '/api/team/members/management') body = { actorScope: 'OWNER', members: [{ member, manageable: true }], creatableRoles: ['ADMIN','MODERATOR','SUPPORT','MEMBER'] };
     else if (url === '/api/team/roles') body = { profiles: [profile], assignments: [{ memberId: member.id, profileId: profile.id, credentialsVersion: 1 }], bases: { ADMIN: permissions, MEMBER: ['READ_CHANNELS'], SUPPORT: ['READ_CHANNELS'], MODERATOR: ['READ_CHANNELS'] }, managementGrants: permissions, manageableMembers: [member.id], editableProfiles: [profile.id] };
@@ -58,6 +63,16 @@ const content = { title: 'Example project with a longer descriptive title', cate
       for (const width of [320,390,768,1024,1440,1920]) { await page.setViewportSize({width,height:1000}); await layout(`${theme} roles ${width}`); }
       if(theme==='futuristic') { await page.setViewportSize({width:390,height:844}); await page.screenshot({path:path.join(output,'roles-mobile.png'),fullPage:true}); }
       await page.getByRole('button',{name:'Account security',exact:true}).click();
+      if (theme === 'futuristic') {
+        await page.setViewportSize({width:390,height:844});
+        const toggle = page.getByText('Crystal Docks release configuration',{exact:true});
+        await toggle.click();
+        await page.getByText('Online AI budget for November 2026 (UTC)',{exact:true}).waitFor();
+        check('AI budget shows the current reservation and remaining amounts while disabled',
+          await page.getByText('£0.06 reserved of £0.10 · £0.04 remaining',{exact:true}).isVisible()
+          && await page.getByText('£0.02 reserved per request · 4 requests per account each month',{exact:true}).isVisible());
+        await toggle.click();
+      }
       for (const action of ['Password','Authenticator','Recovery codes']) {
         await page.getByRole('button',{name:action,exact:true}).click();
         for (const width of [320,390,768,1024,1440,1920]) { await page.setViewportSize({width,height:1000}); await layout(`${theme} security ${action} ${width}`); }

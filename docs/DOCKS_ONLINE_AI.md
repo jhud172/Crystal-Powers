@@ -6,6 +6,8 @@ Enablement requires a dedicated provider project credential in `DOCKS_AI_OPENAI_
 
 Both caps reset at the UTC month boundary. The database reserves capacity before the provider call. Failed and timed-out requests also consume a reservation because the provider may have processed them. The provider receives a request with response storage disabled. Verify the provider project's retention policy separately before enabling this in production.
 
+In **Owner Studio → Account security → Crystal Docks release configuration**, check the current UTC month's reserved and remaining allowance and the per-request and per-account limits. The reserved amount is based on the configured estimate for each call. Compare it with actual charges in the provider's dashboard. The owner view can still show reservations when online AI is switched off. Invalid or incomplete caps make online explanations unavailable.
+
 Pilot with a dedicated key and a small budget. Confirm an eligible and an ineligible account, cancellation at the desktop confirmation, provider success and timeout, both cap responses and continued access to checks, reports and repairs during an outage.
 
 The executable website passed a loopback smoke test against a disposable PostgreSQL 17 database. Flyway applied migrations through V100. The test exercised anonymous, missing-approval and unenrolled-device requests. An enrolled trial fixture returned HTTP 429 at both caps. No provider calls were made.
