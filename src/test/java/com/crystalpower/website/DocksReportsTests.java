@@ -20,7 +20,8 @@ class DocksReportsTests {
                             "classpath:db/migration/V91__docks_report_sync.sql",
                             "classpath:db/migration/V96__docks_report_retention.sql",
                             "classpath:db/migration/V97__docks_report_support_access.sql",
-                            "classpath:db/migration/V101__docks_diagnostic_log_sharing.sql").build();
+                            "classpath:db/migration/V101__docks_diagnostic_log_sharing.sql",
+                            "classpath:db/migration/V108__order_docks_support_activity.sql").build();
         try {
             var jdbc = new JdbcTemplate(database);
             var reports = new DocksReports(jdbc, new TransactionTemplate(new DataSourceTransactionManager(database)));
@@ -68,6 +69,7 @@ class DocksReportsTests {
             var opened = reports.openForSupport(actor, grant.reference()).orElseThrow();
             assertEquals(1, opened.reports().size());
             assertEquals("Test PC", opened.reports().get(0).deviceLabel());
+            jdbc.update("UPDATE docks_report_support_audit SET recorded_at = ? WHERE account_id = ?", checked, owner);
             assertEquals("VIEWED", reports.supportState(owner).activity().get(0).action());
             assertEquals(actor, jdbc.queryForObject("SELECT owner_actor FROM docks_report_support_audit WHERE action = 'VIEWED'", UUID.class));
             assertTrue(reports.supportState(unrelated).activity().isEmpty());
@@ -76,6 +78,7 @@ class DocksReportsTests {
             reports.clear(owner);
             reports.clear(owner);
             assertTrue(reports.openForSupport(actor, grant.reference()).isEmpty());
+            jdbc.update("UPDATE docks_report_support_audit SET recorded_at = ? WHERE account_id = ?", checked, owner);
             assertEquals("REVOKED", reports.supportState(owner).activity().get(0).action());
             assertTrue(reports.read(owner).enabled());
             assertTrue(reports.read(owner).reports().isEmpty());

@@ -23,7 +23,8 @@ class DocksDiagnosticLogsTests {
                 .addScripts("classpath:db/migration/V87__docks_accounts_and_devices.sql",
                         "classpath:db/migration/V91__docks_report_sync.sql",
                         "classpath:db/migration/V97__docks_report_support_access.sql",
-                        "classpath:db/migration/V101__docks_diagnostic_log_sharing.sql").build();
+                        "classpath:db/migration/V101__docks_diagnostic_log_sharing.sql",
+                        "classpath:db/migration/V108__order_docks_support_activity.sql").build();
         try {
             var db = new JdbcTemplate(database);
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));
@@ -48,6 +49,7 @@ class DocksDiagnosticLogsTests {
             assertTrue(reports.openForSupport(owner, first.reference()).isEmpty());
             assertTrue(reports.supportState(account).activity().isEmpty());
             assertEquals(readings, logs.open(owner, first.reference()).orElseThrow().readings());
+            db.update("UPDATE docks_report_support_audit SET recorded_at = ? WHERE account_id = ?", checked, account);
             assertEquals("VIEWED", logs.state(account).activity().get(0).action());
             assertEquals(owner, db.queryForObject("SELECT owner_actor FROM docks_report_support_audit WHERE action='VIEWED'", UUID.class));
             reports.clear(account);
