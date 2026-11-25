@@ -39,7 +39,8 @@ public class PageMetadataService {
         boolean teamPage = path.equals("/team") || path.startsWith("/team/");
         boolean clientPage = path.equals("/client") || path.startsWith("/client/");
         boolean specialPage = path.equals("/birthday/mission-vi");
-        boolean privatePage = ownerPage || teamPage || clientPage || specialPage;
+        boolean docksReports = path.equals("/docks/reports");
+        boolean privatePage = ownerPage || teamPage || clientPage || specialPage || docksReports;
         boolean missing = !PAGES.containsKey(path) && !privatePage;
         if(path.equals("/privacy") && privacy.ready()){meta=new Meta("Privacy & your data | Crystal Powers","How Crystal Powers handles personal information, contact details and project communications.");missing=false;}
         if (path.startsWith("/portfolio/")) {
@@ -57,6 +58,7 @@ public class PageMetadataService {
         if (ownerPage) meta = new Meta("Owner studio | Crystal Powers", "Private project management.");
         if (teamPage) meta = new Meta("Team workspace | Crystal Powers", "Private team communication.");
         if (clientPage) meta = new Meta("Client workspace | Crystal Powers", "Private project progress and conversations.");
+        if (docksReports) meta = new Meta("Crystal Docks reports | Crystal Powers", "Your private device reports.");
         if (specialPage) meta = new Meta("Mission VI | Crystal Powers", "A personal experience.");
         page = page.replaceFirst("<title>[^<]*</title>", Matcher.quoteReplacement("<title>" + HtmlUtils.htmlEscape(meta.title()) + "</title>"));
         page = tag(page, "name", "description", meta.description());
