@@ -101,7 +101,7 @@ class DocksStripeEventsTests {
             deliver(liveEvents, crossMode);
             verify(liveStripe, never()).subscription(anyString());
 
-            var billing = new DocksSubscriptions(db, tx, stripe, sandbox, "", "price_Fixture", "", "", "");
+            var billing = new DocksSubscriptions(db, tx, stripe, sandbox, "", "", "price_Fixture", "", "", "");
             assertEquals(409, assertThrows(ResponseStatusException.class,
                     () -> billing.checkout(account, DocksSubscriptions.Plan.SINGLE_MONTHLY)).getStatusCode().value());
 

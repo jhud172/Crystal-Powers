@@ -38,11 +38,13 @@ public class DocksSubscriptions {
     private final TransactionTemplate tx;
     private final StripeGateway stripe;
     private final DocksBillingMode mode;
-    private final String portalConfiguration;
+    private final String livePortalConfiguration;
+    private final String testPortalConfiguration;
     private final EnumMap<Plan, String> prices = new EnumMap<>(Plan.class);
 
     public DocksSubscriptions(JdbcTemplate db, TransactionTemplate tx, StripeGateway stripe, DocksBillingMode mode,
             @Value("${app.docks.stripe-live-portal:}") String portalConfiguration,
+            @Value("${app.docks.stripe-test-portal:}") String testPortalConfiguration,
             @Value("${app.docks.price-single-monthly:}") String singleMonthly,
             @Value("${app.docks.price-single-annual:}") String singleAnnual,
             @Value("${app.docks.price-household-monthly:}") String householdMonthly,
@@ -51,7 +53,8 @@ public class DocksSubscriptions {
         this.tx = tx;
         this.stripe = stripe;
         this.mode = mode;
-        this.portalConfiguration = portalConfiguration;
+        this.livePortalConfiguration = portalConfiguration;
+        this.testPortalConfiguration = testPortalConfiguration;
         prices.put(Plan.SINGLE_MONTHLY, singleMonthly);
         prices.put(Plan.SINGLE_ANNUAL, singleAnnual);
         prices.put(Plan.HOUSEHOLD_MONTHLY, householdMonthly);
@@ -68,7 +71,9 @@ public class DocksSubscriptions {
     }
 
     public boolean testMode() { return !mode.live(); }
-    public boolean portalConfigured() { return mode.live() && portalConfiguration.matches("bpc_[A-Za-z0-9]{1,96}"); }
+    public boolean portalConfigured() { return portalConfiguration().matches("bpc_[A-Za-z0-9]{1,96}"); }
+
+    private String portalConfiguration() { return mode.live() ? livePortalConfiguration : testPortalConfiguration; }
 
     public Optional<SubscriptionStatus> latestStatus(UUID account) {
         return latest(account).map(Subscription::status);
@@ -96,12 +101,12 @@ public class DocksSubscriptions {
         var metadata = provider.path("metadata");
         String customer = provider.path("customer").asText();
         if (!stored.stripeId().equals(provider.path("id").asText()) || !"subscription".equals(provider.path("object").asText())
-                || !provider.path("livemode").isBoolean() || !provider.path("livemode").asBoolean()
+                || !provider.path("livemode").isBoolean() || provider.path("livemode").asBoolean() != mode.live()
                 || !account.toString().equals(metadata.path("docks_account_id").asText())
                 || !stored.attemptId().toString().equals(metadata.path("docks_checkout_attempt").asText())
                 || !customer.matches("cus_[A-Za-z0-9]{1,96}"))
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Could not verify the customer for this subscription.");
-        return new Link(stripe.docksPortal(customer, portalConfiguration), false);
+        return new Link(stripe.docksPortal(customer, portalConfiguration()), testMode());
     }
 
     public Link checkout(UUID account, Plan selected) {

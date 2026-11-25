@@ -8,6 +8,8 @@ Free Render PostgreSQL expires after 30 days and the free web service sleeps whe
 
 The free pilot deployed commit `6dad3d0` on 25 November 2026. Render applied 84 migrations through V105. An HTTPS browser run verified the mobile reports sign-in screen, denied anonymous report reads, checked indexing exclusion and confirmed Google sign-in and the download feed were disabled. Provider journeys still need their pilot credentials and end-to-end verification. [Pilot reports](https://crystal-docks-pilot-xpyl.onrender.com/docks/reports)
 
+The Crystal Powers Stripe test environment has a dedicated Docks portal configuration for invoice history, payment method updates and cancellation at period end. Staging still needs a restricted sandbox API key, the Docks webhook signing secret and the test catalogue. The dedicated Google account reached the first-time Google Cloud terms screen. The staging OAuth client and mail sender remain pending.
+
 ## Database access
 
 Docks uses the server's PostgreSQL role and application authorisation. Migration `V105__protect_docks_database.java` enables row-level security for its existing tables and revokes direct table access from `PUBLIC`, `anon`, `authenticated` and `service_role` when those API roles are present. The application's table owner continues to serve authorised requests. Keep new Docks tables out of the hosted Data API by applying the same protections. [Supabase Data API hardening](https://supabase.com/docs/guides/database/hardening-data-api)

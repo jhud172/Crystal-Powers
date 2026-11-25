@@ -335,7 +335,7 @@ function PremiumBilling({ token }: { token: string }) {
         Object.prototype.hasOwnProperty.call(planLabels, item));
       setPlans(available);
       setTestMode(result.testMode);
-      setCanManage(!result.testMode && result.canManage === true);
+      setCanManage(result.canManage === true);
       setPlan(available[0] ?? "");
       setSubscription(result.subscription ?? null);
     }).catch(() => { /* Billing is optional and must not interrupt the report viewer. */ });
@@ -367,7 +367,7 @@ function PremiumBilling({ token }: { token: string }) {
     try {
       const result = await request<{ url: string; testMode: boolean }>("billing/portal", "POST", undefined, token);
       const url = new URL(result.url);
-      if (result.testMode !== false || url.origin !== "https://billing.stripe.com" || url.username || url.password)
+      if (result.testMode !== testMode || url.origin !== "https://billing.stripe.com" || url.username || url.password)
         throw new Error("Stripe did not return a valid subscription management link.");
       setPortalLink(url.href);
     } catch (failure) {
@@ -397,9 +397,11 @@ function PremiumBilling({ token }: { token: string }) {
     {error && <p role="alert">{error}</p>}
     {link && <a className="studio-button" href={link} rel="noreferrer">{testMode ? "Open Stripe test checkout" : "Open Stripe checkout"}</a>}
     {canManage && <button type="button" className="admin-secondary" disabled={busy} onClick={() => void manage()}>
-      Manage subscription
+      {testMode ? "Manage test subscription" : "Manage subscription"}
     </button>}
-    {portalLink && <a className="studio-button" href={portalLink} rel="noreferrer">Open Stripe subscription management</a>}
+    {portalLink && <a className="studio-button" href={portalLink} rel="noreferrer">
+      {testMode ? "Open Stripe test portal" : "Open Stripe subscription management"}
+    </a>}
   </section>;
 }
 

@@ -150,13 +150,13 @@ public class StripeGateway {
 
     String docksPortal(String customerId, String configuration) {
         requireConnected();
-        if (!liveMode || !customerId.matches("cus_[A-Za-z0-9]{1,96}")
+        if (!customerId.matches("cus_[A-Za-z0-9]{1,96}")
                 || !configuration.matches("bpc_[A-Za-z0-9]{1,96}")) throw unavailable();
         var portal = post("/billing_portal/sessions", Map.of("customer", customerId, "configuration", configuration,
                 "return_url", publicUrl + "/docks/reports"), "cp-docks-portal-" + UUID.randomUUID());
         String url = portal.path("url").asText();
         if (!"billing_portal.session".equals(portal.path("object").asText())
-                || !portal.path("livemode").isBoolean() || !portal.path("livemode").asBoolean()
+                || !portal.path("livemode").isBoolean() || portal.path("livemode").asBoolean() != liveMode
                 || !customerId.equals(portal.path("customer").asText()) || !configuration.equals(portal.path("configuration").asText())
                 || url.length() > 2048 || !providerUrl(url, "billing.stripe.com")) throw unavailable();
         return url;

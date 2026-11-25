@@ -30,7 +30,8 @@ class DocksSubscriptionsTests {
             when(stripe.docksCheckout(any(), any(), eq("price_monthly"), anyLong())).thenAnswer(call ->
                     new StripeGateway.Checkout("cs_test_preview", "https://checkout.stripe.com/c/pay/cs_test_preview",
                         call.getArgument(3)));
-            var billing = new DocksSubscriptions(jdbc, tx, stripe, new DocksBillingMode(stripe, true, false, false, ""), "",
+            var billing = new DocksSubscriptions(jdbc, tx, stripe, new DocksBillingMode(stripe, true, false, false, ""),
+                    "bpc_IgnoredLive", "bpc_TestFixture",
                     "price_monthly", "price_annual", "price_householdMonthly", "price_householdAnnual");
             UUID account = UUID.randomUUID();
             jdbc.update("INSERT INTO docks_account (id, display_name) VALUES (?, ?)", account, "Fixture");
@@ -47,6 +48,17 @@ class DocksSubscriptionsTests {
                         (stripe_subscription_id, attempt_id, provider_state, updated_at_epoch)
                     SELECT 'sub_ended', attempt_id, 'canceled', 1 FROM docks_subscription_checkout
                     """);
+            var testAttempt = jdbc.queryForObject("SELECT attempt_id FROM docks_subscription_checkout", UUID.class);
+            var testSubscription = new ObjectMapper().createObjectNode().put("id", "sub_ended")
+                    .put("object", "subscription").put("livemode", true).put("customer", "cus_TestFixture");
+            testSubscription.putObject("metadata").put("docks_checkout_attempt", testAttempt.toString())
+                    .put("docks_account_id", account.toString());
+            when(stripe.subscription("sub_ended")).thenReturn(testSubscription);
+            assertEquals(502, assertThrows(ResponseStatusException.class, () -> billing.portal(account)).getStatusCode().value());
+            verify(stripe, never()).docksPortal(anyString(), anyString());
+            testSubscription.put("livemode", false);
+            when(stripe.docksPortal("cus_TestFixture", "bpc_TestFixture")).thenReturn("https://billing.stripe.com/p/session/testFixture");
+            assertEquals(new DocksSubscriptions.Link("https://billing.stripe.com/p/session/testFixture", true), billing.portal(account));
             when(stripe.docksCheckout(any(), any(), eq("price_annual"), anyLong())).thenAnswer(call ->
                     new StripeGateway.Checkout("cs_test_replacement",
                         "https://checkout.stripe.com/c/pay/cs_test_replacement", call.getArgument(3)));
@@ -57,7 +69,7 @@ class DocksSubscriptionsTests {
             assertEquals(503, assertThrows(ResponseStatusException.class,
                     () -> billing.checkout(account, DocksSubscriptions.Plan.SINGLE_MONTHLY)).getStatusCode().value());
             var liveMode = new DocksBillingMode(stripe, true, false, true, "whsec_Fixture");
-            var live = new DocksSubscriptions(jdbc, tx, stripe, liveMode, "bpc_Fixture",
+            var live = new DocksSubscriptions(jdbc, tx, stripe, liveMode, "bpc_Fixture", "bpc_IgnoredTest",
                     "price_liveMonthly", "price_liveAnnual", "price_liveHouseholdMonthly", "price_liveHouseholdAnnual");
             assertEquals(4, live.availablePlans().size());
             assertTrue(live.latestStatus(account).isEmpty());
@@ -84,7 +96,7 @@ class DocksSubscriptionsTests {
             metadata.put("docks_account_id", UUID.randomUUID().toString());
             when(stripe.subscription("sub_liveFixture")).thenReturn(subscription);
             assertEquals(502, assertThrows(ResponseStatusException.class, () -> live.portal(account)).getStatusCode().value());
-            verify(stripe, never()).docksPortal(anyString(), anyString());
+            verify(stripe, never()).docksPortal(eq("cus_LiveFixture"), anyString());
             metadata.put("docks_account_id", account.toString());
             when(stripe.docksPortal("cus_LiveFixture", "bpc_Fixture")).thenReturn("https://billing.stripe.com/p/session/liveFixture");
             assertEquals("https://billing.stripe.com/p/session/liveFixture", live.portal(account).url());
