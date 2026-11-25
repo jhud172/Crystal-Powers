@@ -25,7 +25,10 @@ class DocksDeviceRepositoryTests {
             jdbc.update("INSERT INTO docks_device (id, account_id, installation_id, label) VALUES (?, ?, ?, ?)",
                     device, owner, UUID.randomUUID(), "Test PC");
 
-            assertTrue(repository.listOwnedBy(other).isEmpty());
+            var enrolment = UUID.randomUUID();
+            var registered = repository.enrol(other, enrolment, "Other PC");
+            assertEquals(registered, repository.enrol(other, enrolment, "Renamed retry"));
+            assertEquals(1, repository.listOwnedBy(other).size());
             assertFalse(repository.removeOwnedBy(other, device));
             assertEquals(device, repository.listOwnedBy(owner).get(0).id());
             assertTrue(repository.removeOwnedBy(owner, device));
