@@ -53,6 +53,37 @@ class ExternalTransportTests {
     }
 
     @Test
+    void pilotSignInUsesDedicatedResendCredentialsWithoutEnablingSharedMail() throws Exception {
+        var shared = new EmailTransport(null, new ObjectMapper(), "disabled", "", "", http);
+        assertThat(email().forDocksPilot("", "").configured()).isFalse();
+        assertThat(shared.forDocksPilot("synthetic-pilot", "").configured()).isFalse();
+        assertThat(shared.forDocksPilot("", "pilot@example.invalid").configured()).isFalse();
+        assertThat(shared.configured()).isFalse();
+
+        var pilot = shared.forDocksPilot("synthetic-pilot", "pilot@example.invalid");
+        assertThat(pilot.configured()).isTrue();
+        response(200, "{\"id\":\"synthetic-pilot-receipt\"}".getBytes());
+        pilot.send(message);
+        var request = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(http).send(request.capture(), any(HttpResponse.BodyHandler.class));
+        assertThat(request.getValue().headers().firstValue("Authorization")).contains("Bearer synthetic-pilot");
+        assertThat(shared.configured()).isFalse();
+    }
+
+    @Test
+    void pilotSignInAcceptsOnlyLoopbackSmtpForLocalFixtures() {
+        var smtp = new org.springframework.mail.javamail.JavaMailSenderImpl();
+        var shared = new EmailTransport(smtp, new ObjectMapper(), "smtp", "", "studio@example.invalid", http);
+        smtp.setHost("relay.example.invalid");
+        assertThat(shared.forDocksPilot("", "").configured()).isFalse();
+        for (String loopback : List.of("127.0.0.1", "::1")) {
+            smtp.setHost(loopback);
+            assertThat(shared.forDocksPilot("", "")).isSameAs(shared);
+        }
+        verifyNoInteractions(http);
+    }
+
+    @Test
     void smtpAddsBrandNameAndPreservesReplyToAndConfiguredSenderNames() throws Exception {
         var smtp = mock(org.springframework.mail.javamail.JavaMailSender.class);
         for (String from : List.of("studio@example.invalid", "Crystal Powers Support <studio@example.invalid>")) {

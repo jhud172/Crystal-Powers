@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -30,8 +31,16 @@ public class DocksEmailSignIn {
 
     public record Session(String accessToken, OffsetDateTime expiresAt, UUID accountId) {}
 
+    @Autowired
     public DocksEmailSignIn(JdbcTemplate db, TransactionTemplate transaction, EmailTransport mail,
-            @Value("${app.docks.email-enabled:false}") boolean enabled, DocksPilotAccess pilot) {
+            @Value("${app.docks.email-enabled:false}") boolean enabled, DocksPilotAccess pilot,
+            @Value("${app.docks.pilot-resend-key:}") String pilotKey,
+            @Value("${app.docks.pilot-mail-from:}") String pilotFrom) {
+        this(db, transaction, pilot.restricted() ? mail.forDocksPilot(pilotKey, pilotFrom) : mail, enabled, pilot);
+    }
+
+    public DocksEmailSignIn(JdbcTemplate db, TransactionTemplate transaction, EmailTransport mail,
+            boolean enabled, DocksPilotAccess pilot) {
         this.db = db;
         this.transaction = transaction;
         this.mail = mail;
