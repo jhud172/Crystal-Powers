@@ -3,6 +3,7 @@ package com.crystalpower.website;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.crystalpower.website.api.DocksReleaseController;
+import com.crystalpower.website.service.DocksWindowsRelease;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -10,7 +11,7 @@ class DocksReleaseTests {
     @Test
     void publishesOnlyTheConfiguredVersionAndApprovedSignedAssetPaths() {
         var config = new MockEnvironment();
-        var release = new DocksReleaseController(config);
+        var release = new DocksReleaseController(new DocksWindowsRelease(config));
         String version = "1.2.3.0";
         String path = "/storage/v1/object/public/docks-downloads/Crystal-Docks-1.2.3.0-win-x64-signed.msix";
         assertTrue(release.current().getBody().isEmpty());

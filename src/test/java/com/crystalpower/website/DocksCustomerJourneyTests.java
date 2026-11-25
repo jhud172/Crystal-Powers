@@ -88,6 +88,13 @@ class DocksCustomerJourneyTests {
         when(owners.valid(principal)).thenReturn(true);
         var owner = UsernamePasswordAuthenticationToken.authenticated(principal, null, List.of(new SimpleGrantedAuthority("ROLE_OWNER")));
         String ownerPath = "/api/admin/docks/support-reports";
+        asCustomer(get("/api/admin/docks/configuration"), customer).andExpect(status().isUnauthorized());
+        http.perform(get("/api/admin/docks/configuration").with(authentication(owner)))
+                .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(content().json("""
+                        {"emailSignIn":true,"googleSignIn":false,"testBilling":true,"checkoutPlans":0,
+                         "subscriptionPortal":false,"onlineExplanations":false,"windowsVersion":null}
+                        """, true));
         asCustomer(body(post(ownerPath).with(csrf()), Map.of("reference", reference)), customer)
                 .andExpect(status().isUnauthorized());
         http.perform(body(post(ownerPath).with(csrf()).with(authentication(owner)), Map.of("reference", reference)))

@@ -8,6 +8,8 @@ Email sign-in defaults to disabled. To enable it on the pilot, configure the con
 
 The release build passed a local browser and SMTP check using the environment switch and a loopback-only recipient fixture. It exercised the real SMTP transport, code exchange, report sign-in and sign-out, and verified the page's unavailable and Google-only states. Hosted provider delivery remains a separate pilot check.
 
+In the owner studio, open **Account security → Crystal Docks release configuration** to see which sign-in methods, checkout plans, subscription portal, online explanations and installer version the server offers. Check **Crystal Docks payment review** for queued deliveries that need attention. Confirm provider and package behaviour with the pilot before rollout.
+
 Free Render PostgreSQL expires after 30 days and the free web service sleeps when idle. [Render free services](https://render.com/docs/free)
 
 The free pilot deployed commit `6dad3d0` on 25 November 2026. Render applied 84 migrations through V105. An HTTPS browser run verified the mobile reports sign-in screen, denied anonymous report reads, checked indexing exclusion and confirmed Google sign-in and the download feed were disabled. Provider journeys still need their pilot credentials and end-to-end verification. [Pilot reports](https://crystal-docks-pilot-xpyl.onrender.com/docks/reports)
