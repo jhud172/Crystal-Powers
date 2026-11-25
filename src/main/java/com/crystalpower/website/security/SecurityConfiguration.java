@@ -39,6 +39,7 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.POST,"/api/billing/stripe/webhook").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("OWNER")
                 .requestMatchers("/api/team/**").hasAnyRole("OWNER", "TEAM")
+                .requestMatchers("/api/docks", "/api/docks/**").denyAll()
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .requestMatchers(HttpMethod.HEAD, "/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/contact", "/api/services", "/api/assistant/chat").permitAll()
