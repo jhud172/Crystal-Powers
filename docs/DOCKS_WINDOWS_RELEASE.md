@@ -6,6 +6,14 @@ Use the dedicated [Crystal Docks Downloads repository](https://github.com/jhud17
 
 The website also accepts files from the `docks-downloads` public bucket in its configured Supabase project. Check the project's upload limit before using it. The self-contained x64 preview was about 65.7 MB, above the Free project's 50 MB maximum. Keep customer files and private assets out of the download bucket. [Supabase Storage upload limits](https://supabase.com/docs/guides/storage/uploads/file-limits)
 
+While the GitHub release is still a draft, verify the uploaded copy against the independent build record using an authenticated GitHub CLI with access to the downloads repository:
+
+```powershell
+.\packaging\Test-ReleaseMsix.ps1 -GitHubDraft -Version $releaseVersion -Publisher $releasePublisher -Sha256 $buildSha256
+```
+
+The check downloads the two draft assets, confirms the checksum file and verifies the signed MSIX. It leaves the repository and draft visibility as they were.
+
 Before enabling the release feed, run `packaging/Test-ReleaseMsix.ps1` from the Windows repository on the downloaded file on a clean Windows 11 machine. Pass the digest, version and publisher from the release build record. It checks the download bytes, exact package identity, architecture, publisher and trusted timestamped signature.
 
 Set `DOCKS_RELEASE_WINDOWS_X64_VERSION` to the four-part MSIX version, `DOCKS_RELEASE_WINDOWS_X64_URL` to the exact HTTPS asset URL, and `DOCKS_RELEASE_WINDOWS_X64_SHA256` to the verified digest of the signed package. The feed and redirect require all three settings. From a signed-out browser, confirm the feed returns the expected `version` and `sha256` and the matching `/{version}/download` route delivers a package that passes `Test-ReleaseMsix.ps1`. Compare with the build record independently of the feed.
