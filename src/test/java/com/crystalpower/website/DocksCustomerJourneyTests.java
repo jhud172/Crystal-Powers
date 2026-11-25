@@ -173,10 +173,29 @@ class DocksCustomerJourneyTests {
         redeem(customer, replacement, code).andExpect(status().isConflict());
 
         String oldDevice = DOCKS + "/devices/" + firstId;
+        http.perform(get(DOCKS + "/devices")).andExpect(status().isUnauthorized());
+        asCustomer(get(DOCKS + "/devices"), customer).andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(jsonPath("$[0].id").value(firstId))
+                .andExpect(jsonPath("$[0].enrolledAt").isNotEmpty());
+        asCustomer(get(DOCKS + "/devices"), other).andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].label").value("Other account PC"));
+        var checked = OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(1);
+        var readings = Map.of("memoryPercent", 47, "logicalProcessors", 4, "installedApps", 12, "driveStatus", "HEALTHY");
+        asCustomer(body(put(REPORTS + "/preference"), Map.of("enabled", true)), customer).andExpect(status().isNoContent());
+        asCustomer(body(put(REPORTS + "/latest"),
+                Map.of("installationId", first, "checkedAt", checked, "memoryPercent", 47)), customer).andExpect(status().isNoContent());
+        asCustomer(body(post(LOG), Map.of("installationId", first, "checkedAt", checked,
+                "readings", readings, "approved", true)), customer).andExpect(status().isOk());
         asCustomer(delete(oldDevice), other).andExpect(status().isNotFound());
+        asCustomer(get(REPORTS), customer).andExpect(status().isOk()).andExpect(jsonPath("$.reports[0].deviceId").value(firstId));
         asCustomer(get(entitlement(first)), customer).andExpect(status().isOk())
                 .andExpect(jsonPath("$.canRepair").value(true));
         asCustomer(delete(oldDevice), customer).andExpect(status().isNoContent());
+        asCustomer(get(DOCKS + "/devices"), customer).andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].label").value("Replacement PC")).andExpect(jsonPath("$.length()").value(1));
+        asCustomer(get(REPORTS), customer).andExpect(status().isOk()).andExpect(jsonPath("$.reports").isEmpty());
+        asCustomer(get(LOG), customer).andExpect(status().isOk()).andExpect(jsonPath("$.grant").isEmpty());
         asCustomer(get(entitlement(first)), customer).andExpect(status().isNotFound());
         redeem(customer, replacement, code).andExpect(status().isNoContent());
         asCustomer(get(entitlement(replacement)), customer).andExpect(status().isOk())

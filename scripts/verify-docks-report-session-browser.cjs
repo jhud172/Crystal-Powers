@@ -18,7 +18,8 @@ async function main() {
         let signedIn = 0;
         let rejectLog = false;
         let deferReport;
-      let lateReportFinished = false;
+        let lateReportFinished = false;
+        let deviceRemovals = 0;
         let reports = 0;
         let lastBearer;
         let expiresAt;
@@ -37,6 +38,14 @@ async function main() {
           }
           if (!path.startsWith('/api/docks/')) return json({}, 404);
           lastBearer = route.request().headers().authorization;
+          if (path === '/api/docks/devices') return json([
+            {id:'one',installationId:'12345678-0000-0000-0000-000000000000',label:'Windows PC',enrolledAt:'2026-11-23T12:00:00Z'},
+            {id:'two',installationId:'9abcdef0-0000-0000-0000-000000000000',label:'Windows PC',enrolledAt:'2026-11-24T12:00:00Z'}
+          ]);
+          if (path === '/api/docks/devices/one' && route.request().method() === 'DELETE') {
+            deviceRemovals++;
+            return route.fulfill({status:204});
+          }
           if (path === '/api/docks/reports') {
             reports++;
             const label = signedIn === 1 ? 'Old private device' : 'New private device';
@@ -45,11 +54,11 @@ async function main() {
               return await json({enabled:true,reports:[{deviceId:'one',deviceLabel:label,
                 checkedAt:'2026-11-25T15:00:00Z',cpuPercent:14,memoryPercent:null}]});
             } catch { return; }
-          finally { if (label === 'Old private device' && reports >= 2) lateReportFinished = true; }
+            finally { if (label === 'Old private device' && reports >= 2) lateReportFinished = true; }
           }
           if (path.endsWith('/diagnostic-log') && rejectLog) return json({},401);
           if (path.endsWith('/diagnostic-log') || path.endsWith('/support-access'))
-            return json({grant:{reference:'private-support-reference',expiresAt},activity:[]});
+            return json({grant:deviceRemovals ? null : {reference:'private-support-reference',expiresAt},activity:[]});
           if (path.endsWith('/auth/google/desktop-code')) return json({code:'g'.repeat(43)});
           if (path.endsWith('/auth/sign-out')) return route.fulfill({status:204});
           return json({});
@@ -88,6 +97,24 @@ async function main() {
           await page.clock.fastForward(61_000);
         } else {
           assert(!new URL(page.url()).searchParams.has('google'));
+          await page.getByText('Manage enrolled devices',{exact:true}).click();
+          const remove = page.getByRole('button',{name:'Remove Windows PC · 12345678'});
+          const otherDevice = page.getByRole('button',{name:'Remove Windows PC · 9ABCDEF0'});
+          await expect(otherDevice).toBeVisible();
+          page.once('dialog', dialog => dialog.dismiss());
+          await remove.click();
+          assert.equal(deviceRemovals, 0);
+          let confirmation;
+          page.once('dialog', async dialog => { confirmation = dialog.message(); await dialog.accept(); });
+          await remove.click();
+          await expect(page.getByRole('status').filter({hasText:'Device removed'})).toBeVisible();
+          assert.match(confirmation, /deletes its uploaded summary and diagnostic log\. Saved checks stay/);
+          assert.equal(deviceRemovals, 1);
+          await expect(remove).toHaveCount(0);
+          await expect(otherDevice).toBeVisible();
+          await expect(page.getByRole('heading',{name:'Your enrolled devices'})).toBeFocused();
+          await expect(page.getByRole('heading',{name:'Old private device'})).toHaveCount(0);
+          await expect(page.getByLabel('Diagnostic log reference')).toHaveCount(0);
           await page.getByRole('button',{name:'Sign out'}).click();
         }
         await expect(email).toBeVisible();

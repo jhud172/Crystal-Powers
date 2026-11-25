@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 type Summary = { deviceId: string; deviceLabel: string; checkedAt: string; cpuPercent: number | null; memoryPercent: number | null };
 type Reports = { enabled: boolean; reports: Summary[] };
+type EnrolledDevice = { id: string; installationId: string; label: string; enrolledAt: string };
 const planLabels = {
   SINGLE_MONTHLY: "One device, monthly",
   SINGLE_ANNUAL: "One device, annual",
@@ -18,6 +19,10 @@ type AccountRequest = <T>(path: string, method?: string, value?: unknown) => Pro
 
 class SessionEnded extends Error {}
 class Unauthorised extends Error {}
+
+function deviceName(device: EnrolledDevice) {
+  return `${device.label} · ${device.installationId.slice(0, 8).toUpperCase()}`;
+}
 
 async function request<T>(path: string, method = "GET", value?: unknown, token?: string,
     browserCookies = false, signal?: AbortSignal): Promise<T> {
@@ -43,10 +48,13 @@ export default function DocksReports() {
   const [session, setSession] = useState<Session | null>(null);
   const activeSession = useRef<Session | null>(null);
   const [view, setView] = useState<Reports | null>(null);
+  const [devices, setDevices] = useState<EnrolledDevice[] | null>(null);
+  const [supportRevision, setSupportRevision] = useState(0);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const reportsHeading = useRef<HTMLHeadingElement>(null);
+  const devicesHeading = useRef<HTMLHeadingElement>(null);
   const pageHeading = useRef<HTMLHeadingElement>(null);
   const [signInMethods, setSignInMethods] = useState<{ email: boolean; google: boolean } | null>(null);
   const googleEnabled = signInMethods?.google === true;
@@ -59,6 +67,8 @@ export default function DocksReports() {
     setSession(null);
     setDesktopCode("");
     setView(null);
+    setDevices(null);
+    setSupportRevision(0);
     setRequested(false);
     setEmail("");
     setCode("");
@@ -250,6 +260,26 @@ export default function DocksReports() {
     });
   }
 
+  function refreshDevices() {
+    void run(async () => {
+      const list = await accountRequest<EnrolledDevice[]>("devices");
+      if (!Array.isArray(list)) throw new Error("Crystal Docks could not load the enrolled devices.");
+      setDevices(list);
+    });
+  }
+
+  function removeDevice(device: EnrolledDevice) {
+    if (!window.confirm(`Remove ${deviceName(device)} from your account? This frees any Premium place it uses and deletes its uploaded summary and diagnostic log. Saved checks stay on that computer.`)) return;
+    void run(async () => {
+      await accountRequest(`devices/${encodeURIComponent(device.id)}`, "DELETE");
+      setDevices(previous => previous?.filter(item => item.id !== device.id) ?? null);
+      setView(previous => previous && { ...previous, reports: previous.reports.filter(report => report.deviceId !== device.id) });
+      setSupportRevision(previous => previous + 1);
+      setNotice("Device removed. You can now use any Premium place it freed on another computer.");
+      devicesHeading.current?.focus();
+    });
+  }
+
   function downloadSummary({ deviceLabel, checkedAt, cpuPercent, memoryPercent }: Summary) {
     const content = JSON.stringify({ deviceLabel, checkedAt, cpuPercent, memoryPercent }, null, 2) + "\n";
     const url = URL.createObjectURL(new Blob([content], { type: "application/json" }));
@@ -287,8 +317,23 @@ export default function DocksReports() {
       </section>}
       <PremiumBilling accountRequest={accountRequest} />
       <Household accountRequest={accountRequest} />
+      <details onToggle={event => { if (event.currentTarget.open && devices === null) refreshDevices(); }}>
+        <summary>Manage enrolled devices</summary>
+        <section className="admin-form" aria-labelledby="docks-devices-heading">
+          <h2 id="docks-devices-heading" ref={devicesHeading} tabIndex={-1}>Your enrolled devices</h2>
+          <p>Match the device reference in Access keys and devices in the Windows app before removing a computer.</p>
+          {devices?.length === 0 && <p>No devices are enrolled on this account.</p>}
+          {devices && devices.length > 0 && <ul>{devices.map(device => <li key={device.id}>
+            <h3>{deviceName(device)}</h3>
+            <p>Enrolled <time dateTime={device.enrolledAt}>{new Date(device.enrolledAt).toLocaleDateString("en-GB")}</time></p>
+            <button className="admin-secondary" type="button" disabled={busy}
+              aria-label={`Remove ${deviceName(device)}`} onClick={() => removeDevice(device)}>Remove device</button>
+          </li>)}</ul>}
+          <button className="admin-secondary" type="button" disabled={busy} onClick={refreshDevices}>Refresh devices</button>
+        </section>
+      </details>
       <ResearchPreference accountRequest={accountRequest} />
-      <ReportSupport accountRequest={accountRequest} forLog />
+      <ReportSupport key={`log-${supportRevision}`} accountRequest={accountRequest} forLog />
       {view && <>
         <h2 tabIndex={-1} ref={reportsHeading}>Shared device summaries</h2>
         {view.reports.length === 0 && <p>{view.enabled ? "You have not shared a device summary yet." : "Report sharing is turned off. You can turn it on in the Windows app."}</p>}
@@ -306,7 +351,8 @@ export default function DocksReports() {
         {view.enabled && view.reports.length > 0 && <button className="admin-secondary" type="button"
           disabled={busy} onClick={clearReports}>Delete uploaded summaries</button>}{" "}
         {view.enabled && <button className="admin-secondary" type="button" disabled={busy} onClick={disable}>Turn off sharing and delete reports</button>}
-        <ReportSupport accountRequest={accountRequest} canGrant={view.enabled && view.reports.length > 0} changingReports={busy} />
+        <ReportSupport key={`reports-${supportRevision}`} accountRequest={accountRequest}
+          canGrant={view.enabled && view.reports.length > 0} changingReports={busy} />
       </>}
       <details>
         <summary>Account privacy</summary>

@@ -6,6 +6,8 @@ Each shared summary can be downloaded as JSON with its device label, check time 
 
 **Delete uploaded summaries** clears all of the signed-in account's website summaries and keeps their sharing preference. **Turn off sharing and delete reports** also withdraws permission for future uploads. Desktop history stays on the computer and has its own **Clear saved checks** control.
 
+**Manage enrolled devices** is available on the signed-in reports page. Match the reference shown in the Windows app before removing a device. Removal frees any Premium seat the device used and deletes its shared summary and diagnostic log. Enrolment, reports and seats on other accounts remain under their owners' control.
+
 Deploy Flyway migration `V96__docks_report_retention.sql` with this integration. On staging, use two test accounts to confirm that deletion is scoped to the authorised account. Confirm that rows older than 30 days are hidden before the background job runs, removed when it runs and rejected on upload. Confirm that a newer upload remains available during expiry cleanup.
 
 ## Support access

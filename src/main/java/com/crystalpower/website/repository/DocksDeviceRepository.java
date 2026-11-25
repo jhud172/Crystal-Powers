@@ -1,8 +1,12 @@
 package com.crystalpower.website.repository;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,33 +18,32 @@ public class DocksDeviceRepository {
         this.database = database;
     }
 
-    public record Device(UUID id, UUID installationId, String label) {}
+    public record Device(UUID id, UUID installationId, String label, OffsetDateTime enrolledAt) {}
+    private static final RowMapper<Device> READ_DEVICE = (row, index) -> new Device(row.getObject("id", UUID.class),
+            row.getObject("installation_id", UUID.class), row.getString("label"),
+            row.getObject("enrolled_at", OffsetDateTime.class));
 
     @Transactional
     public Device enrol(UUID accountId, UUID installationId, String label) {
         database.queryForObject("SELECT id FROM docks_account WHERE id = ? FOR UPDATE",
                 UUID.class, accountId);
         var existing = database.query("""
-                SELECT id, installation_id, label FROM docks_device
+                SELECT id, installation_id, label, enrolled_at FROM docks_device
                 WHERE account_id = ? AND installation_id = ?
-                """, (row, index) -> new Device(row.getObject("id", UUID.class),
-                    row.getObject("installation_id", UUID.class), row.getString("label")),
-                accountId, installationId).stream().findFirst();
+                """, READ_DEVICE, accountId, installationId).stream().findFirst();
         if (existing.isPresent()) return existing.get();
         UUID id = UUID.randomUUID();
-        database.update("INSERT INTO docks_device (id, account_id, installation_id, label) VALUES (?, ?, ?, ?)",
-                id, accountId, installationId, label);
-        return new Device(id, installationId, label);
+        var enrolledAt = OffsetDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.MICROS);
+        database.update("INSERT INTO docks_device (id, account_id, installation_id, label, enrolled_at) VALUES (?, ?, ?, ?, ?)",
+                id, accountId, installationId, label, enrolledAt);
+        return new Device(id, installationId, label, enrolledAt);
     }
 
     public List<Device> listOwnedBy(UUID accountId) {
         return database.query("""
-                SELECT id, installation_id, label FROM docks_device
+                SELECT id, installation_id, label, enrolled_at FROM docks_device
                 WHERE account_id = ? ORDER BY enrolled_at, id
-                """,
-                (row, index) -> new Device(row.getObject("id", UUID.class),
-                        row.getObject("installation_id", UUID.class), row.getString("label")),
-                accountId);
+                """, READ_DEVICE, accountId);
     }
 
     public boolean removeOwnedBy(UUID accountId, UUID deviceId) {
