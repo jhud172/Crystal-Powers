@@ -54,6 +54,7 @@ class DocksCustomerJourneyTests {
     void enrolledCustomerControlsReportsSupportLogsAndResearchIndependently() throws Exception {
         var delivered = new AtomicReference<EmailTransport.Message>();
         when(mail.configured()).thenReturn(true);
+        http.perform(get(DOCKS + "/auth/email")).andExpect(status().isOk()).andExpect(jsonPath("$.enabled").value(true));
         doAnswer(invocation -> {
             delivered.set(invocation.getArgument(0));
             return null;

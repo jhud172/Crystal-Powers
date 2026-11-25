@@ -38,13 +38,22 @@ export default function DocksReports() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
-  const [googleEnabled, setGoogleEnabled] = useState(false);
+  const [signInMethods, setSignInMethods] = useState<{ email: boolean; google: boolean } | null>(null);
+  const googleEnabled = signInMethods?.google === true;
   const [desktopCode, setDesktopCode] = useState("");
   const handledGoogle = useRef(false);
 
   useEffect(() => {
-    void request<{ enabled: boolean }>("auth/google").then(result => setGoogleEnabled(result?.enabled === true))
-      .catch(() => { /* Email remains available when Google is unavailable. */ });
+    let mounted = true;
+    const available = (method: string) => request<{ enabled: boolean }>(`auth/${method}`)
+      .then(result => result?.enabled === true).catch(() => false);
+    void Promise.all([available("email"), available("google")]).then(([email, google]) => {
+      if (mounted) setSignInMethods({ email, google });
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
     if (handledGoogle.current) return;
     const url = new URL(window.location.href);
     const outcome = url.searchParams.get("google");
@@ -53,7 +62,7 @@ export default function DocksReports() {
     url.searchParams.delete("google");
     window.history.replaceState(window.history.state, "", url);
     if (outcome === "failed") {
-      setError("Google sign-in did not finish. Try again or sign in by email.");
+      setError("Google sign-in did not finish. Try signing in again.");
       return;
     }
     setBusy(true);
@@ -207,12 +216,14 @@ export default function DocksReports() {
         </section>
       </details>
     </> : <>
+      {signInMethods === null && <p role="status">Checking sign-in availability…</p>}
+      {signInMethods && !signInMethods.email && !signInMethods.google && <p role="status">Sign-in is currently unavailable. Try again later.</p>}
       {googleEnabled && <button className="admin-secondary" type="button" disabled={busy}
         onClick={startGoogle}>Sign in with Google</button>}
-      <form className="admin-form" onSubmit={send}>
+      {signInMethods?.email && <form className="admin-form" onSubmit={send}>
         <label>Email address<input type="email" autoComplete="email" maxLength={254} value={email} onChange={event => setEmail(event.target.value)} required /></label>
         <button className="studio-button" disabled={busy}>{requested ? "Send another code" : "Send sign-in code"}</button>
-      </form>
+      </form>}
       {requested && <form className="admin-form" onSubmit={signIn}>
         <label>Sign-in code<input type="password" autoComplete="one-time-code" maxLength={43} minLength={43} value={code} onChange={event => setCode(event.target.value)} required /></label>
         <button className="studio-button" disabled={busy}>Sign in</button>

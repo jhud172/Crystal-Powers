@@ -42,7 +42,7 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.POST, "/api/docks/auth/email/request",
                         "/api/docks/auth/email/exchange", "/api/docks/auth/sign-out",
                         "/api/docks/devices", "/api/docks/trial", "/api/docks/access-key/redeem").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/docks/devices", "/api/docks/entitlement").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/docks/devices", "/api/docks/entitlement", "/api/docks/auth/email").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/docks/devices/{id}", "/api/docks/account").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/docks/reports", "/api/docks/reports/support-access").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/docks/reports", "/api/docks/reports/support-access").permitAll()

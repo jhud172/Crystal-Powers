@@ -53,6 +53,13 @@ class CrystalPowerApplicationTests {
     }
 
     @Test
+    void unsignedInVisitorsCanCheckEmailAvailabilityWithoutRevealingProviderDetails() throws Exception {
+        mockMvc.perform(get("/api/docks/auth/email"))
+                .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(content().json("{\"enabled\":false}", true));
+    }
+
+    @Test
     void windowsReleaseFeedIsPublicAndAnUnpublishedDownloadIsMissing() throws Exception {
         mockMvc.perform(get("/api/docks/releases/windows-x64"))
                 .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))

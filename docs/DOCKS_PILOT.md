@@ -4,6 +4,10 @@
 
 Use only synthetic accounts and test provider credentials. Configure a separate Google OAuth client, the Stripe sandbox webhook and test Prices, and a controlled mail sender before those tests. Verify the actual HTTPS origin after deployment before registering callbacks. The Docks pilot profile adds a search-engine exclusion header. Treat the endpoint as publicly reachable.
 
+Email sign-in defaults to disabled. To enable it on the pilot, configure the controlled mail sender and set `DOCKS_EMAIL_ENABLED=true` on the pilot service. The signed-out reports page shows the email form only while the server reports the transport is configured. Check `GET /api/docks/auth/email` before requesting a code. A value of `true` confirms configuration. Confirm delivery and successful exchange with a controlled recipient.
+
+The release build passed a local browser and SMTP check using the environment switch and a loopback-only recipient fixture. It exercised the real SMTP transport, code exchange, report sign-in and sign-out, and verified the page's unavailable and Google-only states. Hosted provider delivery remains a separate pilot check.
+
 Free Render PostgreSQL expires after 30 days and the free web service sleeps when idle. [Render free services](https://render.com/docs/free)
 
 The free pilot deployed commit `6dad3d0` on 25 November 2026. Render applied 84 migrations through V105. An HTTPS browser run verified the mobile reports sign-in screen, denied anonymous report reads, checked indexing exclusion and confirmed Google sign-in and the download feed were disabled. Provider journeys still need their pilot credentials and end-to-end verification. [Pilot reports](https://crystal-docks-pilot-xpyl.onrender.com/docks/reports)

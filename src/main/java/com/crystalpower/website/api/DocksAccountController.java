@@ -48,6 +48,11 @@ public class DocksAccountController {
     public record TrialRequest(@NotNull UUID installationId) {}
     public record RedeemRequest(@NotNull UUID installationId, @NotBlank @Size(max = 24) String code) {}
 
+    @GetMapping("/auth/email")
+    public ResponseEntity<?> emailAvailable() {
+        return response(200, Map.of("enabled", signIn.available()));
+    }
+
     @PostMapping("/auth/email/request")
     public ResponseEntity<?> request(@Valid @RequestBody EmailRequest request) {
         if (!signIn.available()) return response(503, Map.of("message", "Email sign-in is currently unavailable."));
