@@ -30,7 +30,8 @@ class DocksStripeEventsTests {
                         "classpath:db/migration/V90__docks_access_keys.sql",
                         "classpath:db/migration/V92__docks_subscription_checkout.sql",
                         "classpath:db/migration/V93__docks_subscription_status.sql",
-                        "classpath:db/migration/V94__docks_subscription_seats.sql").build();
+                        "classpath:db/migration/V94__docks_subscription_seats.sql",
+                        "classpath:db/migration/V95__docks_household_members.sql").build();
         try {
             var db = new JdbcTemplate(database);
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));

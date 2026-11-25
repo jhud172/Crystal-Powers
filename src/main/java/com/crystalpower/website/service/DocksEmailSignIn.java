@@ -21,7 +21,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Service
 public class DocksEmailSignIn {
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final String ISSUER = "crystal-powers-email";
+    static final String ISSUER = "crystal-powers-email";
     private final JdbcTemplate db;
     private final TransactionTemplate transaction;
     private final EmailTransport mail;
@@ -43,7 +43,7 @@ public class DocksEmailSignIn {
 
     /** Returns quietly when rate limited, so the response never identifies registered addresses. */
     public void request(String address) {
-        String email = address.trim().toLowerCase(Locale.ROOT);
+        String email = normaliseEmail(address);
         String code = randomToken();
         String hash = digest(code);
         var now = now();
@@ -103,6 +103,10 @@ public class DocksEmailSignIn {
                     digest(access), accountId, expires);
             return Optional.of(new Session(access, expires, accountId));
         });
+    }
+
+    static String normaliseEmail(String address) {
+        return address.trim().toLowerCase(Locale.ROOT);
     }
 
     public Optional<UUID> account(String authorization) {

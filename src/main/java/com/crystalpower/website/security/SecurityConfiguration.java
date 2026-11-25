@@ -47,6 +47,9 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.GET, "/api/docks/reports").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/docks/billing/plans").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/docks/billing/checkout", "/api/docks/billing/stripe/webhook").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/docks/household").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/docks/household/invitations", "/api/docks/household/invitations/{id}/accept").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/docks/household/invitations/{id}").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/docks/reports/preference", "/api/docks/reports/latest").permitAll()
                 .requestMatchers("/api/docks", "/api/docks/**").denyAll()
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
@@ -65,7 +68,9 @@ public class SecurityConfiguration {
                             "/api/docks/auth/sign-out", "/api/docks/devices", "/api/docks/trial",
                             "/api/docks/access-key/redeem", "/api/docks/devices/{id}",
                             "/api/docks/reports/preference", "/api/docks/reports/latest",
-                            "/api/docks/billing/checkout", "/api/docks/billing/stripe/webhook"))
+                            "/api/docks/billing/checkout", "/api/docks/billing/stripe/webhook",
+                            "/api/docks/household/invitations", "/api/docks/household/invitations/{id}/accept",
+                            "/api/docks/household/invitations/{id}"))
             .formLogin(config -> config.disable())
             .httpBasic(config -> config.disable())
             .logout(config -> config.disable())

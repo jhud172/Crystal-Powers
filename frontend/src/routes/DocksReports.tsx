@@ -99,6 +99,7 @@ export default function DocksReports() {
       })}>Refresh reports</button>{" "}
       <button className="admin-secondary" type="button" disabled={busy} onClick={signOut}>Sign out</button>
       <SandboxCheckout token={token} />
+      <Household token={token} />
       {view && <>
         {view.reports.length === 0 && <p>{view.enabled ? "You have not shared a device summary yet." : "Report sharing is turned off. You can turn it on in the Windows app."}</p>}
         {view.reports.length > 0 && <ul>{view.reports.map((report, index) => <li key={`${report.checkedAt}-${index}`}>
@@ -179,5 +180,77 @@ function SandboxCheckout({ token }: { token: string }) {
     </form>}
     {error && <p role="alert">{error}</p>}
     {link && <a className="studio-button" href={link} rel="noreferrer">Open Stripe test checkout</a>}
+  </section>;
+}
+
+type HouseholdInvitation = { id: string; email: string | null; sentByYou: boolean; accepted: boolean; active: boolean };
+type HouseholdView = { available: boolean; canInvite: boolean; invitations: HouseholdInvitation[] };
+
+function Household({ token }: { token: string }) {
+  const [view, setView] = useState<HouseholdView | null>(null);
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let current = true;
+    void request<HouseholdView>("household", "GET", undefined, token).then(result => {
+      if (current) setView(result);
+    }).catch(() => { /* The reports page is usable while household management is unavailable. */ });
+    return () => { current = false; };
+  }, [token]);
+
+  async function change(path?: string, method = "POST", body?: unknown, message = "") {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      if (path) await request(path, method, body, token);
+      if (body) setEmail("");
+      setView(await request<HouseholdView>("household", "GET", undefined, token));
+      setNotice(message);
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Household access is currently unavailable.");
+    } finally { setBusy(false); }
+  }
+
+  if (!view?.available) return null;
+  return <section className="admin-form" aria-labelledby="docks-household-title">
+    <h2 id="docks-household-title">Household plan</h2>
+    <p>Share up to five device seats. Each adult keeps control of their devices and reports.</p>
+    {view.canInvite && <form onSubmit={event => {
+      event.preventDefault();
+      void change("household/invitations", "POST", { email },
+        "Invitation created. Ask the other adult to sign in here using that email address.");
+    }}>
+      <label>Adult’s email address<input type="email" value={email} maxLength={254} required
+        aria-describedby="docks-household-invite-note" onChange={event => setEmail(event.target.value)} /></label>
+      <p id="docks-household-invite-note">The other adult will see your sign-in email with the invitation.</p>
+      <button className="admin-secondary" disabled={busy}>Create invitation</button>
+    </form>}
+    {view.invitations.length === 0 ? <p>No household invitations or memberships.</p> :
+      <ul>{view.invitations.map(invite => {
+        const path = `household/invitations/${invite.id}`;
+        const remove = invite.sentByYou ? (invite.accepted ? "Remove member" : "Cancel invitation")
+          : (invite.accepted ? "Leave household" : "Decline invitation");
+        return <li key={invite.id}>
+          <p>{invite.sentByYou ? invite.email : invite.email ? "Household from " + invite.email : "Household invitation"} · {
+            !invite.active ? "Plan inactive" : invite.accepted ? "Accepted" : "Awaiting acceptance"
+          }</p>
+          {!invite.sentByYou && !invite.accepted && invite.active &&
+            <button type="button" className="admin-secondary" disabled={busy}
+              onClick={() => void change(path + "/accept", "POST", undefined, "You joined the household.")}>Accept invitation</button>}
+          <button type="button" className="admin-secondary" disabled={busy} onClick={() => {
+            if (invite.accepted && !window.confirm("Remove access to this household plan?")) return;
+            void change(path, "DELETE", undefined, "Household access updated.");
+          }}>{remove}</button>
+        </li>;
+      })}</ul>}
+    <button type="button" className="admin-secondary" disabled={busy}
+      onClick={() => void change(undefined, "GET", undefined, "Household invitations refreshed.")}>Refresh invitations</button>
+    {notice && <p role="status">{notice}</p>}
+    {error && <p role="alert">{error}</p>}
   </section>;
 }

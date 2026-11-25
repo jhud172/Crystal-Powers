@@ -13,7 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DocksSubscriptionSeats {
-    private record Subscription(String id, DocksSubscriptions.Plan plan, long paidUntil) {}
+    private record Subscription(String id, DocksSubscriptions.Plan plan, boolean ownPlan) {}
+    private record Payment(String state, Long until) {}
 
     private final JdbcTemplate db;
     private final StripeGateway stripe;
@@ -29,33 +30,68 @@ public class DocksSubscriptionSeats {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public Optional<OffsetDateTime> claim(UUID accountId, UUID deviceId) {
-        if (!sandboxEntitlements || stripe.liveMode() || !stripe.connected()) return Optional.empty();
+        if (!enabled()) return Optional.empty();
+        if (!Boolean.TRUE.equals(db.queryForObject(
+                "SELECT COUNT(*) > 0 FROM docks_device WHERE id = ? AND account_id = ?",
+                Boolean.class, deviceId, accountId))) return Optional.empty();
 
-        // Lock the subscription while counting and assigning devices. The entitlement
-        // caller already holds the requesting account and device locks.
         var subscriptions = db.query("""
-                SELECT s.stripe_subscription_id, a.plan, s.paid_until_epoch
+                SELECT s.stripe_subscription_id, a.plan, a.account_id = ?
                 FROM docks_subscription_status s
                 JOIN docks_subscription_checkout a ON a.attempt_id = s.attempt_id
-                JOIN docks_device d ON d.account_id = a.account_id
-                WHERE a.account_id = ? AND d.id = ?
-                  AND s.provider_state = 'paid' AND s.paid_until_epoch > ?
-                ORDER BY a.expires_at_epoch DESC, s.stripe_subscription_id
-                LIMIT 1 FOR UPDATE
+                WHERE s.provider_state = 'paid' AND s.paid_until_epoch > ?
+                  AND (a.account_id = ? OR (a.plan IN ('HOUSEHOLD_MONTHLY', 'HOUSEHOLD_ANNUAL')
+                      AND EXISTS (SELECT 1 FROM docks_household_invitation h
+                          WHERE h.stripe_subscription_id = s.stripe_subscription_id AND h.member_account_id = ?)))
+                ORDER BY CASE WHEN a.account_id = ? THEN 0 ELSE 1 END,
+                         a.expires_at_epoch DESC, s.stripe_subscription_id
+                LIMIT 1
                 """, (row, i) -> new Subscription(row.getString(1), DocksSubscriptions.Plan.valueOf(row.getString(2)),
-                    row.getLong(3)), accountId, deviceId, Instant.now().getEpochSecond());
+                    row.getBoolean(3)), accountId, Instant.now().getEpochSecond(), accountId, accountId, accountId);
         if (subscriptions.isEmpty()) return Optional.empty();
         var subscription = subscriptions.get(0);
-        if (subscription.paidUntil() <= Instant.now().getEpochSecond()) return Optional.empty();
-        var expiry = OffsetDateTime.ofInstant(Instant.ofEpochSecond(subscription.paidUntil()), ZoneOffset.UTC);
+        // Re-read membership after acquiring the shared lock. A concurrent removal
+        // may have committed while this device was waiting for the lock.
+        var expiry = lockPaid(subscription.id());
+        if (expiry.isEmpty() || (!subscription.ownPlan() && !isMember(subscription.id(), accountId)))
+            return Optional.empty();
 
         var seats = db.query("SELECT device_id FROM docks_subscription_seat WHERE stripe_subscription_id = ?",
                 (row, i) -> row.getObject(1, UUID.class), subscription.id());
-        if (seats.contains(deviceId)) return Optional.of(expiry);
+        if (seats.contains(deviceId)) return expiry;
         if (seats.size() >= subscription.plan().deviceLimit()) return Optional.empty();
 
         db.update("INSERT INTO docks_subscription_seat (stripe_subscription_id, device_id) VALUES (?, ?)",
                 subscription.id(), deviceId);
-        return Optional.of(expiry);
+        return expiry;
+    }
+
+    boolean enabled() {
+        return sandboxEntitlements && !stripe.liveMode() && stripe.connected();
+    }
+
+    boolean isMember(String subscription, UUID account) {
+        return Boolean.TRUE.equals(db.queryForObject("""
+                SELECT COUNT(*) > 0 FROM docks_household_invitation
+                WHERE stripe_subscription_id = ? AND member_account_id = ?
+                """, Boolean.class, subscription, account));
+    }
+
+    Optional<OffsetDateTime> lockPaid(String subscription) {
+        return lockPayment(subscription).filter(payment -> "paid".equals(payment.state()) && payment.until() != null
+                && payment.until() > Instant.now().getEpochSecond())
+                .map(payment -> OffsetDateTime.ofInstant(Instant.ofEpochSecond(payment.until()), ZoneOffset.UTC));
+    }
+
+    boolean lock(String subscription) {
+        return lockPayment(subscription).isPresent();
+    }
+
+    private Optional<Payment> lockPayment(String subscription) {
+        return db.query("""
+                SELECT provider_state, paid_until_epoch FROM docks_subscription_status
+                WHERE stripe_subscription_id = ? FOR UPDATE
+                """, (row, i) -> new Payment(row.getString(1), row.getObject(2, Long.class)), subscription)
+                .stream().findFirst();
     }
 }
