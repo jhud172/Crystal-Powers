@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 
@@ -12,19 +12,26 @@ const planLabels = {
 };
 type Plan = keyof typeof planLabels;
 type Subscription = { plan: Plan; state: string; paidUntilEpoch: number | null };
+type SessionResponse = { accessToken: string; expiresAt: string };
+type Session = { accessToken: string; expiresAt: number; pending: AbortController };
+type AccountRequest = <T>(path: string, method?: string, value?: unknown) => Promise<T>;
 
-async function request<T>(path: string, method = "GET", value?: unknown, token?: string, browserCookies = false): Promise<T> {
+class SessionEnded extends Error {}
+class Unauthorised extends Error {}
+
+async function request<T>(path: string, method = "GET", value?: unknown, token?: string,
+    browserCookies = false, signal?: AbortSignal): Promise<T> {
   const headers = new Headers();
   if (value !== undefined) headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
   const response = await fetch(`/api/docks/${path}`, {
     method, headers, body: value === undefined ? undefined : JSON.stringify(value),
-    cache: "no-store", credentials: browserCookies ? "same-origin" : "omit", redirect: "error",
+    cache: "no-store", credentials: browserCookies ? "same-origin" : "omit", redirect: "error", signal,
   });
+  if (response.status === 401) throw new Unauthorised("The sign-in code is invalid or expired. Request a new code.");
   const body = response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) {
-    const message = response.status === 401 ? "The sign-in code or session has expired. Request a new code." : body?.message;
-    throw new Error(message || "Crystal Docks could not complete the request.");
+    throw new Error(body?.message || "Crystal Docks could not complete the request.");
   }
   return body as T;
 }
@@ -33,16 +40,83 @@ export default function DocksReports() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [requested, setRequested] = useState(false);
-  const [token, setToken] = useState("");
+  const [session, setSession] = useState<Session | null>(null);
+  const activeSession = useRef<Session | null>(null);
   const [view, setView] = useState<Reports | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const reportsHeading = useRef<HTMLHeadingElement>(null);
+  const pageHeading = useRef<HTMLHeadingElement>(null);
   const [signInMethods, setSignInMethods] = useState<{ email: boolean; google: boolean } | null>(null);
   const googleEnabled = signInMethods?.google === true;
   const [desktopCode, setDesktopCode] = useState("");
   const handledGoogle = useRef(false);
+
+  const clearSession = useCallback(() => {
+    activeSession.current?.pending.abort();
+    activeSession.current = null;
+    setSession(null);
+    setDesktopCode("");
+    setView(null);
+    setRequested(false);
+    setEmail("");
+    setCode("");
+  }, []);
+
+  const expireSession = useCallback((current: Session) => {
+    if (activeSession.current !== current) return;
+    clearSession();
+    setNotice("");
+    setError("Your Crystal Docks session ended. Sign in again to view your reports.");
+    pageHeading.current?.focus();
+  }, [clearSession]);
+
+  const requestForSession = useCallback(async <T,>(current: Session | null, path: string, method?: string, value?: unknown) => {
+    if (!current || activeSession.current !== current) throw new SessionEnded();
+    try {
+      if (current.expiresAt <= Date.now()) throw new Unauthorised();
+      const result = await request<T>(path, method, value, current.accessToken, false, current.pending.signal);
+      if (activeSession.current !== current) throw new SessionEnded();
+      if (current.expiresAt <= Date.now()) throw new Unauthorised();
+      return result;
+    } catch (failure) {
+      if (failure instanceof Unauthorised) expireSession(current);
+      if (activeSession.current !== current) throw new SessionEnded();
+      throw failure;
+    }
+  }, [expireSession]);
+
+  const accountRequest: AccountRequest = useCallback(
+    (path, method, value) => requestForSession(session, path, method, value), [requestForSession, session]);
+
+  const openSession = useCallback(async (response: SessionResponse) => {
+    const expiresAt = Date.parse(response?.expiresAt);
+    if (!response?.accessToken || !Number.isFinite(expiresAt) || expiresAt <= Date.now())
+      throw new Error("Crystal Docks did not return a valid sign-in session.");
+    const current = { accessToken: response.accessToken, expiresAt, pending: new AbortController() };
+    activeSession.current = current;
+    setSession(current);
+    setView(await requestForSession<Reports>(current, "reports"));
+  }, [requestForSession]);
+
+  useEffect(() => {
+    if (!session) return;
+    const current = session;
+    let timer: number;
+    function checkExpiry() {
+      window.clearTimeout(timer);
+      const remaining = current.expiresAt - Date.now();
+      if (remaining <= 0) expireSession(current);
+      else timer = window.setTimeout(checkExpiry, Math.min(remaining, 2_147_483_647));
+    }
+    checkExpiry();
+    document.addEventListener("visibilitychange", checkExpiry);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", checkExpiry);
+    };
+  }, [expireSession, session]);
 
   useEffect(() => {
     let mounted = true;
@@ -67,14 +141,14 @@ export default function DocksReports() {
       return;
     }
     setBusy(true);
-    void request<{ accessToken: string }>("auth/google/exchange", "POST", undefined, undefined, true)
-      .then(async session => {
-        if (!session?.accessToken) throw new Error("Crystal Docks did not return a session.");
-        setToken(session.accessToken);
-        setView(await request<Reports>("reports", "GET", undefined, session.accessToken));
-      }).catch(() => setError("Google sign-in expired or could not be completed. Try signing in again."))
+    void request<SessionResponse>("auth/google/exchange", "POST", undefined, undefined, true)
+      .then(openSession).catch(failure => {
+        if (!(failure instanceof SessionEnded))
+          setError(activeSession.current ? "Could not load reports. Select Refresh reports to try again."
+            : "Google sign-in expired or could not be completed. Try signing in again.");
+      })
       .finally(() => setBusy(false));
-  }, []);
+  }, [openSession]);
 
   async function run(action: () => Promise<void>) {
     if (busy) return;
@@ -82,7 +156,9 @@ export default function DocksReports() {
     setError("");
     setNotice("");
     try { await action(); }
-    catch (failure) { setError(failure instanceof Error ? failure.message : "Something went wrong."); }
+    catch (failure) {
+      if (!(failure instanceof SessionEnded)) setError(failure instanceof Error ? failure.message : "Something went wrong.");
+    }
     finally { setBusy(false); }
   }
 
@@ -98,35 +174,25 @@ export default function DocksReports() {
   function signIn(event: FormEvent) {
     event.preventDefault();
     void run(async () => {
-      const session = await request<{ accessToken?: string }>("auth/email/exchange", "POST", { code: code.trim() });
-      if (!session?.accessToken) throw new Error("Crystal Docks did not return a session.");
+      const response = await request<SessionResponse>("auth/email/exchange", "POST", { code: code.trim() });
       setCode("");
-      setToken(session.accessToken);
-      setView(await request<Reports>("reports", "GET", undefined, session.accessToken));
+      await openSession(response);
     });
   }
 
   function signOut() {
+    if (!session) return;
     void run(async () => {
       clearSession();
-      try { await request("auth/sign-out", "POST", undefined, token); }
+      try { await request("auth/sign-out", "POST", undefined, session.accessToken); }
       catch { setNotice("Signed out of this page. The server session could not be revoked."); }
     });
-  }
-
-  function clearSession() {
-    setToken("");
-    setDesktopCode("");
-    setView(null);
-    setRequested(false);
-    setEmail("");
-    setCode("");
   }
 
   function deleteAccount() {
     if (!window.confirm("Permanently delete this Crystal Docks account and its uploaded data?")) return;
     void run(async () => {
-      await request("account", "DELETE", undefined, token);
+      await accountRequest("account", "DELETE");
       clearSession();
       setNotice("Your Crystal Docks account and uploaded data have been deleted.");
     });
@@ -146,7 +212,7 @@ export default function DocksReports() {
   function getDesktopCode() {
     void run(async () => {
       setDesktopCode("");
-      const result = await request<{ code: string }>("auth/google/desktop-code", "POST", undefined, token);
+      const result = await accountRequest<{ code: string }>("auth/google/desktop-code", "POST");
       if (!/^[A-Za-z0-9_-]{43}$/.test(result.code)) throw new Error("Crystal Docks did not return a Windows code.");
       setDesktopCode(result.code);
     });
@@ -155,7 +221,7 @@ export default function DocksReports() {
   function disable() {
     if (!window.confirm("Turn off report sharing and delete all of your uploaded reports?")) return;
     void run(async () => {
-      await request("reports/preference", "PUT", { enabled: false }, token);
+      await accountRequest("reports/preference", "PUT", { enabled: false });
       setView({ enabled: false, reports: [] });
       setNotice("Sharing is off and your uploaded reports have been deleted.");
     });
@@ -164,7 +230,7 @@ export default function DocksReports() {
   function clearReports() {
     if (!window.confirm("Delete your uploaded device summaries and keep report sharing on?")) return;
     void run(async () => {
-      await request("reports", "DELETE", undefined, token);
+      await accountRequest("reports", "DELETE");
       setView(previous => previous && { ...previous, reports: [] });
       setNotice("Uploaded summaries deleted. You can still share new checks from the Windows app.");
     });
@@ -174,7 +240,7 @@ export default function DocksReports() {
     if (!window.confirm("Delete this uploaded device summary? This also ends any current support access to your summaries.")) return;
     void run(async () => {
       const query = new URLSearchParams({ checkedAt: report.checkedAt });
-      await request(`reports/devices/${encodeURIComponent(report.deviceId)}?${query}`, "DELETE", undefined, token);
+      await accountRequest(`reports/devices/${encodeURIComponent(report.deviceId)}?${query}`, "DELETE");
       setView(previous => previous && {
         ...previous,
         reports: previous.reports.filter(item => item.deviceId !== report.deviceId),
@@ -199,14 +265,14 @@ export default function DocksReports() {
   }
 
   return <section className="studio-section" aria-labelledby="docks-reports-title" aria-busy={busy}>
-    <h1 id="docks-reports-title">Crystal Docks reports</h1>
+    <h1 id="docks-reports-title" ref={pageHeading} tabIndex={-1}>Crystal Docks reports</h1>
     <p>View the device summaries you shared from the Windows app. Each summary expires 30 days after its check.</p>
     <p><Link to="/docks">About Crystal Docks</Link>{" · "}<Link to="/docks/support">Get Crystal Docks support</Link></p>
     {error && <p role="alert">{error}</p>}
     {notice && <p role="status">{notice}</p>}
-    {token ? <>
+    {session ? <>
       <button className="admin-secondary" type="button" disabled={busy} onClick={() => void run(async () => {
-        setView(await request<Reports>("reports", "GET", undefined, token));
+        setView(await accountRequest<Reports>("reports"));
       })}>Refresh reports</button>{" "}
       <button className="admin-secondary" type="button" disabled={busy} onClick={signOut}>Sign out</button>
       {googleEnabled && <section className="admin-form" aria-label="Windows sign-in">
@@ -219,10 +285,10 @@ export default function DocksReports() {
           <small id="docks-code-help">Paste this code into your own Crystal Docks app within two minutes. Keep it private.</small>
         </div>}
       </section>}
-      <PremiumBilling token={token} />
-      <Household token={token} />
-      <ResearchPreference token={token} />
-      <ReportSupport key={token} token={token} forLog />
+      <PremiumBilling accountRequest={accountRequest} />
+      <Household accountRequest={accountRequest} />
+      <ResearchPreference accountRequest={accountRequest} />
+      <ReportSupport accountRequest={accountRequest} forLog />
       {view && <>
         <h2 tabIndex={-1} ref={reportsHeading}>Shared device summaries</h2>
         {view.reports.length === 0 && <p>{view.enabled ? "You have not shared a device summary yet." : "Report sharing is turned off. You can turn it on in the Windows app."}</p>}
@@ -240,7 +306,7 @@ export default function DocksReports() {
         {view.enabled && view.reports.length > 0 && <button className="admin-secondary" type="button"
           disabled={busy} onClick={clearReports}>Delete uploaded summaries</button>}{" "}
         {view.enabled && <button className="admin-secondary" type="button" disabled={busy} onClick={disable}>Turn off sharing and delete reports</button>}
-        <ReportSupport token={token} canGrant={view.enabled && view.reports.length > 0} changingReports={busy} />
+        <ReportSupport accountRequest={accountRequest} canGrant={view.enabled && view.reports.length > 0} changingReports={busy} />
       </>}
       <details>
         <summary>Account privacy</summary>
@@ -268,7 +334,7 @@ export default function DocksReports() {
   </section>;
 }
 
-function ResearchPreference({ token }: { token: string }) {
+function ResearchPreference({ accountRequest }: { accountRequest: AccountRequest }) {
   const [enabled, setEnabled] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -276,18 +342,18 @@ function ResearchPreference({ token }: { token: string }) {
 
   useEffect(() => {
     let live = true;
-    void request<{ enabled: boolean }>("research", "GET", undefined, token).then(result => {
+    void accountRequest<{ enabled: boolean }>("research").then(result => {
       if (live) setEnabled(result.enabled === true);
     }).catch(() => { /* Keep the reports usable independently of research. */ });
     return () => { live = false; };
-  }, [token]);
+  }, [accountRequest]);
 
   async function withdraw() {
     if (busy || !window.confirm("Turn off research and delete your current contribution?")) return;
     setBusy(true);
     setError("");
     try {
-      const result = await request<{ enabled: boolean }>("research/preference", "PUT", { enabled: false }, token);
+      const result = await accountRequest<{ enabled: boolean }>("research/preference", "PUT", { enabled: false });
       setEnabled(result.enabled);
       setNotice(result.enabled ? "" : "Research is off and your contribution was removed.");
     } catch (failure) {
@@ -313,8 +379,8 @@ const supportLabels: Record<string, string> = {
   VIEWED: "Support opened your summaries",
 };
 
-function ReportSupport({ token, canGrant = false, changingReports = false, forLog = false }: {
-  token: string; canGrant?: boolean; changingReports?: boolean; forLog?: boolean;
+function ReportSupport({ accountRequest, canGrant = false, changingReports = false, forLog = false }: {
+  accountRequest: AccountRequest; canGrant?: boolean; changingReports?: boolean; forLog?: boolean;
 }) {
   const [state, setState] = useState<SupportState | null>(null);
   const [busy, setBusy] = useState(false);
@@ -326,11 +392,11 @@ function ReportSupport({ token, canGrant = false, changingReports = false, forLo
   useEffect(() => {
     if (changingReports) return;
     let current = true;
-    void request<SupportState>(endpoint, "GET", undefined, token).then(result => {
+    void accountRequest<SupportState>(endpoint).then(result => {
       if (current) setState(result);
     }).catch(() => { /* Report viewing remains available. */ });
     return () => { current = false; };
-  }, [token, changingReports, endpoint]);
+  }, [accountRequest, changingReports, endpoint]);
 
   useEffect(() => {
     if (!state?.grant) return;
@@ -347,15 +413,15 @@ function ReportSupport({ token, canGrant = false, changingReports = false, forLo
     setNotice("");
     try {
       if (method === "POST") {
-        const grant = await request<SupportGrant>(endpoint, method, undefined, token);
+        const grant = await accountRequest<SupportGrant>(endpoint, method);
         setState(previous => ({ grant, activity: previous?.activity ?? [] }));
         setNotice("Support access is active.");
       } else if (method === "DELETE") {
-        await request(endpoint, method, undefined, token);
+        await accountRequest(endpoint, method);
         setState(previous => previous && { ...previous, grant: null });
         setNotice(forLog ? "The diagnostic log was deleted and support access ended." : "Support access ended.");
       }
-      setState(await request<SupportState>(endpoint, "GET", undefined, token));
+      setState(await accountRequest<SupportState>(endpoint));
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : "Could not confirm support access.");
     } finally { setBusy(false); }
@@ -386,7 +452,7 @@ function ReportSupport({ token, canGrant = false, changingReports = false, forLo
   </section>;
 }
 
-function PremiumBilling({ token }: { token: string }) {
+function PremiumBilling({ accountRequest }: { accountRequest: AccountRequest }) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [testMode, setTestMode] = useState(true);
@@ -399,8 +465,8 @@ function PremiumBilling({ token }: { token: string }) {
 
   useEffect(() => {
     let current = true;
-    void request<{ plans?: string[]; testMode?: boolean; subscription?: Subscription | null; canManage?: boolean }>(
-      "billing/plans", "GET", undefined, token,
+    void accountRequest<{ plans?: string[]; testMode?: boolean; subscription?: Subscription | null; canManage?: boolean }>(
+      "billing/plans",
     ).then(result => {
       if (!current || typeof result?.testMode !== "boolean") return;
       const available = (result.plans ?? []).filter((item): item is Plan =>
@@ -412,7 +478,7 @@ function PremiumBilling({ token }: { token: string }) {
       setSubscription(result.subscription ?? null);
     }).catch(() => { /* Billing is optional and must not interrupt the report viewer. */ });
     return () => { current = false; };
-  }, [token]);
+  }, [accountRequest]);
 
   async function prepare(event: FormEvent) {
     event.preventDefault();
@@ -421,7 +487,7 @@ function PremiumBilling({ token }: { token: string }) {
     setLink("");
     setError("");
     try {
-      const result = await request<{ url: string; testMode: boolean }>("billing/checkout", "POST", { plan }, token);
+      const result = await accountRequest<{ url: string; testMode: boolean }>("billing/checkout", "POST", { plan });
       const url = new URL(result.url);
       if (result.testMode !== testMode || url.origin !== "https://checkout.stripe.com" || url.username || url.password)
         throw new Error("Stripe did not return a valid checkout.");
@@ -437,7 +503,7 @@ function PremiumBilling({ token }: { token: string }) {
     setError("");
     setPortalLink("");
     try {
-      const result = await request<{ url: string; testMode: boolean }>("billing/portal", "POST", undefined, token);
+      const result = await accountRequest<{ url: string; testMode: boolean }>("billing/portal", "POST");
       const url = new URL(result.url);
       if (result.testMode !== testMode || url.origin !== "https://billing.stripe.com" || url.username || url.password)
         throw new Error("Stripe did not return a valid subscription management link.");
@@ -480,7 +546,7 @@ function PremiumBilling({ token }: { token: string }) {
 type HouseholdInvitation = { id: string; email: string | null; sentByYou: boolean; accepted: boolean; active: boolean };
 type HouseholdView = { available: boolean; canInvite: boolean; invitations: HouseholdInvitation[] };
 
-function Household({ token }: { token: string }) {
+function Household({ accountRequest }: { accountRequest: AccountRequest }) {
   const [view, setView] = useState<HouseholdView | null>(null);
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -489,11 +555,11 @@ function Household({ token }: { token: string }) {
 
   useEffect(() => {
     let current = true;
-    void request<HouseholdView>("household", "GET", undefined, token).then(result => {
+    void accountRequest<HouseholdView>("household").then(result => {
       if (current) setView(result);
     }).catch(() => { /* The reports page is usable while household management is unavailable. */ });
     return () => { current = false; };
-  }, [token]);
+  }, [accountRequest]);
 
   async function change(path?: string, method = "POST", body?: unknown, message = "") {
     if (busy) return;
@@ -501,9 +567,9 @@ function Household({ token }: { token: string }) {
     setError("");
     setNotice("");
     try {
-      if (path) await request(path, method, body, token);
+      if (path) await accountRequest(path, method, body);
       if (body) setEmail("");
-      setView(await request<HouseholdView>("household", "GET", undefined, token));
+      setView(await accountRequest<HouseholdView>("household"));
       setNotice(message);
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : "Household access is currently unavailable.");
