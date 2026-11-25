@@ -105,6 +105,8 @@ class DocksStripeEventsTests {
             assertEquals(409, assertThrows(ResponseStatusException.class,
                     () -> billing.checkout(account, DocksSubscriptions.Plan.SINGLE_MONTHLY)).getStatusCode().value());
 
+            verifyRenewalRecovery(db, stripe, events, active, entitlements, account, installation, next, end);
+
             doReturn(cancelled).when(stripe).subscription("sub_Fixture");
             var deletion = event("evt_Cancel", "customer.subscription.deleted", "{\"id\":\"sub_Fixture\"}");
             deliver(events, deletion);
@@ -113,7 +115,7 @@ class DocksStripeEventsTests {
             deliver(events, late);
             assertEquals("canceled", db.queryForObject("SELECT provider_state FROM docks_subscription_status", String.class));
             assertNull(db.queryForObject("SELECT paid_until_epoch FROM docks_subscription_status", Long.class));
-            assertEquals(3, db.queryForObject("SELECT COUNT(*) FROM docks_subscription_event", Integer.class));
+            assertEquals(8, db.queryForObject("SELECT COUNT(*) FROM docks_subscription_event", Integer.class));
             assertFalse(entitlements.status(account, installation).orElseThrow().canRepair());
 
             var liveAttempt = UUID.randomUUID();
@@ -137,6 +139,44 @@ class DocksStripeEventsTests {
                     () -> live.status(account, next).orElseThrow().canRepair());
             assertTrue(events.recentPaymentReviews().isEmpty());
         } finally { database.shutdown(); }
+    }
+
+    private void verifyRenewalRecovery(JdbcTemplate db, StripeGateway stripe, DocksStripeEvents events, JsonNode active,
+                                       DocksEntitlements entitlements, UUID account, UUID enrolled, UUID other,
+                                       long previousPeriodEnd) throws Exception {
+        long nextPeriodEnd = previousPeriodEnd + 31 * 86_400;
+        var renewal = (ObjectNode) active.deepCopy();
+        ((ObjectNode) renewal.path("items").path("data").path(0)).put("current_period_end", nextPeriodEnd);
+        var invoice = (ObjectNode) renewal.path("latest_invoice");
+        invoice.put("id", "in_NextPeriod").put("status", "open").put("amount_paid", 0);
+        ((ObjectNode) invoice.path("lines").path("data").path(0).path("period")).put("end", nextPeriodEnd);
+        doReturn(renewal).when(stripe).subscription("sub_Fixture");
+
+        String renewalEvent = """
+                {"id":"in_NextPeriod","parent":{"subscription_details":{"subscription":"sub_Fixture"}}}
+                """;
+        String olderEvent = """
+                {"id":"in_Fixture","parent":{"subscription_details":{"subscription":"sub_Fixture"}}}
+                """;
+        deliver(events, event("evt_RenewalOpen", "invoice.payment_failed", renewalEvent));
+        assertFalse(entitlements.status(account, enrolled).orElseThrow().canRepair());
+        assertNull(db.queryForObject("SELECT paid_until_epoch FROM docks_subscription_status", Long.class));
+
+        renewal.put("status", "past_due");
+        deliver(events, event("evt_RenewalPastDue", "invoice.payment_failed", renewalEvent));
+        deliver(events, event("evt_PreviousInvoiceDelayed", "invoice.paid", olderEvent));
+        assertEquals("past_due", db.queryForObject("SELECT provider_state FROM docks_subscription_status", String.class));
+        assertFalse(entitlements.status(account, enrolled).orElseThrow().canRepair());
+
+        renewal.put("status", "active");
+        invoice.put("status", "paid").put("amount_paid", 500);
+        byte[] recovered = event("evt_RenewalRecovered", "invoice.paid", renewalEvent);
+        deliver(events, recovered);
+        deliver(events, recovered);
+        assertEquals(nextPeriodEnd, entitlements.status(account, enrolled).orElseThrow().subscriptionExpiresAt().toEpochSecond());
+        assertFalse(entitlements.status(account, other).orElseThrow().canRepair());
+        deliver(events, event("evt_RenewalFailureDelayed", "invoice.payment_failed", renewalEvent));
+        assertEquals(nextPeriodEnd, entitlements.status(account, enrolled).orElseThrow().subscriptionExpiresAt().toEpochSecond());
     }
 
     private void verifyPaymentRisk(StripeGateway stripe, DocksStripeEvents events, JsonNode paidSubscription,
