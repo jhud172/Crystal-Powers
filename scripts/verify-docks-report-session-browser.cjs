@@ -23,6 +23,8 @@ async function main() {
         let reports = 0;
         let lastBearer;
         let expiresAt;
+        let billingChecks = 0;
+        let paymentConfirmed = false;
         const activeToken = () => (signedIn === 1 ? 'a' : 'b').repeat(43);
         await page.route('**/api/**', async route => {
           const path = new URL(route.request().url()).pathname;
@@ -38,6 +40,11 @@ async function main() {
           }
           if (!path.startsWith('/api/docks/')) return json({}, 404);
           lastBearer = route.request().headers().authorization;
+          if (path.endsWith('/billing/plans') && mode === 'timer') {
+            billingChecks++;
+            return json({plans:['SINGLE_MONTHLY'],testMode:true,
+              subscription:paymentConfirmed ? {plan:'SINGLE_MONTHLY',state:'active',paidUntilEpoch:null} : null});
+          }
           if (path === '/api/docks/devices') return json([
             {id:'one',installationId:'12345678-0000-0000-0000-000000000000',label:'Windows PC',enrolledAt:'2026-11-23T12:00:00Z'},
             {id:'two',installationId:'9abcdef0-0000-0000-0000-000000000000',label:'Windows PC',enrolledAt:'2026-11-24T12:00:00Z'}
@@ -63,7 +70,13 @@ async function main() {
           if (path.endsWith('/auth/sign-out')) return route.fulfill({status:204});
           return json({});
         });
-        await page.goto(base + '/docks/reports' + (mode === 'google' ? '?google=ready' : ''));
+        const query = {google:'?google=ready',timer:'?checkout=returned',rejected:'?checkout=cancelled'}[mode];
+        await page.goto(base + '/docks/reports' + query);
+        if (mode !== 'google') {
+          await expect(page.getByRole('status').filter({hasText:mode === 'timer' ? 'returned from Stripe' : 'left Stripe checkout'})).toBeVisible();
+          assert(!new URL(page.url()).searchParams.has('checkout'));
+          assert.equal(billingChecks, 0);
+        }
         const email = page.getByRole('textbox',{name:'Email address'});
         const send = page.getByRole('button',{name:'Send sign-in code',exact:true});
         const code = page.getByLabel('Sign-in code',{exact:true});
@@ -94,6 +107,12 @@ async function main() {
           await expect(email).toBeEnabled();
           rejectLog = false;
         } else if (mode === 'timer') {
+          const billing = page.getByRole('region',{name:'Premium test checkout'});
+          await expect(billing.getByRole('button',{name:'Prepare test checkout'})).toBeVisible();
+          paymentConfirmed = true;
+          await billing.getByRole('button',{name:'Check subscription status'}).click();
+          await expect(billing.getByText(/active/)).toBeVisible();
+          await expect(billing.getByRole('button',{name:'Prepare test checkout'})).toHaveCount(0);
           await page.clock.fastForward(61_000);
         } else {
           assert(!new URL(page.url()).searchParams.has('google'));

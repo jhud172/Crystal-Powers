@@ -60,6 +60,14 @@ export default function DocksReports() {
   const googleEnabled = signInMethods?.google === true;
   const [desktopCode, setDesktopCode] = useState("");
   const handledGoogle = useRef(false);
+  const [checkoutReturn, setCheckoutReturn] = useState(() => new URLSearchParams(window.location.search).get("checkout"));
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("checkout")) return;
+    url.searchParams.delete("checkout");
+    window.history.replaceState(window.history.state, "", url);
+  }, []);
 
   const clearSession = useCallback(() => {
     activeSession.current?.pending.abort();
@@ -300,6 +308,12 @@ export default function DocksReports() {
     <p><Link to="/docks">About Crystal Docks</Link>{" · "}<Link to="/docks/support">Get Crystal Docks support</Link></p>
     {error && <p role="alert">{error}</p>}
     {notice && <p role="status">{notice}</p>}
+    {checkoutReturn === "returned" && <p role="status">{session
+      ? "Stripe can take a moment to confirm a payment. Check your status under Premium."
+      : "You’ve returned from Stripe. Sign in to check your subscription status."}</p>}
+    {checkoutReturn === "cancelled" && <p role="status">You left Stripe checkout. {session
+      ? "You can start again under Premium."
+      : "Sign in to choose a plan again."}</p>}
     {session ? <>
       <button className="admin-secondary" type="button" disabled={busy} onClick={() => void run(async () => {
         setView(await accountRequest<Reports>("reports"));
@@ -315,7 +329,7 @@ export default function DocksReports() {
           <small id="docks-code-help">Paste this code into your own Crystal Docks app within two minutes. Keep it private.</small>
         </div>}
       </section>}
-      <PremiumBilling accountRequest={accountRequest} />
+      <PremiumBilling accountRequest={accountRequest} onCheckout={checkoutReturn ? () => setCheckoutReturn(null) : undefined} />
       <Household accountRequest={accountRequest} />
       <details onToggle={event => { if (event.currentTarget.open && devices === null) refreshDevices(); }}>
         <summary>Manage enrolled devices</summary>
@@ -498,7 +512,7 @@ function ReportSupport({ accountRequest, canGrant = false, changingReports = fal
   </section>;
 }
 
-function PremiumBilling({ accountRequest }: { accountRequest: AccountRequest }) {
+function PremiumBilling({ accountRequest, onCheckout }: { accountRequest: AccountRequest; onCheckout?: () => void }) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [testMode, setTestMode] = useState(true);
@@ -508,6 +522,8 @@ function PremiumBilling({ accountRequest }: { accountRequest: AccountRequest }) 
   const [portalLink, setPortalLink] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [checking, setChecking] = useState(true);
+  const [refresh, setRefresh] = useState(0);
 
   useEffect(() => {
     let current = true;
@@ -520,11 +536,15 @@ function PremiumBilling({ accountRequest }: { accountRequest: AccountRequest }) 
       setPlans(available);
       setTestMode(result.testMode);
       setCanManage(result.canManage === true);
-      setPlan(available[0] ?? "");
+      setPlan(previous => previous && available.includes(previous) ? previous : (available[0] ?? ""));
       setSubscription(result.subscription ?? null);
-    }).catch(() => { /* Billing is optional and must not interrupt the report viewer. */ });
+    }).catch(() => {
+      if (current && refresh > 0) setError("Could not check your subscription status. Try again.");
+    }).finally(() => {
+      if (current) setChecking(false);
+    });
     return () => { current = false; };
-  }, [accountRequest]);
+  }, [accountRequest, refresh]);
 
   async function prepare(event: FormEvent) {
     event.preventDefault();
@@ -538,6 +558,7 @@ function PremiumBilling({ accountRequest }: { accountRequest: AccountRequest }) 
       if (result.testMode !== testMode || url.origin !== "https://checkout.stripe.com" || url.username || url.password)
         throw new Error("Stripe did not return a valid checkout.");
       setLink(url.href);
+      onCheckout?.();
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : "Checkout is currently unavailable.");
     } finally { setBusy(false); }
@@ -572,6 +593,11 @@ function PremiumBilling({ accountRequest }: { accountRequest: AccountRequest }) 
       {subscription.paidUntilEpoch !== null && <> · Paid through {new Date(subscription.paidUntilEpoch * 1000).toLocaleDateString("en-GB")}</>}
     </p>}
     {subscription?.state === "payment_review" && <p>Manage your subscription or contact support for help with the payment.</p>}
+    <button type="button" className="admin-secondary" disabled={busy || checking} onClick={() => {
+      setChecking(true);
+      setError("");
+      setRefresh(value => value + 1);
+    }}>Check subscription status</button>
     {canPrepare && <form onSubmit={prepare}>
       <label>{testMode ? "Choose a test plan" : "Choose a Premium plan"}<select value={plan} disabled={busy} onChange={event => {
         setPlan(event.target.value as Plan); setLink("");
