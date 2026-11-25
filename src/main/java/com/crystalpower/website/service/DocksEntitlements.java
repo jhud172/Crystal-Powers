@@ -24,14 +24,18 @@ public class DocksEntitlements {
     }
 
     public Optional<Status> status(UUID accountId, UUID installationId) {
-        return evaluate(accountId, installationId, false);
+        return evaluate(accountId, installationId, false, true);
+    }
+
+    public Optional<Status> preview(UUID accountId, UUID installationId) {
+        return evaluate(accountId, installationId, false, false);
     }
 
     public Optional<Status> startTrial(UUID accountId, UUID installationId) {
-        return evaluate(accountId, installationId, true);
+        return evaluate(accountId, installationId, true, true);
     }
 
-    private Optional<Status> evaluate(UUID accountId, UUID installationId, boolean activate) {
+    private Optional<Status> evaluate(UUID accountId, UUID installationId, boolean activate, boolean claimSeat) {
         return transactions.execute(transaction -> {
             var owners = db.query("SELECT id FROM docks_account WHERE id = ? FOR UPDATE",
                     (row, i) -> row.getObject(1, UUID.class), accountId);
@@ -52,7 +56,7 @@ public class DocksEntitlements {
                     """, (row, i) -> row.getObject(1, OffsetDateTime.class), accountId, deviceId, now);
             if (!grant.isEmpty()) return Optional.of(new Status(true, false, null, grant.get(0), null));
 
-            var subscription = subscriptions.claim(accountId, deviceId);
+            var subscription = claimSeat ? subscriptions.claim(accountId, deviceId) : subscriptions.preview(accountId, deviceId);
             if (subscription.isPresent()) return Optional.of(new Status(true, false, null, null, subscription.get()));
 
             var trials = db.query("""

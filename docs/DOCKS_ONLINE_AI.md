@@ -2,6 +2,8 @@
 
 Online explanations are disabled by default. The desktop user reviews and approves the processor and memory readings each time. The website verifies the device belongs to the signed-in account and has Premium access before sending either percentage to OpenAI. The provider receives two readings and a fixed explanation instruction. Report sync and diagnostic research have separate settings.
 
+The desktop shows the customer's remaining monthly requests and next reset before asking for approval. The preview carries only the enrolment reference. It does not claim a Premium seat, reserve a request or send scan readings. Submitting the approved request checks entitlement and available capacity again.
+
 Enablement requires a dedicated provider project credential in `DOCKS_AI_OPENAI_KEY`, an account request limit in `DOCKS_AI_ACCOUNT_MONTHLY_LIMIT`, and a shared budget and per-call reservation in integer GBP pence. Set `DOCKS_AI_PRICING_VERIFIED` and `DOCKS_AI_ENABLED` after verifying that the reserve covers the maximum cost of the fixed GPT-6 Luna prompt and 240 output tokens, with room for exchange rates and applicable tax. Configure identical caps across website instances. Set `DOCKS_AI_ENABLED=false` to stop new requests.
 
 Both caps reset at the UTC month boundary. The database reserves capacity before the provider call. Failed and timed-out requests also consume a reservation because the provider may have processed them. The provider receives a request with response storage disabled. Verify the provider project's retention policy separately before enabling this in production.

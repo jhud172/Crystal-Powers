@@ -84,6 +84,9 @@ class DocksSubscriptionSeatsTests {
                     tx.executeWithoutResult(t -> households.accept(outsider, invitation.id()))).getStatusCode().value());
             tx.executeWithoutResult(t -> households.accept(member, invitation.id()));
             assertTrue(households.view(member).invitations().get(0).accepted());
+            assertTrue(entitlements.preview(member, enrolled.get(3).installationId()).orElseThrow().canRepair());
+            assertEquals(0, db.queryForObject("SELECT COUNT(*) FROM docks_subscription_seat", Integer.class));
+            assertFalse(entitlements.preview(outsider, outsiderDevice.installationId()).orElseThrow().canRepair());
 
             reports.setEnabled(owner, true);
             reports.setEnabled(member, true);
@@ -103,6 +106,8 @@ class DocksSubscriptionSeatsTests {
             var results = new ArrayList<Boolean>();
             for (var pending : attempts) results.add(pending.get(10, TimeUnit.SECONDS));
             assertEquals(5L, results.stream().filter(Boolean::booleanValue).count());
+            int unseated = results.indexOf(false);
+            assertFalse(entitlements.preview(unseated < 3 ? owner : member, enrolled.get(unseated).installationId()).orElseThrow().canRepair());
             tx.executeWithoutResult(t -> households.remove(owner, invitation.id()));
             assertFalse(entitlements.status(member, enrolled.get(3).installationId()).orElseThrow().canRepair());
             assertEquals(1, reports.read(member).reports().size());

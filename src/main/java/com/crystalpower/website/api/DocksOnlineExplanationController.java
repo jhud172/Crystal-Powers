@@ -33,10 +33,11 @@ public class DocksOnlineExplanationController {
                            @Min(0) @Max(100) Integer memoryPercent, @AssertTrue boolean approved) {}
 
     @GetMapping
-    public ResponseEntity<Map<String, Boolean>> available(
-            @RequestHeader(name = "Authorization", required = false) String token) {
-        requireAccount(token);
-        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(Map.of("available", explanations.available()));
+    public ResponseEntity<?> available(@RequestHeader(name = "Authorization", required = false) String token,
+            @RequestParam(name = "installationId", required = false) UUID installation) {
+        UUID account = requireAccount(token);
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(installation == null
+                ? Map.of("available", explanations.available()) : explanations.preview(account, installation));
     }
 
     @PostMapping

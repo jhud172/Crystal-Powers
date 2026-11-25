@@ -131,5 +131,19 @@ class DocksOnlineExplanationTests {
                 .andExpect(jsonPath("$.explanation").value("Fixture explanation."));
         assertEquals("Processor use: 12%\nMemory use: unavailable", DocksOnlineExplanation.payload(12, null).get("input"));
         assertEquals(false, DocksOnlineExplanation.payload(12, null).get("store"));
+        mvc.perform(get(endpoint).param("installationId", installation.toString()).header("Authorization", "Bearer fixture"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.eligible").value(false))
+                .andExpect(jsonPath("$.monthlyLimit").isEmpty());
+        when(entitlements.preview(account, installation))
+                .thenReturn(Optional.of(new DocksEntitlements.Status(true, false, null, null, null)));
+        when(allowance.attempts(eq(account), any(YearMonth.class))).thenReturn(1);
+        when(allowance.reservedPence(any(YearMonth.class))).thenReturn(10L);
+        mvc.perform(get(endpoint).param("installationId", installation.toString()).header("Authorization", "Bearer fixture"))
+                .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(jsonPath("$.eligible").value(true)).andExpect(jsonPath("$.remainingRequests").value(1))
+                .andExpect(jsonPath("$.monthlyLimit").value(2)).andExpect(jsonPath("$.serviceCapacity").value(false))
+                .andExpect(jsonPath("$.resetsAt").isNotEmpty());
+        verify(allowance, times(2)).reserve(account, 2, 10, 1);
+        verify(service, times(1)).requestExplanation(anyString(), any(), any());
     }
 }

@@ -25,6 +25,15 @@ public class DocksSubscriptionSeats {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public Optional<OffsetDateTime> claim(UUID accountId, UUID deviceId) {
+        return evaluate(accountId, deviceId, true);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Optional<OffsetDateTime> preview(UUID accountId, UUID deviceId) {
+        return evaluate(accountId, deviceId, false);
+    }
+
+    private Optional<OffsetDateTime> evaluate(UUID accountId, UUID deviceId, boolean claimSeat) {
         if (!enabled()) return Optional.empty();
         if (!Boolean.TRUE.equals(db.queryForObject(
                 "SELECT COUNT(*) > 0 FROM docks_device WHERE id = ? AND account_id = ?",
@@ -56,8 +65,10 @@ public class DocksSubscriptionSeats {
         if (seats.contains(deviceId)) return expiry;
         if (seats.size() >= subscription.plan().deviceLimit()) return Optional.empty();
 
-        db.update("INSERT INTO docks_subscription_seat (stripe_subscription_id, device_id) VALUES (?, ?)",
-                subscription.id(), deviceId);
+        if (claimSeat) {
+            db.update("INSERT INTO docks_subscription_seat (stripe_subscription_id, device_id) VALUES (?, ?)",
+                    subscription.id(), deviceId);
+        }
         return expiry;
     }
 

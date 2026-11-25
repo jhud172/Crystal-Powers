@@ -7,6 +7,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.util.Map;
@@ -32,6 +33,8 @@ public class DocksOnlineExplanation {
     private record Settings(String key, Caps caps) {}
     public record BudgetStatus(String monthUtc, long reservedPence, Long monthlyBudgetPence, Long remainingPence,
                                Long requestReservePence, Integer accountMonthlyLimit) {}
+    public record AllowanceView(boolean available, boolean eligible, Integer remainingRequests, Integer monthlyLimit,
+                                OffsetDateTime resetsAt, Boolean serviceCapacity) {}
 
     public DocksOnlineExplanation(Environment config, ObjectMapper json, DocksEntitlements entitlements, DocksAiAllowance allowance) {
         this.config = config;
@@ -41,6 +44,19 @@ public class DocksOnlineExplanation {
     }
 
     public boolean available() { return settings().isPresent(); }
+
+    public AllowanceView preview(UUID account, UUID installation) {
+        var settings = settings();
+        if (settings.isEmpty()) return new AllowanceView(false, false, null, null, null, null);
+        if (!entitlements.preview(account, installation).map(DocksEntitlements.Status::canRepair).orElse(false))
+            return new AllowanceView(true, false, null, null, null, null);
+        var caps = settings.get().caps();
+        var month = YearMonth.now(ZoneOffset.UTC);
+        int remaining = Math.max(0, caps.accountLimit() - allowance.attempts(account, month));
+        boolean serviceCapacity = allowance.reservedPence(month) <= caps.monthlyPence() - caps.requestPence();
+        var resetsAt = month.plusMonths(1).atDay(1).atStartOfDay().atOffset(ZoneOffset.UTC);
+        return new AllowanceView(true, true, remaining, caps.accountLimit(), resetsAt, serviceCapacity);
+    }
 
     public BudgetStatus budgetStatus() {
         var month = YearMonth.now(ZoneOffset.UTC);
