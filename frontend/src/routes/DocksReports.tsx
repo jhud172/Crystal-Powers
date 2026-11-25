@@ -1,8 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
 type Summary = { deviceLabel: string; checkedAt: string; cpuPercent: number | null; memoryPercent: number | null };
 type Reports = { enabled: boolean; reports: Summary[] };
+const planLabels = {
+  SINGLE_MONTHLY: "One device, monthly",
+  SINGLE_ANNUAL: "One device, annual",
+  HOUSEHOLD_MONTHLY: "Household, monthly",
+  HOUSEHOLD_ANNUAL: "Household, annual",
+};
+type Plan = keyof typeof planLabels;
 
 async function request<T>(path: string, method = "GET", value?: unknown, token?: string): Promise<T> {
   const headers = new Headers();
@@ -90,6 +97,7 @@ export default function DocksReports() {
         setView(await request<Reports>("reports", "GET", undefined, token));
       })}>Refresh reports</button>{" "}
       <button className="admin-secondary" type="button" disabled={busy} onClick={signOut}>Sign out</button>
+      <SandboxCheckout token={token} />
       {view && <>
         {view.reports.length === 0 && <p>{view.enabled ? "You have not shared a device summary yet." : "Report sharing is turned off. You can turn it on in the Windows app."}</p>}
         {view.reports.length > 0 && <ul>{view.reports.map((report, index) => <li key={`${report.checkedAt}-${index}`}>
@@ -109,5 +117,56 @@ export default function DocksReports() {
         <button className="studio-button" disabled={busy}>Sign in</button>
       </form>}
     </>}
+  </section>;
+}
+
+function SandboxCheckout({ token }: { token: string }) {
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [plan, setPlan] = useState<Plan | "">("");
+  const [link, setLink] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let current = true;
+    void request<{ plans?: string[]; testMode?: boolean }>("billing/plans", "GET", undefined, token).then(result => {
+      if (!current || result?.testMode !== true) return;
+      const available = (result.plans ?? []).filter((item): item is Plan =>
+        Object.prototype.hasOwnProperty.call(planLabels, item));
+      setPlans(available);
+      setPlan(available[0] ?? "");
+    }).catch(() => { /* Billing is optional and must not interrupt the report viewer. */ });
+    return () => { current = false; };
+  }, [token]);
+
+  async function prepare(event: FormEvent) {
+    event.preventDefault();
+    if (!plan || busy) return;
+    setBusy(true);
+    setLink("");
+    setError("");
+    try {
+      const result = await request<{ url: string; testMode: boolean }>("billing/checkout", "POST", { plan }, token);
+      const url = new URL(result.url);
+      if (result.testMode !== true || url.origin !== "https://checkout.stripe.com" || url.username || url.password)
+        throw new Error("Stripe did not return a valid test checkout.");
+      setLink(url.href);
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Checkout is currently unavailable.");
+    } finally { setBusy(false); }
+  }
+
+  if (plans.length === 0) return null;
+  return <section className="admin-form" aria-label="Premium test checkout">
+    <h2>Premium test checkout</h2>
+    <p>Use Stripe test card details. This sandbox does not charge money or activate Premium access.</p>
+    <form onSubmit={prepare}>
+      <label>Choose a test plan<select value={plan} disabled={busy} onChange={event => {
+        setPlan(event.target.value as Plan); setLink("");
+      }}>{plans.map(item => <option key={item} value={item}>{planLabels[item]}</option>)}</select></label>
+      <button className="admin-secondary" disabled={busy}>Prepare test checkout</button>
+    </form>
+    {error && <p role="alert">{error}</p>}
+    {link && <a className="studio-button" href={link} rel="noreferrer">Open Stripe test checkout</a>}
   </section>;
 }

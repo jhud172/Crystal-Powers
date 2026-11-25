@@ -86,6 +86,41 @@ public class StripeGateway {
         if (!id.matches("cs_(test_|live_)?[A-Za-z0-9]+") || !response.path("livemode").isBoolean() || response.path("livemode").asBoolean() != liveMode || !bill.toString().equals(response.path("client_reference_id").asText()) || !attempt.toString().equals(response.path("metadata").path("checkout_attempt_id").asText()) || !bill.toString().equals(response.path("metadata").path("billing_request_id").asText()) || !customer.equals(response.path("customer").asText()) || response.path("amount_total").asLong(-1)!=pence || !providerUrl(url, "checkout.stripe.com")) throw unavailable();
         return new Checkout(id, url, response.path("expires_at").asLong());
     }
+
+    public Checkout docksTestCheckout(UUID account, UUID attempt, String priceId, long expiresAt) {
+        requireConnected();
+        if (liveMode || !priceId.matches("price_[A-Za-z0-9]{1,94}"))
+            throw new IllegalArgumentException("Docks checkout requires a Stripe test price.");
+        var response = post("/checkout/sessions", docksCheckoutFields(account, attempt, priceId, expiresAt),
+                "cp-docks-checkout-" + attempt);
+        String id = response.path("id").asText();
+        String url = response.path("url").asText();
+        if (!id.matches("cs_test_[A-Za-z0-9]{1,90}") || !response.path("livemode").isBoolean()
+                || response.path("livemode").asBoolean()
+                || !attempt.toString().equals(response.path("client_reference_id").asText())
+                || !account.toString().equals(response.path("metadata").path("docks_account_id").asText())
+                || response.path("expires_at").asLong(-1) != expiresAt || url.length() > 2048
+                || !providerUrl(url, "checkout.stripe.com"))
+            throw unavailable();
+        return new Checkout(id, url, expiresAt);
+    }
+
+    Map<String, String> docksCheckoutFields(UUID account, UUID attempt, String priceId, long expiresAt) {
+        Map<String, String> fields = new LinkedHashMap<>();
+        fields.put("mode", "subscription");
+        fields.put("payment_method_types[0]", "card");
+        fields.put("locale", "en-GB");
+        fields.put("line_items[0][price]", priceId);
+        fields.put("line_items[0][quantity]", "1");
+        fields.put("client_reference_id", attempt.toString());
+        fields.put("metadata[docks_account_id]", account.toString());
+        fields.put("subscription_data[metadata][docks_account_id]", account.toString());
+        fields.put("subscription_data[metadata][docks_checkout_attempt]", attempt.toString());
+        fields.put("expires_at", Long.toString(expiresAt));
+        fields.put("success_url", publicUrl + "/docks/reports?checkout=returned");
+        fields.put("cancel_url", publicUrl + "/docks/reports?checkout=cancelled");
+        return fields;
+    }
     /** Requires a verified client's stored customer ID; never accept customer IDs from the browser. */
     public String customerPortal(String storedCustomerId, UUID attempt) {
         requireConnected();

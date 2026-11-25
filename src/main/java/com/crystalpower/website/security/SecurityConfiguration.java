@@ -45,6 +45,8 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.GET, "/api/docks/devices", "/api/docks/entitlement").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/docks/devices/{id}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/docks/reports").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/docks/billing/plans").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/docks/billing/checkout").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/docks/reports/preference", "/api/docks/reports/latest").permitAll()
                 .requestMatchers("/api/docks", "/api/docks/**").denyAll()
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
@@ -62,7 +64,8 @@ public class SecurityConfiguration {
                             "/api/docks/auth/email/request", "/api/docks/auth/email/exchange",
                             "/api/docks/auth/sign-out", "/api/docks/devices", "/api/docks/trial",
                             "/api/docks/access-key/redeem", "/api/docks/devices/{id}",
-                            "/api/docks/reports/preference", "/api/docks/reports/latest"))
+                            "/api/docks/reports/preference", "/api/docks/reports/latest",
+                            "/api/docks/billing/checkout"))
             .formLogin(config -> config.disable())
             .httpBasic(config -> config.disable())
             .logout(config -> config.disable())
