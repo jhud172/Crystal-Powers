@@ -168,6 +168,7 @@ export default function DocksReports() {
       <SandboxCheckout token={token} />
       <Household token={token} />
       <ResearchPreference token={token} />
+      <ReportSupport key={token} token={token} forLog />
       {view && <>
         {view.reports.length === 0 && <p>{view.enabled ? "You have not shared a device summary yet." : "Report sharing is turned off. You can turn it on in the Windows app."}</p>}
         {view.reports.length > 0 && <ul>{view.reports.map((report, index) => <li key={`${report.checkedAt}-${index}`}>
@@ -240,14 +241,15 @@ const supportLabels: Record<string, string> = {
   VIEWED: "Support opened your summaries",
 };
 
-function ReportSupport({ token, canGrant, changingReports }: {
-  token: string; canGrant: boolean; changingReports: boolean;
+function ReportSupport({ token, canGrant = false, changingReports = false, forLog = false }: {
+  token: string; canGrant?: boolean; changingReports?: boolean; forLog?: boolean;
 }) {
   const [state, setState] = useState<SupportState | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
-  const endpoint = "reports/support-access";
+  const endpoint = forLog ? "diagnostic-log" : "reports/support-access";
+  const heading = forLog ? "docks-log-support" : "docks-report-support";
 
   useEffect(() => {
     if (changingReports) return;
@@ -256,7 +258,7 @@ function ReportSupport({ token, canGrant, changingReports }: {
       if (current) setState(result);
     }).catch(() => { /* Report viewing remains available. */ });
     return () => { current = false; };
-  }, [token, changingReports]);
+  }, [token, changingReports, endpoint]);
 
   useEffect(() => {
     if (!state?.grant) return;
@@ -279,7 +281,7 @@ function ReportSupport({ token, canGrant, changingReports }: {
       } else if (method === "DELETE") {
         await request(endpoint, method, undefined, token);
         setState(previous => previous && { ...previous, grant: null });
-        setNotice("Support access ended.");
+        setNotice(forLog ? "The diagnostic log was deleted and support access ended." : "Support access ended.");
       }
       setState(await request<SupportState>(endpoint, "GET", undefined, token));
     } catch (failure) {
@@ -287,23 +289,27 @@ function ReportSupport({ token, canGrant, changingReports }: {
     } finally { setBusy(false); }
   }
 
-  if (!state || !Array.isArray(state.activity) || (!canGrant && !state.grant && state.activity.length === 0)) return null;
-  return <section className="admin-form" aria-labelledby="docks-report-support" aria-busy={busy}>
-    <h2 id="docks-report-support">Support access</h2>
-    <p>Give Crystal Powers support up to an hour to view your uploaded summaries.</p>
-    {state.grant ? <>
+  const activity = Array.isArray(state?.activity) ? state.activity : [];
+  if (!forLog && (!state || (!canGrant && !state.grant && activity.length === 0))) return null;
+  return <section className="admin-form" aria-labelledby={heading} aria-busy={busy}>
+    <h2 id={heading}>{forLog ? "Diagnostic log for support" : "Support access"}</h2>
+    <p>{forLog ? "Choose Reports and logs in the Windows app to review and share one check for up to an hour."
+      : "Give Crystal Powers support up to an hour to view your uploaded summaries."}</p>
+    {state?.grant ? <>
       <p>Share this reference with support before {new Date(state.grant.expiresAt).toLocaleString("en-GB")}.</p>
-      <label>Support reference<input readOnly value={state.grant.reference} onFocus={event => event.currentTarget.select()} /></label>
+      <label>{forLog ? "Diagnostic log reference" : "Support reference"}<input readOnly
+        className={forLog ? "docks-log-reference" : undefined} value={state.grant.reference}
+        onFocus={event => event.currentTarget.select()} /></label>
       <button className="admin-secondary" type="button" disabled={busy || changingReports}
-        onClick={() => void change("DELETE")}>End support access</button>
+        onClick={() => void change("DELETE")}>{forLog ? "Delete log and end access" : "End support access"}</button>
     </> : canGrant && <button className="admin-secondary" type="button" disabled={busy || changingReports}
       onClick={() => void change("POST")}>Allow support for one hour</button>}
     <button className="admin-secondary" type="button" disabled={busy || changingReports}
-      onClick={() => void change()}>Refresh support activity</button>
+      onClick={() => void change()}>{forLog ? "Refresh diagnostic log activity" : "Refresh support activity"}</button>
     {notice && <p role="status">{notice}</p>}
     {error && <p role="alert">{error}</p>}
-    {state.activity.length > 0 && <ul aria-label="Recent support activity">{state.activity.map((item, index) =>
-      <li key={item.recordedAt + index}>{supportLabels[item.action]} ·{" "}
+    {activity.length > 0 && <ul aria-label={forLog ? "Recent diagnostic log activity" : "Recent support activity"}>{activity.map((item, index) =>
+      <li key={item.recordedAt + index}>{forLog && item.action === "VIEWED" ? "Support opened your diagnostic log" : supportLabels[item.action]} ·{" "}
         <time dateTime={item.recordedAt}>{new Date(item.recordedAt).toLocaleString("en-GB")}</time></li>)}</ul>}
   </section>;
 }

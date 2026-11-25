@@ -19,7 +19,8 @@ class DocksReportsTests {
                 .addScripts("classpath:db/migration/V87__docks_accounts_and_devices.sql",
                             "classpath:db/migration/V91__docks_report_sync.sql",
                             "classpath:db/migration/V96__docks_report_retention.sql",
-                            "classpath:db/migration/V97__docks_report_support_access.sql").build();
+                            "classpath:db/migration/V97__docks_report_support_access.sql",
+                            "classpath:db/migration/V101__docks_diagnostic_log_sharing.sql").build();
         try {
             var jdbc = new JdbcTemplate(database);
             var reports = new DocksReports(jdbc, new TransactionTemplate(new DataSourceTransactionManager(database)));

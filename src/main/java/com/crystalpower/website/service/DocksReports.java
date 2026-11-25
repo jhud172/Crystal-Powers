@@ -79,7 +79,7 @@ public class DocksReports {
             lock(account);
             return new SupportState(activeGrant(account).orElse(null), db.query("""
                     SELECT action, recorded_at FROM docks_report_support_audit
-                    WHERE account_id = ? AND recorded_at > ? ORDER BY recorded_at DESC, id LIMIT 20
+                    WHERE account_id = ? AND scope = 'SUMMARY' AND recorded_at > ? ORDER BY recorded_at DESC, id LIMIT 20
                     """, (row, i) -> new SupportEvent(row.getString(1), row.getObject(2, OffsetDateTime.class)),
                     account, now().minusDays(90)));
         });

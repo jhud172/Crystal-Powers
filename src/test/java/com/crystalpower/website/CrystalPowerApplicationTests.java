@@ -66,6 +66,20 @@ class CrystalPowerApplicationTests {
     }
 
     @Test
+    void diagnosticsRequireABearerAndExplicitSubmissionApproval() throws Exception {
+        String path = "/api/docks/diagnostic-log";
+        String readings = "{\"logicalProcessors\":8,\"installedApps\":0,\"driveStatus\":\"UNKNOWN\"}";
+        String body = "{\"installationId\":\"00000000-0000-4000-8000-000000000001\","
+                + "\"checkedAt\":\"2026-11-25T00:00:00Z\",\"readings\":" + readings;
+        mockMvc.perform(get(path)).andExpect(status().isUnauthorized());
+        mockMvc.perform(delete(path)).andExpect(status().isUnauthorized());
+        mockMvc.perform(post(path).contentType("application/json").content(body + "}"))
+                .andExpect(status().isBadRequest()).andExpect(header().string("Cache-Control", "no-store"));
+        mockMvc.perform(post(path).contentType("application/json").content(body + ",\"approved\":true}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void openingDocksSupportRequiresTheOwnerBoundary() throws Exception {
         var body = "{\"reference\":\"00000000-0000-4000-8000-000000000001\"}";
         mockMvc.perform(post("/api/admin/docks/support-reports").contentType("application/json").content(body))
