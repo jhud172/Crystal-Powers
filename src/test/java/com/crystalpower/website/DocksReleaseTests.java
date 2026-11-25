@@ -40,9 +40,23 @@ class DocksReleaseTests {
         assertEquals(302, release.download(version).getStatusCode().value());
         assertEquals(storage, release.download(version).getHeaders().getLocation().toString());
         assertEquals(404, release.download("1.2.4.0").getStatusCode().value());
-        String github = "https://github.com/jhud172/crystal-docks/releases/download/v1.2.3.0/Crystal-Docks-1.2.3.0-win-x64-signed.msix";
-        config.setProperty("DOCKS_RELEASE_WINDOWS_X64_URL", github);
-        assertEquals(github, release.download(version).getHeaders().getLocation().toString());
+        String githubAsset = "/releases/download/v1.2.3.0/Crystal-Docks-1.2.3.0-win-x64-signed.msix";
+        for (String repo : new String[] {"crystal-docks-downloads", "crystal-docks"}) {
+            String github = "https://github.com/jhud172/" + repo + githubAsset;
+            config.setProperty("DOCKS_RELEASE_WINDOWS_X64_URL", github);
+            assertEquals(302, release.download(version).getStatusCode().value());
+            assertEquals(github, release.download(version).getHeaders().getLocation().toString());
+        }
+        String downloads = "https://github.com/jhud172/crystal-docks-downloads";
+        for (String bad : new String[] {downloads + "-other" + githubAsset,
+                downloads + githubAsset.replace("/v1.2.3.0/", "/v1.2.4.0/"),
+                downloads + githubAsset.replace("-signed.msix", "-unsigned-preview.msix"),
+                downloads + githubAsset + "?download=1", downloads + githubAsset + "#asset"}) {
+            config.setProperty("DOCKS_RELEASE_WINDOWS_X64_URL", bad);
+            assertTrue(release.current().getBody().isEmpty());
+            assertEquals(404, release.download(version).getStatusCode().value());
+        }
+        config.setProperty("DOCKS_RELEASE_WINDOWS_X64_URL", downloads + githubAsset);
         config.setProperty("DOCKS_RELEASE_WINDOWS_X64_VERSION", "65536.0.0.0");
         assertTrue(release.current().getBody().isEmpty());
     }

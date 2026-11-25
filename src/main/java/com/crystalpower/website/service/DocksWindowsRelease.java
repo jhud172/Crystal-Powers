@@ -31,8 +31,10 @@ public class DocksWindowsRelease {
                 return Optional.empty();
             String path = asset.getRawPath();
             var supabase = URI.create(config.getProperty("app.media.supabase-url", ""));
+            String githubAsset = "/releases/download/v" + version + "/" + filename;
             boolean approvedGitHub = "github.com".equalsIgnoreCase(asset.getHost())
-                    && path.equals("/jhud172/crystal-docks/releases/download/v" + version + "/" + filename);
+                    && (path.equals("/jhud172/crystal-docks-downloads" + githubAsset)
+                    || path.equals("/jhud172/crystal-docks" + githubAsset));
             boolean approvedStorage = asset.getHost().equalsIgnoreCase(supabase.getHost())
                     && path.equals("/storage/v1/object/public/docks-downloads/" + filename);
             return approvedGitHub || approvedStorage ? Optional.of(new Release(version, asset, sha256.toLowerCase(Locale.ROOT))) : Optional.empty();
