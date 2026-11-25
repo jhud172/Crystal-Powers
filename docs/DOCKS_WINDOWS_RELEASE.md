@@ -1,5 +1,7 @@
 # Publish a Crystal Docks Windows release
 
+Before merging the Crystal Powers integration, confirm the **Verify Docks website release candidate** check passed for the current pull request merge commit. It builds and tests the packaged website, runs the Docks customer journey against disposable PostgreSQL, and checks the production-profile routes with the providers and download feed disabled. It runs without production credentials or a deployment.
+
 Build the package with `packaging/Build-Msix.ps1` in the Crystal Docks repository and verify the Windows publisher signature and timestamp on the final bytes. Use the same package identity and publisher as the installed versions. Test the upgrade, history retention, scheduled checks and uninstall on a clean Windows 11 x64 pilot before offering the package.
 
 Use the dedicated [Crystal Docks Downloads repository](https://github.com/jhud172/crystal-docks-downloads) for Windows release assets. It starts private with a README and has no source code. Stage the signed MSIX and its checksum in a draft release. Keep the build filename, such as `Crystal-Docks-1.2.3.0-win-x64-signed.msix`, and use the matching tag `v1.2.3.0`. Once the signed package passes clean-device acceptance and publication is authorised, make the downloads repository public and publish the draft. The source repository can stay private. The download URL is `https://github.com/jhud172/crystal-docks-downloads/releases/download/v1.2.3.0/Crystal-Docks-1.2.3.0-win-x64-signed.msix`.

@@ -1,7 +1,7 @@
 #requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('Pilot', 'Production')] [string] $Target = 'Pilot',
+    [ValidateSet('Pilot', 'Production', 'Candidate')] [string] $Target = 'Pilot',
     [switch] $EmailEnabled,
     [switch] $GoogleEnabled,
     [ValidatePattern('^(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.0$')]
@@ -14,7 +14,11 @@ Set-StrictMode -Version Latest
 if ([bool]$Version -ne [bool]$Sha256) { throw 'Supply the release version and its expected SHA-256 together.' }
 
 $isPilot = $Target -eq 'Pilot'
-$origin = if ($isPilot) { 'https://crystal-docks-pilot-xpyl.onrender.com/' } else { 'https://crystal-powers.com/' }
+$origin = switch ($Target) {
+    'Pilot' { 'https://crystal-docks-pilot-xpyl.onrender.com/' }
+    'Production' { 'https://crystal-powers.com/' }
+    'Candidate' { 'http://127.0.0.1:18084/' }
+}
 $handler = [System.Net.Http.HttpClientHandler]::new()
 $handler.AllowAutoRedirect = $false
 $handler.UseCookies = $false
@@ -41,13 +45,33 @@ try {
     $health = (Read-Route 'api/health' 200).Text | ConvertFrom-Json -AsHashtable
     if ($health['status'] -cne 'up') { throw 'The website did not report healthy.' }
 
-    foreach ($route in 'docks', 'docks/support', 'docks/reports') {
+    $docksPages = [ordered]@{
+        'docks' = 'Crystal Docks for Windows'
+        'docks/support' = 'Crystal Docks support'
+        'docks/reports' = 'Crystal Docks reports'
+    }
+    foreach ($route in $docksPages.Keys) {
         $page = Read-Route $route 200
-        if ($page.Text -notmatch '<html\b' -or ($page.NoIndex -ne ($isPilot -or $route -eq 'docks/reports'))) {
+        if (!$page.Text.Contains("<title>$($docksPages[$route]) | Crystal Powers</title>") -or
+            ($page.NoIndex -ne ($isPilot -or $route -eq 'docks/reports'))) {
             throw "$route returned unexpected page content or indexing rules."
         }
     }
     $null = Read-Route 'api/docks/reports' 401
+    if ($Target -eq 'Candidate') {
+        foreach ($route in '/', 'about', 'services', 'portfolio', 'support', 'contact', 'accessibility') {
+            $existing = Read-Route $route 200
+            if ($existing.Text -notmatch '<html\b' -or $existing.NoIndex) {
+                throw "$route returned unexpected public page content or indexing rules."
+            }
+        }
+        $product = Read-Route 'docks' 200
+        if ($product.Text -notmatch 'src="(/assets/index-[\w-]+\.js)"') {
+            throw 'The packaged product page does not reference a built frontend entry.'
+        }
+        $null = Read-Route $Matches[1] 200
+        $null = Read-Route 'docks/unknown-route' 404
+    }
 
     $methods = @{ email = [bool]$EmailEnabled; google = [bool]$GoogleEnabled }
     foreach ($method in $methods.Keys) {
