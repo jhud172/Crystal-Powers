@@ -24,6 +24,7 @@ public class PageMetadataService {
         "/support", new Meta("Support & maintenance | Crystal Powers", "Help with website updates, fixes, maintenance and the next chapter after launch."),
         "/contact", new Meta("Start a project | Crystal Powers", "Tell James about your next website, app or digital project. Work directly with the founder of Crystal Powers."),
         "/docks", new Meta("Crystal Docks for Windows | Crystal Powers", "Check your Windows 11 PC, understand what Crystal Docks finds and review supported repairs."),
+        "/docks/support", new Meta("Crystal Docks support | Crystal Powers", "Get help with the Windows app, your account or a Crystal Docks subscription."),
         "/accessibility", new Meta("Accessibility | Crystal Powers", "Use the Crystal Powers website with appearance choices, reduced effects, keyboard controls and a way to report access problems.")
     );
     private final ProjectService projects;

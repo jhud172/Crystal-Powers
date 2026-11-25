@@ -50,6 +50,27 @@ class CrystalPowerApplicationTests {
                         containsString("content=\"index, follow\""))));
         mockMvc.perform(get("/docks/reports"))
                 .andExpect(status().isOk()).andExpect(header().string("X-Robots-Tag", "noindex, nofollow"));
+        mockMvc.perform(get("/docks/support"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<title>Crystal Docks support | Crystal Powers</title>")));
+    }
+
+    @Test
+    void docksSupportUsesTheExistingSupportIntakeWithoutAnAccount() throws Exception {
+        mockMvc.perform(post("/api/contact")
+                        .param("intent", "support")
+                        .param("websiteAddress", "https://crystal-powers.com/docks")
+                        .param("firstName", "Docks fixture")
+                        .param("email", "docks-fixture@example.invalid")
+                        .param("preferredContactPoint", "Email")
+                        .param("message", "Can you help me sign in to the Windows app?"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.requestId").isNotEmpty());
+        org.mockito.Mockito.verify(inquiryEmailService).sendInquiry(
+                org.mockito.ArgumentMatchers.argThat(form -> "support".equals(form.getIntent())
+                        && "https://crystal-powers.com/docks".equals(form.getWebsiteAddress())),
+                org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.eq("Contact page"),
+                org.mockito.ArgumentMatchers.startsWith("enquiry-"));
     }
 
     @Test

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { usePageMetadata } from "../hooks/usePageMetadata";
+import { EnquiryForm } from "../features/contact/EnquiryForm";
+import { EnquiryProvider } from "../features/contact/EnquiryContext";
 import "../styles/pages/docks.css";
 
 const releasePath = "/api/docks/releases/windows-x64";
@@ -89,5 +91,18 @@ export default function Docks() {
       <div><h2>Premium repairs</h2><p>Review each supported repair and choose whether to run it. Crystal Docks checks your Premium access online before a repair.</p></div>
       <div><h2>Optional report sharing</h2><p>Device history stays on your PC. You can choose to share device summaries to view them online.</p></div>
     </section>
+    <p><Link className="docks-report-link" to="/docks/support">Get Crystal Docks support <span aria-hidden="true">→</span></Link></p>
   </article>;
+}
+
+export function DocksSupport() {
+  usePageMetadata("Crystal Docks support | Crystal Powers",
+    "Get help with the Windows app, your account or a Crystal Docks subscription.", "/docks/support", preview);
+  return <section className="studio-section enquiry-page" aria-labelledby="docks-support-title">
+    <h1 id="docks-support-title">Crystal Docks support</h1>
+    <p>Get help with the Windows app, your account or a subscription. You can send a request without signing in.</p>
+    <p>If you chose to share a diagnostic log or device summary, you can include its support reference. Keep passwords and sign-in codes out of the request.</p>
+    <p><Link to="/docks">About Crystal Docks</Link>{" · "}<Link to="/docks/reports">Manage reports and access</Link></p>
+    <EnquiryProvider startingIntent="support"><EnquiryForm docksSupport /></EnquiryProvider>
+  </section>;
 }

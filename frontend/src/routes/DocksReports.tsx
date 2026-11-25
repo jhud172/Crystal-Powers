@@ -201,7 +201,7 @@ export default function DocksReports() {
   return <section className="studio-section" aria-labelledby="docks-reports-title" aria-busy={busy}>
     <h1 id="docks-reports-title">Crystal Docks reports</h1>
     <p>View the device summaries you shared from the Windows app. Each summary expires 30 days after its check.</p>
-    <p><Link to="/docks">About Crystal Docks</Link></p>
+    <p><Link to="/docks">About Crystal Docks</Link>{" · "}<Link to="/docks/support">Get Crystal Docks support</Link></p>
     {error && <p role="alert">{error}</p>}
     {notice && <p role="status">{notice}</p>}
     {token ? <>

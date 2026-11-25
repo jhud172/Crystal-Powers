@@ -27,14 +27,14 @@ type Brief = {
 const EnquiryContext = createContext<Brief | null>(null);
 
 /** Visit-level memory only: no personal fields or files in storage, cookies or URLs. */
-export function EnquiryProvider({ children }: PropsWithChildren) {
-  const [form, setForm] = useState(initialContactForm);
+export function EnquiryProvider({ children, startingIntent = initialContactForm.intent }: PropsWithChildren<{ startingIntent?: string }>) {
+  const [form, setForm] = useState(() => ({ ...initialContactForm, intent: startingIntent }));
   const [files, setFiles] = useState<File[]>([]);
   const [sending, setSending] = useState(false);
   const submission=useRef<{signature:string;key:string;endpoint:string} | null>(null);
   const fileIds=useRef(new WeakMap<File,string>());
   function fileIdentity(file:File){let id=fileIds.current.get(file);if(!id){id=crypto.randomUUID();fileIds.current.set(file,id);}return id;}
-  return <EnquiryContext.Provider value={{ form, setForm, files, setFiles, sending, setSending, submission, fileIdentity, reset: (keepIntent = false) => { submission.current=null;fileIds.current=new WeakMap();setForm(current => ({ ...initialContactForm, ...(keepIntent ? { intent: current.intent } : {}) })); setFiles([]); } }}>{children}</EnquiryContext.Provider>;
+  return <EnquiryContext.Provider value={{ form, setForm, files, setFiles, sending, setSending, submission, fileIdentity, reset: (keepIntent = false) => { submission.current=null;fileIds.current=new WeakMap();setForm(current => ({ ...initialContactForm, intent: keepIntent ? current.intent : startingIntent })); setFiles([]); } }}>{children}</EnquiryContext.Provider>;
 }
 
 export function useEnquiry() {

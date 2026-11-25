@@ -19,6 +19,7 @@ const TeamEntry = lazy(() => import("../features/team/TeamEntry"));
 const ClientEntry = lazy(() => import("../features/client/ClientEntry"));
 const DocksReports = lazy(() => import("../routes/DocksReports"));
 const Docks = lazy(() => import("../routes/Docks"));
+const DocksSupport = lazy(() => import("../routes/Docks").then(module => ({ default: module.DocksSupport })));
 
 export default function App() {
   const location = useLocation();
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/admin/*" element={<Suspense fallback={<div className="studio-section" role="status">Opening the owner studio…</div>}><Admin /></Suspense>} />
         <Route path="/docks/reports" element={<Suspense fallback={<div className="studio-section" role="status">Opening Crystal Docks…</div>}><DocksReports /></Suspense>} />
         <Route path="/docks" element={<Suspense fallback={<div className="studio-section" role="status">Opening Crystal Docks…</div>}><Docks /></Suspense>} />
+        <Route path="/docks/support" element={<Suspense fallback={<div className="studio-section" role="status">Opening Crystal Docks support…</div>}><DocksSupport /></Suspense>} />
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Navigate to="/" replace />} />
         <Route path="/about" element={<About />} />
