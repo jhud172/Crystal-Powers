@@ -42,6 +42,8 @@ services:
         value: /tmp/crystal-docks-pilot-media
       - key: MAIL_PROVIDER
         value: disabled
+      - key: DOCKS_PILOT_ALLOWED_EMAILS
+        value: ""
       - key: DOCKS_EMAIL_ENABLED
         value: "false"
       - key: BILLING_ENABLED

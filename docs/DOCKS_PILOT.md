@@ -4,6 +4,8 @@
 
 Use only synthetic accounts and test provider credentials. Configure a separate Google OAuth client, the Stripe sandbox webhook and test Prices, and a controlled mail sender before those tests. Verify the actual HTTPS origin after deployment before registering callbacks. The Docks pilot profile adds a search-engine exclusion header. Treat the endpoint as publicly reachable.
 
+The pilot only signs in approved test accounts. Set `DOCKS_PILOT_ALLOWED_EMAILS` on the pilot service to a comma-separated list of exact controlled addresses. Enable the intended provider after setting that list. Unlisted email requests return the same generic response as other code requests, and no email or challenge is created. Google sign-in also requires verified ownership of a listed address. Removing an address blocks further use of its Docks sessions on the pilot. The production profile uses normal customer registration.
+
 Email sign-in defaults to disabled. To enable it on the pilot, configure the controlled mail sender and set `DOCKS_EMAIL_ENABLED=true` on the pilot service. The signed-out reports page shows the email form only while the server reports the transport is configured. Check `GET /api/docks/auth/email` before requesting a code. A value of `true` confirms configuration. Confirm delivery and successful exchange with a controlled recipient.
 
 The release build passed a local browser and SMTP check using the environment switch and a loopback-only recipient fixture. It exercised the real SMTP transport, code exchange, report sign-in and sign-out, and verified the page's unavailable and Google-only states. Hosted provider delivery remains a separate pilot check.

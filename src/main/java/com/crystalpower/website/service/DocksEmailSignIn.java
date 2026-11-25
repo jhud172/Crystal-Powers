@@ -26,24 +26,27 @@ public class DocksEmailSignIn {
     private final TransactionTemplate transaction;
     private final EmailTransport mail;
     private final boolean enabled;
+    private final DocksPilotAccess pilot;
 
     public record Session(String accessToken, OffsetDateTime expiresAt, UUID accountId) {}
 
     public DocksEmailSignIn(JdbcTemplate db, TransactionTemplate transaction, EmailTransport mail,
-            @Value("${app.docks.email-enabled:false}") boolean enabled) {
+            @Value("${app.docks.email-enabled:false}") boolean enabled, DocksPilotAccess pilot) {
         this.db = db;
         this.transaction = transaction;
         this.mail = mail;
         this.enabled = enabled;
+        this.pilot = pilot;
     }
 
     public boolean available() {
-        return enabled && mail.configured();
+        return enabled && pilot.available() && mail.configured();
     }
 
     /** Returns quietly when rate limited, so the response never identifies registered addresses. */
     public void request(String address) {
         String email = normaliseEmail(address);
+        if (!pilot.allows(email)) return;
         String code = randomToken();
         String hash = digest(code);
         var now = now();
@@ -88,6 +91,7 @@ public class DocksEmailSignIn {
             if (addresses.isEmpty()) return Optional.empty();
             db.update("DELETE FROM docks_email_challenge WHERE token_hash = ?", hash);
             String email = addresses.get(0);
+            if (!pilot.allows(email)) return Optional.empty();
             UUID account = identity(ISSUER, email).orElseGet(() -> {
                 var created = newAccount();
                 addIdentity(ISSUER, email, created);
@@ -95,6 +99,16 @@ public class DocksEmailSignIn {
             });
             return Optional.of(issueSession(account));
         });
+    }
+
+    boolean pilotAvailable() { return pilot.available(); }
+    boolean allowsGoogleIdentity(GoogleDocksProvider.Identity identity) { return pilot.allows(identity); }
+
+    boolean pilotAllowsAccount(UUID account) {
+        if (!pilot.restricted()) return true;
+        if (!pilot.available()) return false;
+        return db.query("SELECT subject FROM docks_identity WHERE account_id = ? AND issuer = ?",
+                (row, i) -> row.getString(1), account, ISSUER).stream().anyMatch(pilot::allows);
     }
 
     UUID googleIdentity(GoogleDocksProvider.Identity verified) {
@@ -152,7 +166,7 @@ public class DocksEmailSignIn {
         String token = bearer(authorization);
         if (token == null) return Optional.empty();
         return db.query("SELECT account_id FROM docks_session WHERE token_hash = ? AND expires_at > ?",
-                (row, i) -> row.getObject(1, UUID.class), digest(token), now()).stream().findFirst();
+                (row, i) -> row.getObject(1, UUID.class), digest(token), now()).stream().filter(this::pilotAllowsAccount).findFirst();
     }
 
     Optional<UUID> recentlyVerifiedAccount(String authorization) {
@@ -162,7 +176,7 @@ public class DocksEmailSignIn {
         return db.query("""
                 SELECT account_id FROM docks_session WHERE token_hash = ? AND expires_at > ? AND issued_at > ?
                 """, (row, i) -> row.getObject(1, UUID.class), digest(token), time, time.minusMinutes(10))
-                .stream().findFirst();
+                .stream().filter(this::pilotAllowsAccount).findFirst();
     }
 
     public void signOut(String authorization) {

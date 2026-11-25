@@ -25,8 +25,8 @@ public class DocksGoogleSignIn {
         this.google = google;
     }
 
-    public boolean enabled() { return google.enabled(); }
-    public boolean acceptsOrigin(String origin) { return google.acceptsOrigin(origin); }
+    public boolean enabled() { return accounts.pilotAvailable() && google.enabled(); }
+    public boolean acceptsOrigin(String origin) { return enabled() && google.acceptsOrigin(origin); }
 
     public Start start() {
         String state = DocksEmailSignIn.randomToken();
@@ -52,7 +52,7 @@ public class DocksGoogleSignIn {
             return Optional.of(match.get(0));
         });
         if (nonce.isEmpty() || code == null) return Optional.empty();
-        return google.exchange(code, nonce.get()).map(identity -> {
+        return google.exchange(code, nonce.get()).filter(accounts::allowsGoogleIdentity).map(identity -> {
             UUID account = accounts.googleIdentity(identity);
             return issueTicket(account, Destination.BROWSER);
         });
@@ -90,7 +90,8 @@ public class DocksGoogleSignIn {
                     """, (row, i) -> row.getObject(1, UUID.class), hash(ticket), destination.name(), now());
             if (match.isEmpty()) return Optional.empty();
             db.update("DELETE FROM docks_google_ticket WHERE token_hash = ?", hash(ticket));
-            return Optional.of(accounts.issueSession(match.get(0)));
+            UUID account = match.get(0);
+            return accounts.pilotAllowsAccount(account) ? Optional.of(accounts.issueSession(account)) : Optional.empty();
         });
     }
 

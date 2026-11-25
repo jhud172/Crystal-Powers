@@ -3,10 +3,13 @@ package com.crystalpower.website;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import com.crystalpower.website.service.DocksEmailSignIn;
+import com.crystalpower.website.service.DocksPilotAccess;
 import com.crystalpower.website.service.EmailTransport;
 import java.util.regex.Pattern;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -14,8 +17,9 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.transaction.support.TransactionTemplate;
 
 class DocksEmailSignInTests {
-    @Test
-    void emailProofIsSingleUseAndBearerCanBeRevoked() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void emailProofIsSingleUseAndBearerCanBeRevoked(boolean staging) {
         var database = new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.H2)
                 .generateUniqueName(true)
                 .addScripts("classpath:db/migration/V87__docks_accounts_and_devices.sql",
@@ -26,8 +30,16 @@ class DocksEmailSignInTests {
             var email = mock(EmailTransport.class);
             when(email.configured()).thenReturn(true);
             var transactions = new TransactionTemplate(new DataSourceTransactionManager(database));
-            var signIn = new DocksEmailSignIn(db, transactions, email, true);
+            var environment = new MockEnvironment().withProperty("DOCKS_PILOT_ALLOWED_EMAILS", " CUSTOMER@example.com ");
+            if (staging) environment.setActiveProfiles("docks-pilot");
+            var access = new DocksPilotAccess(environment);
+            var signIn = new DocksEmailSignIn(db, transactions, email, true, access);
             assertTrue(signIn.available());
+            if (staging) {
+                signIn.request("other@example.com");
+                verify(email, never()).send(any());
+                assertEquals(0, db.queryForObject("SELECT COUNT(*) FROM docks_email_challenge", Integer.class));
+            }
             signIn.request("Customer@example.com");
             signIn.request("customer@example.com");
             var message = ArgumentCaptor.forClass(EmailTransport.Message.class);
@@ -42,9 +54,14 @@ class DocksEmailSignInTests {
             String bearer = "Bearer " + session.accessToken();
             assertEquals(session.accountId(), signIn.account(bearer).orElseThrow());
             assertTrue(signIn.account(null).isEmpty());
+            var emptyPilot = new MockEnvironment();
+            emptyPilot.setActiveProfiles("docks-pilot");
+            var restricted = new DocksEmailSignIn(db, transactions, email, true, new DocksPilotAccess(emptyPilot));
+            assertFalse(restricted.available());
+            assertTrue(restricted.account(bearer).isEmpty());
             signIn.signOut(bearer);
             assertTrue(signIn.account(bearer).isEmpty());
-            assertFalse(new DocksEmailSignIn(db, transactions, email, false).available());
+            assertFalse(new DocksEmailSignIn(db, transactions, email, false, access).available());
         } finally {
             database.shutdown();
         }

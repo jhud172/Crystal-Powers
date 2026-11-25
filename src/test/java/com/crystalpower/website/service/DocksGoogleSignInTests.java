@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -17,8 +20,9 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.transaction.support.TransactionTemplate;
 
 class DocksGoogleSignInTests {
-    @Test
-    void browserAndWindowsCodesAreBoundSingleUseAndPreserveTheExistingAccount() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void browserAndWindowsCodesAreBoundSingleUseAndPreserveTheExistingAccount(boolean staging) {
         var database = new EmbeddedDatabaseBuilder().generateUniqueName(true).setType(EmbeddedDatabaseType.H2)
                 .addScripts("classpath:db/migration/V87__docks_accounts_and_devices.sql",
                         "classpath:db/migration/V88__docks_email_sign_in.sql",
@@ -27,7 +31,9 @@ class DocksGoogleSignInTests {
         try {
             var db = new JdbcTemplate(database);
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));
-            var accounts = new DocksEmailSignIn(db, tx, mock(EmailTransport.class), true);
+            var environment = new MockEnvironment().withProperty("DOCKS_PILOT_ALLOWED_EMAILS", "owner@gmail.com");
+            if (staging) environment.setActiveProfiles("docks-pilot");
+            var accounts = new DocksEmailSignIn(db, tx, mock(EmailTransport.class), true, new DocksPilotAccess(environment));
             var provider = mock(GoogleDocksProvider.class);
             when(provider.enabled()).thenReturn(true);
             when(provider.authorise(anyString(), anyString())).thenAnswer(call ->
@@ -51,6 +57,18 @@ class DocksGoogleSignInTests {
             assertEquals(account, session.accountId());
             assertEquals(Optional.of(account), accounts.account("Bearer " + session.accessToken()));
             assertTrue(google.exchange(ticket).isEmpty());
+            if (staging) {
+                when(provider.exchange(eq("outside"), anyString())).thenReturn(Optional.of(
+                        new GoogleDocksProvider.Identity("outside-subject", "outside@gmail.com", true)));
+                when(provider.exchange(eq("unproven"), anyString())).thenReturn(Optional.of(
+                        new GoogleDocksProvider.Identity("unproven-subject", "owner@gmail.com", false)));
+                for (String rejected : List.of("outside", "unproven")) {
+                    var challenge = google.start();
+                    String challengeState = challenge.authorisation().getQuery().substring("state=".length());
+                    assertTrue(google.complete(challengeState, challenge.browserToken(), rejected).isEmpty());
+                }
+                assertEquals(1, db.queryForObject("SELECT COUNT(*) FROM docks_account", Integer.class));
+            }
 
             var superseded = google.desktopCode(account);
             var code = google.desktopCode(account);

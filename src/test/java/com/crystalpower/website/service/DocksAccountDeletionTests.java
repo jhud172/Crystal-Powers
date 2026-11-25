@@ -8,6 +8,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -37,7 +38,7 @@ class DocksAccountDeletionTests {
         try {
             var db = new JdbcTemplate(database);
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));
-            var signIn = new DocksEmailSignIn(db, tx, mock(EmailTransport.class), false);
+            var signIn = new DocksEmailSignIn(db, tx, mock(EmailTransport.class), false, new DocksPilotAccess(new MockEnvironment()));
             var stripe = mock(StripeGateway.class);
             when(stripe.connected()).thenReturn(true);
             var service = new DocksAccountDeletion(db, tx, signIn, stripe);
