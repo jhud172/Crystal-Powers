@@ -5,6 +5,7 @@ import { OwnerError } from "./OwnerError";
 import { AuthenticatorCode } from "./AuthenticatorCode";
 import { AuthenticatorKey } from "./AuthenticatorKey";
 import { DocksKeys } from "./DocksKeys";
+import { DocksReportSupport } from "./DocksReportSupport";
 import { useRecoveryCodeExitGuard } from "./useRecoveryCodeExitGuard";
 
 const changes = [{ value: "password", label: "Password", detail: "Choose a new sign-in password.", title: "Change your password." }, { value: "authenticator", label: "Authenticator", detail: "Move to a different authenticator.", title: "Move to a new authenticator." }, { value: "recovery-codes", label: "Recovery codes", detail: "Replace the one-time backup codes.", title: "Replace your recovery codes." }] as const;
@@ -68,6 +69,7 @@ export function OwnerSettings({ onBack, onSessionExpired, reauthenticationVersio
         <OwnerError message={error} /><button className="studio-button" disabled={busy}>{busy ? "Please wait…" : secret ? "Confirm new authenticator ↗" : action === "password" ? "Change password ↗" : action === "authenticator" ? "Set up new authenticator ↗" : "Replace recovery codes ↗"}</button>
       </fieldset></form>{secret && <button className="admin-text-button" disabled={busy} onClick={() => void cancelSetup()}>Cancel new authenticator setup</button>}</section>
     <DocksKeys onSessionExpired={onSessionExpired} />
+    <DocksReportSupport onSessionExpired={onSessionExpired} />
     </>}
   </section>;
 }

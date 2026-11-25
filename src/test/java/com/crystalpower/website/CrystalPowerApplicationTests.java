@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -44,6 +45,17 @@ class CrystalPowerApplicationTests {
         mockMvc.perform(delete("/api/docks/reports")).andExpect(status().isUnauthorized());
         mockMvc.perform(delete("/api/docks/reports").header("Authorization", "Bearer " + "a".repeat(43)))
                 .andExpect(status().isUnauthorized()).andExpect(header().string("Cache-Control", "no-store"));
+    }
+
+    @Test
+    void openingDocksSupportRequiresTheOwnerBoundary() throws Exception {
+        var body = "{\"reference\":\"00000000-0000-4000-8000-000000000001\"}";
+        mockMvc.perform(post("/api/admin/docks/support-reports").contentType("application/json").content(body))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/admin/docks/support-reports").contentType("application/json").content(body).with(csrf()))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/docks/reports/support-access"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

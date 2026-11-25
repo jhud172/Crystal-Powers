@@ -119,6 +119,7 @@ export default function DocksReports() {
         {view.enabled && view.reports.length > 0 && <button className="admin-secondary" type="button"
           disabled={busy} onClick={clearReports}>Delete uploaded summaries</button>}{" "}
         {view.enabled && <button className="admin-secondary" type="button" disabled={busy} onClick={disable}>Turn off sharing and delete reports</button>}
+        <ReportSupport token={token} canGrant={view.enabled && view.reports.length > 0} changingReports={busy} />
       </>}
     </> : <>
       <form className="admin-form" onSubmit={send}>
@@ -130,6 +131,82 @@ export default function DocksReports() {
         <button className="studio-button" disabled={busy}>Sign in</button>
       </form>}
     </>}
+  </section>;
+}
+
+type SupportGrant = { reference: string; expiresAt: string };
+type SupportState = { grant: SupportGrant | null; activity: { action: string; recordedAt: string }[] };
+const supportLabels: Record<string, string> = {
+  GRANTED: "Support access allowed",
+  REVOKED: "Support access ended",
+  VIEWED: "Support opened your summaries",
+};
+
+function ReportSupport({ token, canGrant, changingReports }: {
+  token: string; canGrant: boolean; changingReports: boolean;
+}) {
+  const [state, setState] = useState<SupportState | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
+  const endpoint = "reports/support-access";
+
+  useEffect(() => {
+    if (changingReports) return;
+    let current = true;
+    void request<SupportState>(endpoint, "GET", undefined, token).then(result => {
+      if (current) setState(result);
+    }).catch(() => { /* Report viewing remains available. */ });
+    return () => { current = false; };
+  }, [token, changingReports]);
+
+  useEffect(() => {
+    if (!state?.grant) return;
+    const delay = Math.max(0, Date.parse(state.grant.expiresAt) - Date.now());
+    const timer = window.setTimeout(() => setState(previous => previous && { ...previous, grant: null }), delay);
+    return () => window.clearTimeout(timer);
+  }, [state?.grant]);
+
+  async function change(method = "GET") {
+    if (busy || changingReports) return;
+    if (method === "POST" && !window.confirm("Allow Crystal Powers support to view the summaries on your account for one hour?")) return;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      if (method === "POST") {
+        const grant = await request<SupportGrant>(endpoint, method, undefined, token);
+        setState(previous => ({ grant, activity: previous?.activity ?? [] }));
+        setNotice("Support access is active.");
+      } else if (method === "DELETE") {
+        await request(endpoint, method, undefined, token);
+        setState(previous => previous && { ...previous, grant: null });
+        setNotice("Support access ended.");
+      }
+      setState(await request<SupportState>(endpoint, "GET", undefined, token));
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Could not confirm support access.");
+    } finally { setBusy(false); }
+  }
+
+  if (!state || (!canGrant && !state.grant && state.activity.length === 0)) return null;
+  return <section className="admin-form" aria-labelledby="docks-report-support" aria-busy={busy}>
+    <h2 id="docks-report-support">Support access</h2>
+    <p>Give Crystal Powers support up to an hour to view your uploaded summaries.</p>
+    {state.grant ? <>
+      <p>Share this reference with support before {new Date(state.grant.expiresAt).toLocaleString("en-GB")}.</p>
+      <label>Support reference<input readOnly value={state.grant.reference} onFocus={event => event.currentTarget.select()} /></label>
+      <button className="admin-secondary" type="button" disabled={busy || changingReports}
+        onClick={() => void change("DELETE")}>End support access</button>
+    </> : canGrant && <button className="admin-secondary" type="button" disabled={busy || changingReports}
+      onClick={() => void change("POST")}>Allow support for one hour</button>}
+    <button className="admin-secondary" type="button" disabled={busy || changingReports}
+      onClick={() => void change()}>Refresh support activity</button>
+    {notice && <p role="status">{notice}</p>}
+    {error && <p role="alert">{error}</p>}
+    {state.activity.length > 0 && <ul aria-label="Recent support activity">{state.activity.map((item, index) =>
+      <li key={item.recordedAt + index}>{supportLabels[item.action]} ·{" "}
+        <time dateTime={item.recordedAt}>{new Date(item.recordedAt).toLocaleString("en-GB")}</time></li>)}</ul>}
   </section>;
 }
 

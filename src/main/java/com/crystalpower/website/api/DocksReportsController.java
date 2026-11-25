@@ -40,6 +40,28 @@ public class DocksReportsController {
         }).orElseGet(DocksReportsController::unauthorised);
     }
 
+    @GetMapping("/support-access")
+    public ResponseEntity<Object> supportAccess(@RequestHeader(name = "Authorization", required = false) String token) {
+        return signIn.account(token).map(account -> response(200, reports.supportState(account)))
+                .orElseGet(DocksReportsController::unauthorised);
+    }
+
+    @PostMapping("/support-access")
+    public ResponseEntity<Object> grantSupport(@RequestHeader(name = "Authorization", required = false) String token) {
+        return signIn.account(token).map(account -> reports.grantSupport(account)
+                .map(grant -> response(200, grant))
+                .orElseGet(() -> response(409, Map.of("message", "Share a device summary before granting support access."))))
+                .orElseGet(DocksReportsController::unauthorised);
+    }
+
+    @DeleteMapping("/support-access")
+    public ResponseEntity<Object> revokeSupport(@RequestHeader(name = "Authorization", required = false) String token) {
+        return signIn.account(token).map(account -> {
+            reports.revokeSupport(account);
+            return response(204, null);
+        }).orElseGet(DocksReportsController::unauthorised);
+    }
+
     @PutMapping("/preference")
     public ResponseEntity<Object> preference(@RequestHeader(name = "Authorization", required = false) String token,
             @Valid @RequestBody Preference preference) {

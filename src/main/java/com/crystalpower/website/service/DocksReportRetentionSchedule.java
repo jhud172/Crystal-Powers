@@ -16,5 +16,6 @@ public class DocksReportRetentionSchedule {
     @Scheduled(fixedDelay = 300000, initialDelay = 60000)
     public void removeExpiredReports() {
         reports.purgeExpired();
+        reports.purgeExpiredSupport();
     }
 }
