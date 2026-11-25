@@ -6,6 +6,7 @@ import { AuthenticatorCode } from "./AuthenticatorCode";
 import { AuthenticatorKey } from "./AuthenticatorKey";
 import { DocksKeys } from "./DocksKeys";
 import { DocksReportSupport } from "./DocksReportSupport";
+import { DocksPaymentReview } from "./DocksPaymentReview";
 import { DocksResearchTotals } from "./DocksResearchTotals";
 import { useRecoveryCodeExitGuard } from "./useRecoveryCodeExitGuard";
 
@@ -71,6 +72,7 @@ export function OwnerSettings({ onBack, onSessionExpired, reauthenticationVersio
       </fieldset></form>{secret && <button className="admin-text-button" disabled={busy} onClick={() => void cancelSetup()}>Cancel new authenticator setup</button>}</section>
     <DocksKeys onSessionExpired={onSessionExpired} />
     <DocksReportSupport onSessionExpired={onSessionExpired} />
+    <DocksPaymentReview onSessionExpired={onSessionExpired} />
     <DocksResearchTotals onSessionExpired={onSessionExpired} />
     </>}
   </section>;

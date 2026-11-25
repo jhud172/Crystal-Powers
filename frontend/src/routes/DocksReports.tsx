@@ -384,9 +384,10 @@ function PremiumBilling({ token }: { token: string }) {
     <p>{testMode ? "Use Stripe test card details. This sandbox does not charge money."
       : "Choose one device or a household of up to five devices. Stripe shows the price and renewal terms before you pay."}</p>
     {subscription && <p>
-      <strong>{planLabels[subscription.plan]}</strong> · {subscription.state.replace(/_/g, " ")}
+      <strong>{planLabels[subscription.plan]}</strong> · {subscription.state === "payment_review" ? "Payment under review" : subscription.state.replace(/_/g, " ")}
       {subscription.paidUntilEpoch !== null && <> · Paid through {new Date(subscription.paidUntilEpoch * 1000).toLocaleDateString("en-GB")}</>}
     </p>}
+    {subscription?.state === "payment_review" && <p>Manage your subscription or contact support for help with the payment.</p>}
     {canPrepare && <form onSubmit={prepare}>
       <label>{testMode ? "Choose a test plan" : "Choose a Premium plan"}<select value={plan} disabled={busy} onChange={event => {
         setPlan(event.target.value as Plan); setLink("");

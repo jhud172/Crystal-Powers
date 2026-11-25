@@ -176,6 +176,20 @@ public class StripeGateway {
         var result=get("/invoice_payments?invoice="+invoice+"&limit=2"+(after==null ? "" : "&starting_after="+after),false);
         if(!"list".equals(result.path("object").asText()) || !result.path("data").isArray() || result.path("data").size()>2 || !result.path("has_more").isBoolean())throw unavailable();return result;
     }
+    JsonNode docksPaidInvoicePayments(String paymentIntent) {
+        if (!paymentIntent.matches("pi_[A-Za-z0-9]{1,96}")) throw invalidSignature();
+        var payments = get("/invoice_payments?payment%5Btype%5D=payment_intent"
+                + "&payment%5Bpayment_intent%5D=" + paymentIntent + "&status=paid&limit=10", false);
+        if (!"list".equals(payments.path("object").asText()) || !payments.path("data").isArray()
+                || payments.path("data").size() > 10 || !payments.path("has_more").isBoolean()
+                || payments.path("has_more").asBoolean()) throw unavailable();
+        return payments.path("data");
+    }
+
+    JsonNode docksFraudWarning(String id) {
+        if (!id.matches("issfr_[A-Za-z0-9]{1,94}")) throw invalidSignature();
+        return get("/radar/early_fraud_warnings/" + id);
+    }
     public JsonNode paymentIntent(String id) { if(id==null || !id.matches("pi_[A-Za-z0-9]+"))throw invalidSignature();return get("/payment_intents/"+id); }
     public JsonNode charge(String id) { if(id==null || !id.matches("ch_[A-Za-z0-9]+"))throw invalidSignature();return get("/charges/"+id); }
     public JsonNode dispute(String id) { if(id==null || !id.matches("dp_[A-Za-z0-9]+"))throw invalidSignature();return get("/disputes/"+id); }

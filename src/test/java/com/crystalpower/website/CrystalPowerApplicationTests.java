@@ -88,6 +88,7 @@ class CrystalPowerApplicationTests {
                 .andExpect(status().isUnauthorized());
         mockMvc.perform(post("/api/docks/reports/support-access"))
                 .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/admin/docks/payment-review")).andExpect(status().isUnauthorized());
     }
 
     @Test

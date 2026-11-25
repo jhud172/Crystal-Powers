@@ -3,11 +3,14 @@ package com.crystalpower.website.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.crystalpower.website.repository.DocksDeviceRepository;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.HexFormat;
 import java.util.UUID;
+import java.util.function.BooleanSupplier;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.Test;
@@ -32,14 +35,15 @@ class DocksStripeEventsTests {
                         "classpath:db/migration/V93__docks_subscription_status.sql",
                         "classpath:db/migration/V94__docks_subscription_seats.sql",
                         "classpath:db/migration/V95__docks_household_members.sql",
-                        "classpath:db/migration/V102__docks_stripe_mode_isolation.sql").build();
+                        "classpath:db/migration/V102__docks_stripe_mode_isolation.sql",
+                        "classpath:db/migration/V103__docks_subscription_payment_risk.sql").build();
         try {
             var db = new JdbcTemplate(database);
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));
             var stripe = spy(new StripeGateway(json, false, false, "sk_test_Fixture", "whsec_FixtureWebsite",
                     "https://example.com"));
             var sandbox = new DocksBillingMode(stripe, true, true, false, HOOK);
-            var events = new DocksStripeEvents(db, tx, stripe, sandbox);
+            var events = new DocksStripeEvents(db, tx, stripe, sandbox, new DocksStripeRisk(stripe));
             var account = UUID.randomUUID();
             var attempt = UUID.randomUUID();
             db.update("INSERT INTO docks_account(id, display_name) VALUES (?, 'Fixture')", account);
@@ -63,7 +67,7 @@ class DocksStripeEventsTests {
                      "metadata":{"docks_account_id":"%s","docks_checkout_attempt":"%s"},
                      "status":"active","items":{"has_more":false,"data":[{"quantity":1,"current_period_end":%d,
                        "price":{"id":"price_Fixture","currency":"gbp","recurring":{"interval":"month","interval_count":1}}}]},
-                     "latest_invoice":{"status":"paid","customer":"cus_Fixture","amount_paid":500,
+                     "latest_invoice":{"id":"in_Fixture","status":"paid","customer":"cus_Fixture","amount_paid":500,
                         "lines":{"data":[{"parent":{"type":"subscription_item_details",
                             "subscription_item_details":{"subscription":"sub_Fixture","proration":false}},
                             "pricing":{"price_details":{"price":"price_Fixture"}},"period":{"end":%d}}]},
@@ -89,7 +93,7 @@ class DocksStripeEventsTests {
             var liveMode = new DocksBillingMode(liveStripe, true, true, true, HOOK);
             var live = new DocksEntitlements(db, tx, new DocksSubscriptionSeats(db, liveMode));
             assertFalse(live.status(account, installation).orElseThrow().canRepair());
-            var liveEvents = new DocksStripeEvents(db, tx, liveStripe, liveMode);
+            var liveEvents = new DocksStripeEvents(db, tx, liveStripe, liveMode, new DocksStripeRisk(liveStripe));
             assertThrows(ResponseStatusException.class, () -> liveEvents.receive(completed, sign(completed, HOOK)));
             var crossMode = event("evt_CrossMode", "checkout.session.completed", """
                     {"id":"cs_live_Fixture","subscription":"sub_CrossMode","client_reference_id":"%s"}
@@ -129,7 +133,73 @@ class DocksStripeEventsTests {
             assertEquals(end, live.status(account, next).orElseThrow().subscriptionExpiresAt().toEpochSecond());
             assertFalse(live.status(account, installation).orElseThrow().canRepair());
             assertFalse(entitlements.status(account, next).orElseThrow().canRepair());
+            verifyPaymentRisk(liveStripe, liveEvents, liveSubscription,
+                    () -> live.status(account, next).orElseThrow().canRepair());
+            assertTrue(events.recentPaymentReviews().isEmpty());
         } finally { database.shutdown(); }
+    }
+
+    private void verifyPaymentRisk(StripeGateway stripe, DocksStripeEvents events, JsonNode paidSubscription,
+                                   BooleanSupplier entitled) throws Exception {
+        var charge = json.createObjectNode().put("object", "charge").put("id", "ch_Fixture").put("livemode", true)
+                .put("customer", "cus_Fixture").put("payment_intent", "pi_Fixture")
+                .put("refunded", false).put("amount_refunded", 100);
+        doReturn(charge).when(stripe).charge("ch_Fixture");
+        var payments = json.readTree("""
+                [{"invoice":"in_Fixture","object":"invoice_payment","status":"paid","livemode":true,
+                  "payment":{"type":"payment_intent","payment_intent":"pi_Fixture"}}]
+                """);
+        doReturn(payments).when(stripe).docksPaidInvoicePayments("pi_Fixture");
+        doReturn(json.readTree("""
+                {"id":"in_Fixture","object":"invoice","livemode":true,"customer":"cus_Fixture",
+                 "parent":{"type":"subscription_details","subscription_details":{"subscription":"sub_LiveFixture"}}}
+                """)).when(stripe).invoice("in_Fixture");
+        String chargeObject = "{\"id\":\"ch_Fixture\"}";
+        send(events, "evt_Partial", "charge.refunded", chargeObject);
+        assertTrue(entitled.getAsBoolean());
+        assertEquals("partially_refunded", events.recentPaymentReviews().get(0).outcome());
+
+        var fraud = json.createObjectNode().put("id", "issfr_Fixture").put("object", "radar.early_fraud_warning")
+                .put("livemode", true).put("charge", "ch_Fixture").put("actionable", true);
+        doReturn(fraud).when(stripe).docksFraudWarning("issfr_Fixture");
+        String fraudEvent = "{\"id\":\"issfr_Fixture\",\"charge\":\"ch_Fixture\"}";
+        send(events, "evt_Warning", "radar.early_fraud_warning.created", fraudEvent);
+        assertFalse(entitled.getAsBoolean());
+        send(events, "evt_Warning", "radar.early_fraud_warning.created", fraudEvent);
+        verify(stripe, times(1)).docksFraudWarning("issfr_Fixture");
+
+        var dispute = json.createObjectNode().put("id", "dp_Fixture").put("object", "dispute").put("livemode", true)
+                .put("charge", "ch_Fixture").put("payment_intent", "pi_Fixture").put("status", "needs_response");
+        doReturn(dispute).when(stripe).dispute("dp_Fixture");
+        String disputeEvent = "{\"id\":\"dp_Fixture\",\"charge\":\"ch_Fixture\"}";
+        send(events, "evt_OpenedDispute", "charge.dispute.created", disputeEvent);
+        assertFalse(entitled.getAsBoolean());
+        dispute.put("status", "won");
+        send(events, "evt_WonDispute", "charge.dispute.closed", disputeEvent);
+        assertTrue(entitled.getAsBoolean());
+        send(events, "evt_OldDispute", "charge.dispute.created", disputeEvent);
+        assertTrue(entitled.getAsBoolean());
+
+        charge.put("refunded", true).put("amount_refunded", 500);
+        send(events, "evt_Full", "charge.refunded", chargeObject);
+        assertFalse(entitled.getAsBoolean());
+        String subscriptionInvoice = "{\"parent\":{\"subscription_details\":{\"subscription\":\"sub_LiveFixture\"}}}";
+        send(events, "evt_LatePaid", "invoice.paid", subscriptionInvoice);
+        assertFalse(entitled.getAsBoolean());
+        var renewal = paidSubscription.deepCopy();
+        ((ObjectNode) renewal.path("latest_invoice")).put("id", "in_Renewal");
+        doReturn(renewal).when(stripe).subscription("sub_LiveFixture");
+        send(events, "evt_Renewal", "invoice.paid", subscriptionInvoice);
+        assertTrue(entitled.getAsBoolean());
+        send(events, "evt_LateRefund", "charge.refunded", chargeObject);
+        assertTrue(entitled.getAsBoolean());
+        assertTrue(events.recentPaymentReviews().stream().anyMatch(item ->
+                item.invoiceId().equals("in_Fixture") && item.outcome().equals("fully_refunded") && item.holdsAccess()));
+    }
+
+    private static void send(DocksStripeEvents events, String id, String type, String object) throws Exception {
+        byte[] body = event(id, type, object, true);
+        events.receive(body, sign(body, HOOK));
     }
 
     private static byte[] event(String id, String type, String object) {
