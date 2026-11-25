@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 
-type Summary = { deviceLabel: string; checkedAt: string; cpuPercent: number | null; memoryPercent: number | null };
+type Summary = { deviceId: string; deviceLabel: string; checkedAt: string; cpuPercent: number | null; memoryPercent: number | null };
 type Reports = { enabled: boolean; reports: Summary[] };
 const planLabels = {
   SINGLE_MONTHLY: "One device, monthly",
@@ -38,6 +38,7 @@ export default function DocksReports() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const reportsHeading = useRef<HTMLHeadingElement>(null);
   const [signInMethods, setSignInMethods] = useState<{ email: boolean; google: boolean } | null>(null);
   const googleEnabled = signInMethods?.google === true;
   const [desktopCode, setDesktopCode] = useState("");
@@ -169,6 +170,34 @@ export default function DocksReports() {
     });
   }
 
+  function removeSummary(report: Summary) {
+    if (!window.confirm("Delete this uploaded device summary? This also ends any current support access to your summaries.")) return;
+    void run(async () => {
+      const query = new URLSearchParams({ checkedAt: report.checkedAt });
+      await request(`reports/devices/${encodeURIComponent(report.deviceId)}?${query}`, "DELETE", undefined, token);
+      setView(previous => previous && {
+        ...previous,
+        reports: previous.reports.filter(item => item.deviceId !== report.deviceId),
+      });
+      setNotice("Device summary deleted. Any current summary support access has ended.");
+      reportsHeading.current?.focus();
+    });
+  }
+
+  function downloadSummary({ deviceLabel, checkedAt, cpuPercent, memoryPercent }: Summary) {
+    const content = JSON.stringify({ deviceLabel, checkedAt, cpuPercent, memoryPercent }, null, 2) + "\n";
+    const url = URL.createObjectURL(new Blob([content], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "crystal-docks-summary.json";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setError("");
+    setNotice("Device summary download started.");
+  }
+
   return <section className="studio-section" aria-labelledby="docks-reports-title" aria-busy={busy}>
     <h1 id="docks-reports-title">Crystal Docks reports</h1>
     <p>View the device summaries you shared from the Windows app. Each summary expires 30 days after its check.</p>
@@ -195,11 +224,18 @@ export default function DocksReports() {
       <ResearchPreference token={token} />
       <ReportSupport key={token} token={token} forLog />
       {view && <>
+        <h2 tabIndex={-1} ref={reportsHeading}>Shared device summaries</h2>
         {view.reports.length === 0 && <p>{view.enabled ? "You have not shared a device summary yet." : "Report sharing is turned off. You can turn it on in the Windows app."}</p>}
-        {view.reports.length > 0 && <ul>{view.reports.map((report, index) => <li key={`${report.checkedAt}-${index}`}>
-          <h2>{report.deviceLabel}</h2>
+        {view.reports.length > 0 && <ul>{view.reports.map(report => <li key={report.deviceId}>
+          <h3>{report.deviceLabel}</h3>
           <p><time dateTime={report.checkedAt}>{new Date(report.checkedAt).toLocaleString("en-GB")}</time></p>
           <p>CPU {report.cpuPercent === null ? "unavailable" : `${report.cpuPercent}%`} · Memory {report.memoryPercent === null ? "unavailable" : `${report.memoryPercent}%`}</p>
+          <button className="admin-secondary" type="button" disabled={busy}
+            aria-label={`Download summary for ${report.deviceLabel}`}
+            onClick={() => downloadSummary(report)}>Download summary</button>{" "}
+          <button className="admin-secondary" type="button" disabled={busy}
+            aria-label={`Delete summary for ${report.deviceLabel}`}
+            onClick={() => removeSummary(report)}>Delete summary</button>
         </li>)}</ul>}
         {view.enabled && view.reports.length > 0 && <button className="admin-secondary" type="button"
           disabled={busy} onClick={clearReports}>Delete uploaded summaries</button>}{" "}

@@ -103,7 +103,8 @@ class DocksCustomerJourneyTests {
         asCustomer(body(post(ownerPath).with(csrf()), Map.of("reference", reference)), customer)
                 .andExpect(status().isUnauthorized());
         http.perform(body(post(ownerPath).with(csrf()).with(authentication(owner)), Map.of("reference", reference)))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.reports[0].deviceLabel").value("Pilot PC"));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.reports[0].deviceLabel").value("Pilot PC"))
+                .andExpect(jsonPath("$.reports[0].deviceId").doesNotExist());
         asCustomer(get(SUPPORT), customer).andExpect(status().isOk()).andExpect(jsonPath("$.activity[0].action").value("VIEWED"));
 
         var readings = Map.of("cpuPercent", 28, "memoryPercent", 47, "logicalProcessors", 4,
@@ -202,6 +203,48 @@ class DocksCustomerJourneyTests {
         redeem(customer, replacement, code).andExpect(status().isUnprocessableEntity());
         http.perform(body(post(keyPath + "/state").with(authentication(owner)).with(csrf()),
                 Map.of("state", "ACTIVE"))).andExpect(status().isConflict());
+    }
+
+    @Test
+    void aCustomerCanRemoveOnlyTheirReviewedSummary() throws Exception {
+        String customer = signIn();
+        String other = signIn();
+        UUID first = UUID.randomUUID();
+        UUID second = UUID.randomUUID();
+        String firstDevice = enrol(customer, first, "First PC");
+        enrol(customer, second, "Second PC");
+        asCustomer(body(put(REPORTS + "/preference"), Map.of("enabled", true)), customer)
+                .andExpect(status().isNoContent());
+        OffsetDateTime firstCheck = OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(4).withNano(0);
+        OffsetDateTime nextCheck = firstCheck.plusMinutes(1);
+        asCustomer(body(put(REPORTS + "/latest"),
+                Map.of("installationId", first, "checkedAt", firstCheck, "cpuPercent", 21)), customer)
+                .andExpect(status().isNoContent());
+        asCustomer(body(put(REPORTS + "/latest"),
+                Map.of("installationId", second, "checkedAt", firstCheck, "cpuPercent", 34)), customer)
+                .andExpect(status().isNoContent());
+        asCustomer(body(put(REPORTS + "/latest"),
+                Map.of("installationId", first, "checkedAt", nextCheck, "cpuPercent", 27)), customer)
+                .andExpect(status().isNoContent());
+
+        var view = response(asCustomer(get(REPORTS), customer).andExpect(status().isOk())
+                .andExpect(jsonPath("$.reports[0].deviceId").value(firstDevice)));
+        String latest = view.get("reports").get(0).get("checkedAt").asText();
+        asCustomer(post(SUPPORT), customer).andExpect(status().isOk());
+        String path = REPORTS + "/devices/" + firstDevice;
+        http.perform(delete(path).param("checkedAt", latest)).andExpect(status().isUnauthorized());
+        asCustomer(delete(path).param("checkedAt", latest), other).andExpect(status().isNotFound());
+        asCustomer(delete(path).param("checkedAt", firstCheck.toString()), customer).andExpect(status().isNotFound());
+        asCustomer(get(SUPPORT), customer).andExpect(status().isOk()).andExpect(jsonPath("$.grant").isNotEmpty());
+
+        asCustomer(delete(path).param("checkedAt", latest), customer).andExpect(status().isNoContent())
+                .andExpect(header().string("Cache-Control", "no-store"));
+        asCustomer(get(REPORTS), customer).andExpect(status().isOk())
+                .andExpect(jsonPath("$.enabled").value(true))
+                .andExpect(jsonPath("$.reports.length()").value(1))
+                .andExpect(jsonPath("$.reports[0].deviceLabel").value("Second PC"));
+        asCustomer(get(SUPPORT), customer).andExpect(status().isOk()).andExpect(jsonPath("$.grant").isEmpty());
+        asCustomer(get(DOCKS + "/devices"), customer).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(2));
     }
 
     private String enrol(String customer, UUID installation, String label) throws Exception {

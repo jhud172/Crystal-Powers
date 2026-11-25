@@ -14,7 +14,11 @@ public class DocksReports {
     private static final int RETENTION_DAYS = 30;
     private static final int PURGE_BATCH = 500;
     public record Report(String deviceLabel, OffsetDateTime checkedAt, Integer cpuPercent, Integer memoryPercent) {}
-    public record View(boolean enabled, List<Report> reports) {}
+    public record DeviceSummary(UUID deviceId, String deviceLabel, OffsetDateTime checkedAt,
+                                Integer cpuPercent, Integer memoryPercent) {
+        Report forSupport() { return new Report(deviceLabel, checkedAt, cpuPercent, memoryPercent); }
+    }
+    public record View(boolean enabled, List<DeviceSummary> reports) {}
     public record SupportGrant(UUID reference, OffsetDateTime expiresAt) {}
     public record SupportEvent(String action, OffsetDateTime recordedAt) {}
     public record SupportState(SupportGrant grant, List<SupportEvent> activity) {}
@@ -37,13 +41,13 @@ public class DocksReports {
         });
     }
 
-    private List<Report> available(UUID account) {
+    private List<DeviceSummary> available(UUID account) {
         return db.query("""
-                SELECT d.label, r.checked_at, r.cpu_percent, r.memory_percent
+                SELECT d.id, d.label, r.checked_at, r.cpu_percent, r.memory_percent
                 FROM docks_device_report r JOIN docks_device d ON d.id = r.device_id
                 WHERE d.account_id = ? AND r.checked_at > ? ORDER BY r.checked_at DESC, d.id
-                """, (row, i) -> new Report(row.getString(1), row.getObject(2, OffsetDateTime.class),
-                    row.getObject(3, Integer.class), row.getObject(4, Integer.class)), account, expiryCutoff());
+                """, (row, i) -> new DeviceSummary(row.getObject(1, UUID.class), row.getString(2),
+                    row.getObject(3, OffsetDateTime.class), row.getObject(4, Integer.class), row.getObject(5, Integer.class)), account, expiryCutoff());
     }
 
     public void setEnabled(UUID account, boolean allow) {
@@ -64,6 +68,21 @@ public class DocksReports {
             lock(account);
             deleteOwned(account);
         });
+    }
+
+
+    public boolean removeSummary(UUID account, UUID device, OffsetDateTime checkedAt) {
+        return Boolean.TRUE.equals(tx.execute(status -> {
+            lock(account);
+            int removed = db.update("""
+                    DELETE FROM docks_device_report
+                    WHERE device_id = ? AND checked_at = ? AND checked_at > ?
+                    AND EXISTS (SELECT 1 FROM docks_device WHERE id = ? AND account_id = ?)
+                    """, device, checkedAt, expiryCutoff(), device, account);
+            if (removed == 0) return false;
+            revokeLocked(account);
+            return true;
+        }));
     }
 
     private void deleteOwned(UUID account) {
@@ -119,7 +138,7 @@ public class DocksReports {
             var reports = available(account);
             if (reports.isEmpty() || !grant.get().expiresAt().isAfter(now())) return Optional.empty();
             audit(account, owner, "VIEWED");
-            return Optional.of(new SupportView(grant.get().expiresAt(), reports));
+            return Optional.of(new SupportView(grant.get().expiresAt(), reports.stream().map(DeviceSummary::forSupport).toList()));
         });
     }
 

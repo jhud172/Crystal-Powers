@@ -5,6 +5,7 @@ import com.crystalpower.website.service.DocksReports;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.time.OffsetDateTime;
+import org.springframework.format.annotation.DateTimeFormat;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.CacheControl;
@@ -38,6 +39,16 @@ public class DocksReportsController {
             reports.clear(account);
             return response(204, null);
         }).orElseGet(DocksReportsController::unauthorised);
+    }
+
+    @DeleteMapping("/devices/{deviceId}")
+    public ResponseEntity<Object> removeSummary(@RequestHeader(name = "Authorization", required = false) String token,
+            @PathVariable UUID deviceId, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            OffsetDateTime checkedAt) {
+        return signIn.account(token).map(account -> reports.removeSummary(account, deviceId, checkedAt)
+                ? response(204, null)
+                : response(404, Map.of("message", "That summary is no longer available. Refresh your reports.")))
+                .orElseGet(DocksReportsController::unauthorised);
     }
 
     @GetMapping("/support-access")

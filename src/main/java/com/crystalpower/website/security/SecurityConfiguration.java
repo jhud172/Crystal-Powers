@@ -45,7 +45,8 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.GET, "/api/docks/devices", "/api/docks/entitlement", "/api/docks/auth/email").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/docks/devices/{id}", "/api/docks/account").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/docks/reports", "/api/docks/reports/support-access").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/api/docks/reports", "/api/docks/reports/support-access").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/docks/reports", "/api/docks/reports/support-access",
+                        "/api/docks/reports/devices/{deviceId}").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/docks/reports/support-access").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/docks/billing/plans").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/docks/billing/checkout", "/api/docks/billing/portal",
@@ -83,7 +84,7 @@ public class SecurityConfiguration {
                             "/api/docks/auth/sign-out", "/api/docks/devices", "/api/docks/trial",
                             "/api/docks/access-key/redeem", "/api/docks/devices/{id}", "/api/docks/account",
                             "/api/docks/reports", "/api/docks/reports/preference", "/api/docks/reports/latest",
-                            "/api/docks/reports/support-access",
+                            "/api/docks/reports/support-access", "/api/docks/reports/devices/{deviceId}",
                             "/api/docks/research/preference", "/api/docks/research/contribution",
                             "/api/docks/diagnostic-log",
                             "/api/docks/explanations/online",
