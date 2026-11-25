@@ -185,7 +185,7 @@ export default function DocksReports() {
     void run(async () => {
       await request("auth/email/request", "POST", { email });
       setRequested(true);
-      setNotice("Check your inbox for a Crystal Docks sign-in code.");
+      setNotice("Check your inbox for a Crystal Docks sign-in code. If it hasn’t arrived, wait at least two minutes after your last request before trying again.");
     });
   }
 
@@ -310,10 +310,10 @@ export default function DocksReports() {
     {notice && <p role="status">{notice}</p>}
     {checkoutReturn === "returned" && <p role="status">{session
       ? "Stripe can take a moment to confirm a payment. Check your status under Premium."
-      : "You’ve returned from Stripe. Sign in to check your subscription status."}</p>}
+      : "You’ve returned from Stripe. Check your subscription status in your original Crystal Docks tab, or sign in here."}</p>}
     {checkoutReturn === "cancelled" && <p role="status">You left Stripe checkout. {session
       ? "You can start again under Premium."
-      : "Sign in to choose a plan again."}</p>}
+      : "Return to your original Crystal Docks tab or sign in here to choose a plan again."}</p>}
     {session ? <>
       <button className="admin-secondary" type="button" disabled={busy} onClick={() => void run(async () => {
         setView(await accountRequest<Reports>("reports"));
@@ -605,12 +605,14 @@ function PremiumBilling({ accountRequest, onCheckout }: { accountRequest: Accoun
       <button className="admin-secondary" disabled={busy}>{testMode ? "Prepare test checkout" : "Prepare checkout"}</button>
     </form>}
     {error && <p role="alert">{error}</p>}
-    {link && <a className="studio-button" href={link} rel="noreferrer">{testMode ? "Open Stripe test checkout" : "Open Stripe checkout"}</a>}
+    {link && <a className="studio-button" href={link} target="_blank" rel="noopener noreferrer">
+      {testMode ? "Open Stripe test checkout" : "Open Stripe checkout"} (opens in a new tab)
+    </a>}
     {canManage && <button type="button" className="admin-secondary" disabled={busy} onClick={() => void manage()}>
       {testMode ? "Manage test subscription" : "Manage subscription"}
     </button>}
-    {portalLink && <a className="studio-button" href={portalLink} rel="noreferrer">
-      {testMode ? "Open Stripe test portal" : "Open Stripe subscription management"}
+    {portalLink && <a className="studio-button" href={portalLink} target="_blank" rel="noopener noreferrer">
+      {testMode ? "Open Stripe test portal" : "Open Stripe subscription management"} (opens in a new tab)
     </a>}
   </section>;
 }

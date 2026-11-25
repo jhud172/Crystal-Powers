@@ -1,4 +1,4 @@
-/* Run against a local website using synthetic sign-in, report and support responses. */
+/* Run against a local website using synthetic sign-in, report, billing and support responses. */
 const assert = require('node:assert/strict');
 const { chromium, expect } = require(process.env.CRYSTAL_PLAYWRIGHT_TEST_MODULE || 'playwright/test');
 
@@ -26,6 +26,10 @@ async function main() {
         let billingChecks = 0;
         let paymentConfirmed = false;
         const activeToken = () => (signedIn === 1 ? 'a' : 'b').repeat(43);
+        const stripeCheckout = 'https://checkout.stripe.com/test-docks-checkout';
+        const stripePortal = 'https://billing.stripe.com/test-docks-portal';
+        await context.route(/https:\/\/(checkout|billing)\.stripe\.com\/test-docks-/, route =>
+          route.fulfill({contentType:'text/html',body:'<h1>Stripe test fixture</h1>'}));
         await page.route('**/api/**', async route => {
           const path = new URL(route.request().url()).pathname;
           const json = (value, status = 200) => route.fulfill({json:value,status});
@@ -43,8 +47,11 @@ async function main() {
           if (path.endsWith('/billing/plans') && mode === 'timer') {
             billingChecks++;
             return json({plans:['SINGLE_MONTHLY'],testMode:true,
+              canManage:paymentConfirmed,
               subscription:paymentConfirmed ? {plan:'SINGLE_MONTHLY',state:'active',paidUntilEpoch:null} : null});
           }
+          if (path.endsWith('/billing/checkout')) return json({url:stripeCheckout,testMode:true});
+          if (path.endsWith('/billing/portal')) return json({url:stripePortal,testMode:true});
           if (path === '/api/docks/devices') return json([
             {id:'one',installationId:'12345678-0000-0000-0000-000000000000',label:'Windows PC',enrolledAt:'2026-11-23T12:00:00Z'},
             {id:'two',installationId:'9abcdef0-0000-0000-0000-000000000000',label:'Windows PC',enrolledAt:'2026-11-24T12:00:00Z'}
@@ -108,11 +115,25 @@ async function main() {
           rejectLog = false;
         } else if (mode === 'timer') {
           const billing = page.getByRole('region',{name:'Premium test checkout'});
-          await expect(billing.getByRole('button',{name:'Prepare test checkout'})).toBeVisible();
+          const openStripe = async (name, url) => {
+            const link = billing.getByRole('link',{name});
+            const newTab = context.waitForEvent('page');
+            await link.click();
+            const stripe = await newTab;
+            await expect(stripe).toHaveURL(url);
+            assert.equal(await stripe.evaluate(() => window.opener), null);
+            await expect(page.getByRole('heading',{name:'Old private device'})).toBeVisible();
+            assert.equal(signedIn, 1);
+            await stripe.close();
+          };
+          await billing.getByRole('button',{name:'Prepare test checkout'}).click();
+          await openStripe('Open Stripe test checkout (opens in a new tab)', stripeCheckout);
           paymentConfirmed = true;
           await billing.getByRole('button',{name:'Check subscription status'}).click();
           await expect(billing.getByText(/active/)).toBeVisible();
           await expect(billing.getByRole('button',{name:'Prepare test checkout'})).toHaveCount(0);
+          await billing.getByRole('button',{name:'Manage test subscription'}).click();
+          await openStripe('Open Stripe test portal (opens in a new tab)', stripePortal);
           await page.clock.fastForward(61_000);
         } else {
           assert(!new URL(page.url()).searchParams.has('google'));

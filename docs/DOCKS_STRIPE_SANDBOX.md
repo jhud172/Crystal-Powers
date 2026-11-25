@@ -6,7 +6,7 @@ Configure the isolated staging environment with `DOCKS_STRIPE_TEST_ENABLED=true`
 
 Sign in to `/docks/reports`, select a test plan, prepare the checkout and open the returned Stripe-hosted page. Use Stripe test payment details. The account's open checkout is reused for the same plan. A different plan can start when the previous one expires. The Stripe return routes only navigate back to reports.
 
-Configure the sandbox's Docks-specific customer portal and set `DOCKS_STRIPE_TEST_PORTAL` to its configuration ID. Sign back in after the first signed payment event has been processed. Use **Manage test subscription** to verify payment updates, invoice history and cancellation at the end of the period. The server verifies the billed account and requires a sandbox response before offering the link.
+Configure the sandbox's Docks-specific customer portal and set `DOCKS_STRIPE_TEST_PORTAL` to its configuration ID. Checkout and the customer portal open in a separate tab. Once the first signed payment event has been processed, return to the original reports tab and choose **Check subscription status**. If that tab has closed or the session has expired, sign in again. Use **Manage test subscription** to verify payment updates, invoice history and cancellation at the end of the period. The server verifies the billed account and requires a sandbox response before offering the link.
 
 Point a dedicated Stripe test webhook at `/api/docks/billing/stripe/webhook` and set its signing secret as `DOCKS_STRIPE_WEBHOOK_SECRET`. Select these events.
 
