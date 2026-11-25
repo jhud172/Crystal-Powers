@@ -14,10 +14,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 class DocksReportsTests {
     @Test
-    void reportsRequireConsentAndOwnershipAndAreRemovedOnWithdrawal() {
+    void reportsRequireOwnershipAndConsentAndRespectClearingAndRetention() {
         var database = new EmbeddedDatabaseBuilder().generateUniqueName(true).setType(EmbeddedDatabaseType.H2)
                 .addScripts("classpath:db/migration/V87__docks_accounts_and_devices.sql",
-                            "classpath:db/migration/V91__docks_report_sync.sql").build();
+                            "classpath:db/migration/V91__docks_report_sync.sql",
+                            "classpath:db/migration/V96__docks_report_retention.sql").build();
         try {
             var jdbc = new JdbcTemplate(database);
             var reports = new DocksReports(jdbc, new TransactionTemplate(new DataSourceTransactionManager(database)));
@@ -50,6 +51,27 @@ class DocksReportsTests {
             assertEquals(DocksReports.Upload.DISABLED, reports.upload(owner, installation, checked, 10, 25));
             reports.setEnabled(owner, true);
             assertTrue(reports.read(owner).reports().isEmpty());
+
+            UUID otherDevice = UUID.randomUUID(), otherInstallation = UUID.randomUUID();
+            jdbc.update("INSERT INTO docks_device (id, account_id, installation_id, label) VALUES (?, ?, ?, ?)",
+                    otherDevice, unrelated, otherInstallation, "Other PC");
+            assertEquals(DocksReports.Upload.SAVED, reports.upload(unrelated, otherInstallation, checked, 10, 25));
+            assertEquals(DocksReports.Upload.SAVED, reports.upload(owner, installation, checked, 10, 25));
+            reports.clear(owner);
+            reports.clear(owner);
+            assertTrue(reports.read(owner).enabled());
+            assertTrue(reports.read(owner).reports().isEmpty());
+            assertEquals(1, reports.read(unrelated).reports().size());
+
+            var expired = checked.minusDays(31);
+            jdbc.update("UPDATE docks_device_report SET checked_at = ? WHERE device_id = ?", expired, otherDevice);
+            assertTrue(reports.read(unrelated).reports().isEmpty(), "Expired reports are hidden before the purge runs.");
+            assertEquals(DocksReports.Upload.INVALID, reports.upload(unrelated, otherInstallation, expired, 10, 25));
+            assertEquals(DocksReports.Upload.SAVED, reports.upload(owner, installation, checked, 10, 25));
+            assertEquals(1, reports.purgeExpired());
+            assertEquals(0, reports.purgeExpired());
+            assertEquals(1, reports.read(owner).reports().size());
+            assertTrue(reports.read(unrelated).enabled());
         } finally {
             database.shutdown();
         }

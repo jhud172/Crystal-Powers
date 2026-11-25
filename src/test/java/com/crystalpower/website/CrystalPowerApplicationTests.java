@@ -10,6 +10,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -36,6 +37,13 @@ class CrystalPowerApplicationTests {
 
     @Test
     void contextLoads() {
+    }
+
+    @Test
+    void clearingDocksReportsRequiresAValidDocksBearer() throws Exception {
+        mockMvc.perform(delete("/api/docks/reports")).andExpect(status().isUnauthorized());
+        mockMvc.perform(delete("/api/docks/reports").header("Authorization", "Bearer " + "a".repeat(43)))
+                .andExpect(status().isUnauthorized()).andExpect(header().string("Cache-Control", "no-store"));
     }
 
     @Test

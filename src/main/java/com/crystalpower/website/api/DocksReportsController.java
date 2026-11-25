@@ -32,6 +32,14 @@ public class DocksReportsController {
                 .orElseGet(DocksReportsController::unauthorised);
     }
 
+    @DeleteMapping
+    public ResponseEntity<Object> clear(@RequestHeader(name = "Authorization", required = false) String token) {
+        return signIn.account(token).map(account -> {
+            reports.clear(account);
+            return response(204, null);
+        }).orElseGet(DocksReportsController::unauthorised);
+    }
+
     @PutMapping("/preference")
     public ResponseEntity<Object> preference(@RequestHeader(name = "Authorization", required = false) String token,
             @Valid @RequestBody Preference preference) {

@@ -88,9 +88,18 @@ export default function DocksReports() {
     });
   }
 
+  function clearReports() {
+    if (!window.confirm("Delete your uploaded device summaries and keep report sharing on?")) return;
+    void run(async () => {
+      await request("reports", "DELETE", undefined, token);
+      setView(previous => previous && { ...previous, reports: [] });
+      setNotice("Uploaded summaries deleted. You can still share new checks from the Windows app.");
+    });
+  }
+
   return <section className="studio-section" aria-labelledby="docks-reports-title" aria-busy={busy}>
     <h1 id="docks-reports-title">Crystal Docks reports</h1>
-    <p>View the device summaries you shared from the Windows app.</p>
+    <p>View the device summaries you shared from the Windows app. Each summary expires 30 days after its check.</p>
     {error && <p role="alert">{error}</p>}
     {notice && <p role="status">{notice}</p>}
     {token ? <>
@@ -107,6 +116,8 @@ export default function DocksReports() {
           <p><time dateTime={report.checkedAt}>{new Date(report.checkedAt).toLocaleString("en-GB")}</time></p>
           <p>CPU {report.cpuPercent === null ? "unavailable" : `${report.cpuPercent}%`} · Memory {report.memoryPercent === null ? "unavailable" : `${report.memoryPercent}%`}</p>
         </li>)}</ul>}
+        {view.enabled && view.reports.length > 0 && <button className="admin-secondary" type="button"
+          disabled={busy} onClick={clearReports}>Delete uploaded summaries</button>}{" "}
         {view.enabled && <button className="admin-secondary" type="button" disabled={busy} onClick={disable}>Turn off sharing and delete reports</button>}
       </>}
     </> : <>

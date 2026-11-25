@@ -10,6 +10,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 public class DocksReports {
+    private static final int RETENTION_DAYS = 30;
+    private static final int PURGE_BATCH = 500;
     public record Report(String deviceLabel, OffsetDateTime checkedAt, Integer cpuPercent, Integer memoryPercent) {}
     public record View(boolean enabled, List<Report> reports) {}
     public enum Upload { SAVED, UNCHANGED, DISABLED, DEVICE_UNKNOWN, INVALID }
@@ -29,9 +31,9 @@ public class DocksReports {
             return new View(true, db.query("""
                     SELECT d.label, r.checked_at, r.cpu_percent, r.memory_percent
                     FROM docks_device_report r JOIN docks_device d ON d.id = r.device_id
-                    WHERE d.account_id = ? ORDER BY r.checked_at DESC, d.id
+                    WHERE d.account_id = ? AND r.checked_at > ? ORDER BY r.checked_at DESC, d.id
                     """, (row, i) -> new Report(row.getString(1), row.getObject(2, OffsetDateTime.class),
-                        row.getObject(3, Integer.class), row.getObject(4, Integer.class)), account));
+                        row.getObject(3, Integer.class), row.getObject(4, Integer.class)), account, expiryCutoff()));
         });
     }
 
@@ -42,22 +44,45 @@ public class DocksReports {
                 if (!enabled(account)) db.update(
                         "INSERT INTO docks_report_consent (account_id, granted_at) VALUES (?, ?)", account, now());
             } else {
-                db.update("""
-                        DELETE FROM docks_device_report
-                        WHERE device_id IN (SELECT id FROM docks_device WHERE account_id = ?)
-                        """, account);
+                deleteOwned(account);
                 db.update("DELETE FROM docks_report_consent WHERE account_id = ?", account);
             }
         });
     }
 
+    public void clear(UUID account) {
+        tx.executeWithoutResult(status -> {
+            lock(account);
+            deleteOwned(account);
+        });
+    }
+
+    private void deleteOwned(UUID account) {
+        db.update("""
+                DELETE FROM docks_device_report
+                WHERE device_id IN (SELECT id FROM docks_device WHERE account_id = ?)
+                """, account);
+    }
+
+    public int purgeExpired() {
+        var cutoff = expiryCutoff();
+        // Check the cutoff again in the delete so a simultaneous fresh upload
+        // survives even if its former row was selected in the expiring batch.
+        return db.update("""
+                DELETE FROM docks_device_report WHERE checked_at <= ? AND device_id IN (
+                    SELECT device_id FROM docks_device_report WHERE checked_at <= ?
+                    ORDER BY checked_at, device_id LIMIT ?
+                )
+                """, cutoff, cutoff, PURGE_BATCH);
+    }
+
     public Upload upload(UUID account, UUID installation, OffsetDateTime checkedAt, Integer cpu, Integer memory) {
-        if (checkedAt == null || checkedAt.isAfter(now().plusMinutes(10))
-                || checkedAt.isBefore(now().minusDays(30)) || (cpu == null && memory == null)
+        if (checkedAt == null || checkedAt.isAfter(now().plusMinutes(10)) || (cpu == null && memory == null)
                 || invalid(cpu) || invalid(memory)) return Upload.INVALID;
 
         return tx.execute(status -> {
             lock(account);
+            if (!checkedAt.isAfter(expiryCutoff())) return Upload.INVALID;
             if (!enabled(account)) return Upload.DISABLED;
             var devices = db.query("""
                     SELECT id FROM docks_device WHERE account_id = ? AND installation_id = ? FOR UPDATE
@@ -65,7 +90,7 @@ public class DocksReports {
             if (devices.isEmpty()) return Upload.DEVICE_UNKNOWN;
 
             UUID device = devices.get(0);
-            var previous = db.query("SELECT checked_at FROM docks_device_report WHERE device_id = ?",
+            var previous = db.query("SELECT checked_at FROM docks_device_report WHERE device_id = ? FOR UPDATE",
                     (row, i) -> row.getObject(1, OffsetDateTime.class), device);
             if (previous.isEmpty()) {
                 db.update("""
@@ -95,4 +120,5 @@ public class DocksReports {
 
     private static boolean invalid(Integer percent) { return percent != null && (percent < 0 || percent > 100); }
     private static OffsetDateTime now() { return OffsetDateTime.now(ZoneOffset.UTC); }
+    private static OffsetDateTime expiryCutoff() { return now().minusDays(RETENTION_DAYS); }
 }
