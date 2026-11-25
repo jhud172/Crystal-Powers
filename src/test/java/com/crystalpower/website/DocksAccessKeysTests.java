@@ -1,9 +1,11 @@
 package com.crystalpower.website;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 import com.crystalpower.website.repository.DocksDeviceRepository;
 import com.crystalpower.website.service.DocksAccessKeys;
 import com.crystalpower.website.service.DocksEntitlements;
+import com.crystalpower.website.service.DocksSubscriptionSeats;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,7 +25,7 @@ class DocksAccessKeysTests {
             var db = new JdbcTemplate(database);
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));
             var keys = new DocksAccessKeys(db, tx);
-            var entitlements = new DocksEntitlements(db, tx);
+            var entitlements = new DocksEntitlements(db, tx, mock(DocksSubscriptionSeats.class));
             var devices = new DocksDeviceRepository(db);
             UUID owner = UUID.randomUUID(), customer = UUID.randomUUID(), other = UUID.randomUUID();
             for (var account : new UUID[] {customer, other})

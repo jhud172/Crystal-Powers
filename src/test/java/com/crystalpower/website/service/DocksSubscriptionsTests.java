@@ -40,6 +40,16 @@ class DocksSubscriptionsTests {
             verify(stripe, times(1)).docksTestCheckout(eq(account), any(), eq("price_monthly"), anyLong());
             assertEquals(409, assertThrows(ResponseStatusException.class,
                     () -> billing.checkout(account, DocksSubscriptions.Plan.SINGLE_ANNUAL)).getStatusCode().value());
+            jdbc.update("""
+                    INSERT INTO docks_subscription_status
+                        (stripe_subscription_id, attempt_id, provider_state, updated_at_epoch)
+                    SELECT 'sub_ended', attempt_id, 'canceled', 1 FROM docks_subscription_checkout
+                    """);
+            when(stripe.docksTestCheckout(any(), any(), eq("price_annual"), anyLong())).thenAnswer(call ->
+                    new StripeGateway.Checkout("cs_test_replacement",
+                        "https://checkout.stripe.com/c/pay/cs_test_replacement", call.getArgument(3)));
+            assertNotEquals(first, billing.checkout(account, DocksSubscriptions.Plan.SINGLE_ANNUAL));
+            assertEquals(2, jdbc.queryForObject("SELECT COUNT(*) FROM docks_subscription_checkout", Integer.class));
             when(stripe.liveMode()).thenReturn(true);
             assertTrue(billing.availablePlans().isEmpty());
             assertEquals(503, assertThrows(ResponseStatusException.class,

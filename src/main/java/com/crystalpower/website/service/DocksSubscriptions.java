@@ -13,7 +13,19 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class DocksSubscriptions {
-    public enum Plan { SINGLE_MONTHLY, SINGLE_ANNUAL, HOUSEHOLD_MONTHLY, HOUSEHOLD_ANNUAL }
+    public enum Plan {
+        SINGLE_MONTHLY(1), SINGLE_ANNUAL(1), HOUSEHOLD_MONTHLY(5), HOUSEHOLD_ANNUAL(5);
+
+        private final int deviceLimit;
+
+        Plan(int deviceLimit) {
+            this.deviceLimit = deviceLimit;
+        }
+
+        int deviceLimit() {
+            return deviceLimit;
+        }
+    }
     public record Link(String url, boolean testMode) {}
     public record TestStatus(Plan plan, String state, Long paidUntilEpoch) {}
     private record Attempt(UUID id, String price, Plan plan, long expiry, String session, String url) {}
@@ -52,7 +64,10 @@ public class DocksSubscriptions {
                 SELECT a.plan, s.provider_state, s.paid_until_epoch
                 FROM docks_subscription_status s
                 JOIN docks_subscription_checkout a ON a.attempt_id = s.attempt_id
-                WHERE a.account_id = ? ORDER BY a.expires_at_epoch DESC LIMIT 1
+                WHERE a.account_id = ?
+                ORDER BY CASE WHEN s.provider_state IN ('canceled', 'incomplete_expired') THEN 1 ELSE 0 END,
+                         a.expires_at_epoch DESC, s.updated_at_epoch DESC, s.stripe_subscription_id
+                LIMIT 1
                 """, (row, i) -> new TestStatus(Plan.valueOf(row.getString(1)), row.getString(2),
                     row.getObject(3, Long.class)), account).stream().findFirst();
     }
@@ -87,7 +102,10 @@ public class DocksSubscriptions {
         var now = Instant.now().getEpochSecond();
         var previous = db.query("""
                 SELECT attempt_id, stripe_price, plan, expires_at_epoch, stripe_session, checkout_url
-                FROM docks_subscription_checkout WHERE account_id = ?
+                FROM docks_subscription_checkout a WHERE account_id = ?
+                  AND NOT EXISTS (
+                    SELECT 1 FROM docks_subscription_status s WHERE s.attempt_id = a.attempt_id
+                  )
                 ORDER BY expires_at_epoch DESC LIMIT 1
                 """, (row, i) -> new Attempt(row.getObject(1, UUID.class), row.getString(2),
                         Plan.valueOf(row.getString(3)), row.getLong(4), row.getString(5), row.getString(6)), account);

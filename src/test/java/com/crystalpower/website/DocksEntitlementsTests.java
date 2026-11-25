@@ -1,7 +1,9 @@
 package com.crystalpower.website;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 import com.crystalpower.website.service.DocksEntitlements;
+import com.crystalpower.website.service.DocksSubscriptionSeats;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -24,7 +26,8 @@ class DocksEntitlementsTests {
         var workers = Executors.newFixedThreadPool(2);
         try {
             var jdbc = new JdbcTemplate(db);
-            var service = new DocksEntitlements(jdbc, new TransactionTemplate(new DataSourceTransactionManager(db)));
+            var service = new DocksEntitlements(jdbc, new TransactionTemplate(new DataSourceTransactionManager(db)),
+                    mock(DocksSubscriptionSeats.class));
             UUID account = UUID.randomUUID(), first = UUID.randomUUID(), second = UUID.randomUUID();
             jdbc.update("INSERT INTO docks_account(id, display_name) VALUES (?, 'Owner')", account);
             for (var installation : new UUID[] {first, second}) {

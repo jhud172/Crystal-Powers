@@ -166,7 +166,7 @@ function SandboxCheckout({ token }: { token: string }) {
     || subscription.state === "canceled" || subscription.state === "incomplete_expired");
   return <section className="admin-form" aria-label="Premium test checkout">
     <h2>Premium test checkout</h2>
-    <p>Use Stripe test card details. This sandbox does not charge money or activate Premium access.</p>
+    <p>Use Stripe test card details. This sandbox does not charge money.</p>
     {subscription && <p>
       <strong>{planLabels[subscription.plan]}</strong> · {subscription.state.replace(/_/g, " ")}
       {subscription.paidUntilEpoch !== null && <> · Paid through {new Date(subscription.paidUntilEpoch * 1000).toLocaleDateString("en-GB")}</>}
