@@ -41,6 +41,13 @@ class CrystalPowerApplicationTests {
     }
 
     @Test
+    void googleOAuthStartAndBrowserExchangeRejectUnexpectedOrigins() throws Exception {
+        mockMvc.perform(post("/api/docks/auth/google/start").header("Origin", "https://example.test"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/docks/auth/google/exchange"))
+                .andExpect(status().isForbidden());
+    }
+    @Test
     void clearingDocksReportsRequiresAValidDocksBearer() throws Exception {
         mockMvc.perform(delete("/api/docks/reports")).andExpect(status().isUnauthorized());
         mockMvc.perform(delete("/api/docks/reports").header("Authorization", "Bearer " + "a".repeat(43)))

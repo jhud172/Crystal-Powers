@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
 type Summary = { deviceLabel: string; checkedAt: string; cpuPercent: number | null; memoryPercent: number | null };
@@ -12,13 +12,13 @@ const planLabels = {
 type Plan = keyof typeof planLabels;
 type TestSubscription = { plan: Plan; state: string; paidUntilEpoch: number | null };
 
-async function request<T>(path: string, method = "GET", value?: unknown, token?: string): Promise<T> {
+async function request<T>(path: string, method = "GET", value?: unknown, token?: string, browserCookies = false): Promise<T> {
   const headers = new Headers();
   if (value !== undefined) headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
   const response = await fetch(`/api/docks/${path}`, {
     method, headers, body: value === undefined ? undefined : JSON.stringify(value),
-    cache: "no-store", credentials: "omit", redirect: "error",
+    cache: "no-store", credentials: browserCookies ? "same-origin" : "omit", redirect: "error",
   });
   const body = response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) {
@@ -37,6 +37,33 @@ export default function DocksReports() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [googleEnabled, setGoogleEnabled] = useState(false);
+  const [desktopCode, setDesktopCode] = useState("");
+  const handledGoogle = useRef(false);
+
+  useEffect(() => {
+    void request<{ enabled: boolean }>("auth/google").then(result => setGoogleEnabled(result?.enabled === true))
+      .catch(() => { /* Email remains available when Google is unavailable. */ });
+    if (handledGoogle.current) return;
+    const url = new URL(window.location.href);
+    const outcome = url.searchParams.get("google");
+    if (outcome !== "ready" && outcome !== "failed") return;
+    handledGoogle.current = true;
+    url.searchParams.delete("google");
+    window.history.replaceState(window.history.state, "", url);
+    if (outcome === "failed") {
+      setError("Google sign-in did not finish. Try again or sign in by email.");
+      return;
+    }
+    setBusy(true);
+    void request<{ accessToken: string }>("auth/google/exchange", "POST", undefined, undefined, true)
+      .then(async session => {
+        if (!session?.accessToken) throw new Error("Crystal Docks did not return a session.");
+        setToken(session.accessToken);
+        setView(await request<Reports>("reports", "GET", undefined, session.accessToken));
+      }).catch(() => setError("Google sign-in expired or could not be completed. Try signing in again."))
+      .finally(() => setBusy(false));
+  }, []);
 
   async function run(action: () => Promise<void>) {
     if (busy) return;
@@ -71,11 +98,32 @@ export default function DocksReports() {
   function signOut() {
     void run(async () => {
       setToken("");
+      setDesktopCode("");
       setView(null);
       setRequested(false);
       setEmail("");
       try { await request("auth/sign-out", "POST", undefined, token); }
       catch { setNotice("Signed out of this page. The server session could not be revoked."); }
+    });
+  }
+
+  function startGoogle() {
+    void run(async () => {
+      const result = await request<{ url: string }>("auth/google/start", "POST", undefined, undefined, true);
+      const destination = new URL(result.url);
+      if (destination.origin !== "https://accounts.google.com" || destination.pathname !== "/o/oauth2/v2/auth"
+          || destination.username || destination.password)
+        throw new Error("Crystal Docks could not verify the Google sign-in page.");
+      window.location.assign(destination.href);
+    });
+  }
+
+  function getDesktopCode() {
+    void run(async () => {
+      setDesktopCode("");
+      const result = await request<{ code: string }>("auth/google/desktop-code", "POST", undefined, token);
+      if (!/^[A-Za-z0-9_-]{43}$/.test(result.code)) throw new Error("Crystal Docks did not return a Windows code.");
+      setDesktopCode(result.code);
     });
   }
 
@@ -107,6 +155,16 @@ export default function DocksReports() {
         setView(await request<Reports>("reports", "GET", undefined, token));
       })}>Refresh reports</button>{" "}
       <button className="admin-secondary" type="button" disabled={busy} onClick={signOut}>Sign out</button>
+      {googleEnabled && <section className="admin-form" aria-label="Windows sign-in">
+        <button className="admin-secondary" type="button" disabled={busy} onClick={getDesktopCode}>Get a Windows sign-in code</button>
+        {desktopCode && <div>
+          <label>Windows sign-in code
+            <input readOnly autoComplete="off" value={desktopCode} aria-describedby="docks-code-help"
+              onFocus={event => event.currentTarget.select()} />
+          </label>
+          <small id="docks-code-help">Paste this code into your own Crystal Docks app within two minutes. Keep it private.</small>
+        </div>}
+      </section>}
       <SandboxCheckout token={token} />
       <Household token={token} />
       <ResearchPreference token={token} />
@@ -123,6 +181,8 @@ export default function DocksReports() {
         <ReportSupport token={token} canGrant={view.enabled && view.reports.length > 0} changingReports={busy} />
       </>}
     </> : <>
+      {googleEnabled && <button className="admin-secondary" type="button" disabled={busy}
+        onClick={startGoogle}>Sign in with Google</button>}
       <form className="admin-form" onSubmit={send}>
         <label>Email address<input type="email" autoComplete="email" maxLength={254} value={email} onChange={event => setEmail(event.target.value)} required /></label>
         <button className="studio-button" disabled={busy}>{requested ? "Send another code" : "Send sign-in code"}</button>

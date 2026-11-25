@@ -88,21 +88,59 @@ public class DocksEmailSignIn {
             if (addresses.isEmpty()) return Optional.empty();
             db.update("DELETE FROM docks_email_challenge WHERE token_hash = ?", hash);
             String email = addresses.get(0);
-            var owners = db.query("SELECT account_id FROM docks_identity WHERE issuer = ? AND subject = ?",
-                    (row, i) -> row.getObject(1, UUID.class), ISSUER, email);
-            UUID accountId;
-            if (owners.isEmpty()) {
-                accountId = UUID.randomUUID();
-                db.update("INSERT INTO docks_account(id, display_name) VALUES (?, ?)", accountId, "Crystal Docks customer");
-                db.update("INSERT INTO docks_identity(issuer, subject, account_id) VALUES (?, ?, ?)", ISSUER, email, accountId);
-            } else accountId = owners.get(0);
-            db.update("DELETE FROM docks_session WHERE expires_at <= ?", now);
-            String access = randomToken();
-            var expires = now.plusDays(7);
-            db.update("INSERT INTO docks_session(token_hash, account_id, expires_at) VALUES (?, ?, ?)",
-                    digest(access), accountId, expires);
-            return Optional.of(new Session(access, expires, accountId));
+            UUID account = identity(ISSUER, email).orElseGet(() -> {
+                var created = newAccount();
+                addIdentity(ISSUER, email, created);
+                return created;
+            });
+            return Optional.of(issueSession(account));
         });
+    }
+
+    UUID googleIdentity(GoogleDocksProvider.Identity verified) {
+        String issuer = "https://accounts.google.com";
+        return transaction.execute(status -> {
+            lockGate();
+            return identity(issuer, verified.subject()).orElseGet(() -> {
+                UUID account;
+                if (verified.authoritativeEmail()) {
+                    String email = normaliseEmail(verified.email());
+                    account = identity(ISSUER, email).orElseGet(() -> {
+                        var created = newAccount();
+                        addIdentity(ISSUER, email, created);
+                        return created;
+                    });
+                } else {
+                    account = newAccount();
+                }
+                addIdentity(issuer, verified.subject(), account);
+                return account;
+            });
+        });
+    }
+
+    private Optional<UUID> identity(String issuer, String subject) {
+        return db.query("SELECT account_id FROM docks_identity WHERE issuer = ? AND subject = ?",
+                (row, i) -> row.getObject(1, UUID.class), issuer, subject).stream().findFirst();
+    }
+
+    private UUID newAccount() {
+        var account = UUID.randomUUID();
+        db.update("INSERT INTO docks_account(id, display_name) VALUES (?, ?)", account, "Crystal Docks customer");
+        return account;
+    }
+
+    private void addIdentity(String issuer, String subject, UUID account) {
+        db.update("INSERT INTO docks_identity(issuer, subject, account_id) VALUES (?, ?, ?)", issuer, subject, account);
+    }
+
+    Session issueSession(UUID account) {
+        var now = now();
+        db.update("DELETE FROM docks_session WHERE expires_at <= ?", now);
+        var access = randomToken();
+        var expires = now.plusDays(7);
+        db.update("INSERT INTO docks_session(token_hash, account_id, expires_at) VALUES (?, ?, ?)", digest(access), account, expires);
+        return new Session(access, expires, account);
     }
 
     static String normaliseEmail(String address) {
@@ -130,13 +168,13 @@ public class DocksEmailSignIn {
         return authorization.substring(7);
     }
 
-    private static String randomToken() {
+    static String randomToken() {
         byte[] bytes = new byte[32];
         RANDOM.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
-    private static String digest(String value) {
+    static String digest(String value) {
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
                     .digest(value.getBytes(StandardCharsets.UTF_8)));

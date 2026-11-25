@@ -54,6 +54,9 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.DELETE, "/api/docks/household/invitations/{id}").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/docks/reports/preference", "/api/docks/reports/latest").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/docks/research").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/docks/auth/google", "/api/docks/auth/google/callback").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/docks/auth/google/start", "/api/docks/auth/google/exchange",
+                        "/api/docks/auth/google/desktop-code", "/api/docks/auth/google/desktop-exchange").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/docks/research/preference", "/api/docks/research/contribution").permitAll()
                 .requestMatchers("/api/docks", "/api/docks/**").denyAll()
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
@@ -74,6 +77,8 @@ public class SecurityConfiguration {
                             "/api/docks/reports", "/api/docks/reports/preference", "/api/docks/reports/latest",
                             "/api/docks/reports/support-access",
                             "/api/docks/research/preference", "/api/docks/research/contribution",
+                            "/api/docks/auth/google/start", "/api/docks/auth/google/exchange",
+                            "/api/docks/auth/google/desktop-code", "/api/docks/auth/google/desktop-exchange",
                             "/api/docks/billing/checkout", "/api/docks/billing/stripe/webhook",
                             "/api/docks/household/invitations", "/api/docks/household/invitations/{id}/accept",
                             "/api/docks/household/invitations/{id}"))
