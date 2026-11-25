@@ -1,5 +1,7 @@
 package com.crystalpower.website.api;
 
+import com.crystalpower.website.security.AttemptLimiter;
+import com.crystalpower.website.service.DocksAccessKeys;
 import com.crystalpower.website.repository.DocksDeviceRepository;
 import com.crystalpower.website.service.DocksEmailSignIn;
 import com.crystalpower.website.service.DocksEntitlements;
@@ -22,12 +24,16 @@ public class DocksAccountController {
     private final DocksEmailSignIn signIn;
     private final DocksDeviceRepository devices;
     private final DocksEntitlements entitlements;
+    private final DocksAccessKeys keys;
+    private final AttemptLimiter limiter;
 
     public DocksAccountController(DocksEmailSignIn signIn, DocksDeviceRepository devices,
-            DocksEntitlements entitlements) {
+            DocksEntitlements entitlements, DocksAccessKeys keys, AttemptLimiter limiter) {
         this.signIn = signIn;
         this.devices = devices;
         this.entitlements = entitlements;
+        this.keys = keys;
+        this.limiter = limiter;
     }
 
     public record EmailRequest(@NotBlank @Email @Size(max = 254) String email) {}
@@ -35,6 +41,7 @@ public class DocksAccountController {
     public record DeviceRequest(@NotNull UUID installationId,
                                 @NotBlank @Size(max = 120) String label) {}
     public record TrialRequest(@NotNull UUID installationId) {}
+    public record RedeemRequest(@NotNull UUID installationId, @NotBlank @Size(max = 24) String code) {}
 
     @PostMapping("/auth/email/request")
     public ResponseEntity<?> request(@Valid @RequestBody EmailRequest request) {
@@ -92,6 +99,26 @@ public class DocksAccountController {
 
     private static ResponseEntity<Object> unknownDevice() {
         return response(404, Map.of("message", "This installation is not enrolled on your account."));
+    }
+
+    @PostMapping("/access-key/redeem")
+    public ResponseEntity<?> redeem(@RequestHeader(name = "Authorization", required = false) String token,
+            @Valid @RequestBody RedeemRequest request) {
+        return signIn.account(token).map(account -> {
+            limiter.check("docks-key:" + account, 10, 900);
+            return switch (keys.redeem(account, request.installationId(), request.code())) {
+                case GRANTED -> response(204, null);
+                case NOT_AVAILABLE -> response(422, Map.of("message", "This key is unavailable for this account or device."));
+                case DEVICE_LIMIT -> response(409, Map.of("message", "Remove a device before using this key again."));
+            };
+        }).orElseGet(DocksAccountController::unauthorised);
+    }
+
+    @DeleteMapping("/devices/{id}")
+    public ResponseEntity<?> remove(@RequestHeader(name = "Authorization", required = false) String token,
+            @PathVariable UUID id) {
+        return signIn.account(token).map(account -> devices.removeOwnedBy(account, id)
+                ? response(204, null) : unknownDevice()).orElseGet(DocksAccountController::unauthorised);
     }
 
     private static ResponseEntity<Object> unauthorised() {

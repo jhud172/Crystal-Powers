@@ -41,8 +41,9 @@ public class SecurityConfiguration {
                 .requestMatchers("/api/team/**").hasAnyRole("OWNER", "TEAM")
                 .requestMatchers(HttpMethod.POST, "/api/docks/auth/email/request",
                         "/api/docks/auth/email/exchange", "/api/docks/auth/sign-out",
-                        "/api/docks/devices", "/api/docks/trial").permitAll()
+                        "/api/docks/devices", "/api/docks/trial", "/api/docks/access-key/redeem").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/docks/devices", "/api/docks/entitlement").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/docks/devices/{id}").permitAll()
                 .requestMatchers("/api/docks", "/api/docks/**").denyAll()
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .requestMatchers(HttpMethod.HEAD, "/**").permitAll()
@@ -57,7 +58,8 @@ public class SecurityConfiguration {
                     // Preserve existing anonymous form contracts; owner APIs always require CSRF.
                     .ignoringRequestMatchers("/api/contact", "/api/services", "/api/billing/stripe/webhook",
                             "/api/docks/auth/email/request", "/api/docks/auth/email/exchange",
-                            "/api/docks/auth/sign-out", "/api/docks/devices", "/api/docks/trial"))
+                            "/api/docks/auth/sign-out", "/api/docks/devices", "/api/docks/trial",
+                            "/api/docks/access-key/redeem", "/api/docks/devices/{id}"))
             .formLogin(config -> config.disable())
             .httpBasic(config -> config.disable())
             .logout(config -> config.disable())

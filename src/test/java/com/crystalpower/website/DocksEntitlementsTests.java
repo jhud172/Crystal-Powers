@@ -19,7 +19,8 @@ class DocksEntitlementsTests {
     void concurrentActivationHasOneWinnerAndAnExpiredTrialCannotRestart() throws Exception {
         var db = new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.H2).generateUniqueName(true)
                 .addScripts("classpath:db/migration/V87__docks_accounts_and_devices.sql",
-                            "classpath:db/migration/V89__docks_trial.sql").build();
+                            "classpath:db/migration/V89__docks_trial.sql",
+                            "classpath:db/migration/V90__docks_access_keys.sql").build();
         var workers = Executors.newFixedThreadPool(2);
         try {
             var jdbc = new JdbcTemplate(db);
