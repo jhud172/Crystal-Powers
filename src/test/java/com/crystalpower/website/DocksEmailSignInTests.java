@@ -19,7 +19,8 @@ class DocksEmailSignInTests {
         var database = new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.H2)
                 .generateUniqueName(true)
                 .addScripts("classpath:db/migration/V87__docks_accounts_and_devices.sql",
-                            "classpath:db/migration/V88__docks_email_sign_in.sql").build();
+                            "classpath:db/migration/V88__docks_email_sign_in.sql",
+                            "classpath:db/migration/V106__docks_account_deletion.sql").build();
         try {
             var db = new JdbcTemplate(database);
             var email = mock(EmailTransport.class);

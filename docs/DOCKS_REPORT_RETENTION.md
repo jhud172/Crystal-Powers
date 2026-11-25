@@ -25,3 +25,9 @@ Customers choose a recent scan in the Windows app and review the timestamp, proc
 One diagnostic log per account can be shared at a time. A new upload replaces the old log and reference. Support needs the reference and an authenticated owner session. The customer can see the log's expiry and read activity, or use **Delete log and end access** in reports. The server blocks reads once access expires or the upload is deleted. Device removal deletes that device's shared log. The same five-minute cleanup removes expired uploads. Log audit entries are scoped separately and kept for up to 90 days.
 
 Flyway migration `V101__docks_diagnostic_log_sharing.sql` and the executable website passed against a disposable PostgreSQL 17 database. The smoke test created and revoked a log and checked the customer-visible audit. Browser fixtures exercised the customer and owner interfaces with a simulated API. Verify the full flow over HTTPS with a staging owner and two customer accounts before release.
+
+## Account deletion
+
+Customers can open **Account privacy** on the reports page and delete their Crystal Docks account. The server requires a session issued in the past ten minutes. An active subscription or unresolved checkout blocks deletion. Such accounts can use the Stripe portal or contact support to resolve billing. The operation checks the current Stripe state before accepting an expired checkout that had a provider session.
+
+Deletion revokes all Docks sessions and removes enrolled devices, identity links, reports, logs, permissions and research contributions. Household members keep their own accounts and reports. Historical billing records remain in the billing systems. Docks detaches the account from terminal subscription records and clears their checkout links. Saved Windows history stays in the local profile. Clear it from **Advanced view → Clear saved checks** before deleting the account if desired.

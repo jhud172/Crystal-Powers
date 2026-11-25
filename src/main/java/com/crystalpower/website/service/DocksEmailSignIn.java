@@ -139,7 +139,8 @@ public class DocksEmailSignIn {
         db.update("DELETE FROM docks_session WHERE expires_at <= ?", now);
         var access = randomToken();
         var expires = now.plusDays(7);
-        db.update("INSERT INTO docks_session(token_hash, account_id, expires_at) VALUES (?, ?, ?)", digest(access), account, expires);
+        db.update("INSERT INTO docks_session(token_hash, account_id, expires_at, issued_at) VALUES (?, ?, ?, ?)",
+                digest(access), account, expires, now);
         return new Session(access, expires, account);
     }
 
@@ -152,6 +153,16 @@ public class DocksEmailSignIn {
         if (token == null) return Optional.empty();
         return db.query("SELECT account_id FROM docks_session WHERE token_hash = ? AND expires_at > ?",
                 (row, i) -> row.getObject(1, UUID.class), digest(token), now()).stream().findFirst();
+    }
+
+    Optional<UUID> recentlyVerifiedAccount(String authorization) {
+        String token = bearer(authorization);
+        if (token == null) return Optional.empty();
+        var time = now();
+        return db.query("""
+                SELECT account_id FROM docks_session WHERE token_hash = ? AND expires_at > ? AND issued_at > ?
+                """, (row, i) -> row.getObject(1, UUID.class), digest(token), time, time.minusMinutes(10))
+                .stream().findFirst();
     }
 
     public void signOut(String authorization) {

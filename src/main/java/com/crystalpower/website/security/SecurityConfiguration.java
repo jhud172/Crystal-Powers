@@ -43,7 +43,7 @@ public class SecurityConfiguration {
                         "/api/docks/auth/email/exchange", "/api/docks/auth/sign-out",
                         "/api/docks/devices", "/api/docks/trial", "/api/docks/access-key/redeem").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/docks/devices", "/api/docks/entitlement").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/api/docks/devices/{id}").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/docks/devices/{id}", "/api/docks/account").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/docks/reports", "/api/docks/reports/support-access").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/docks/reports", "/api/docks/reports/support-access").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/docks/reports/support-access").permitAll()
@@ -81,7 +81,7 @@ public class SecurityConfiguration {
                     .ignoringRequestMatchers("/api/contact", "/api/services", "/api/billing/stripe/webhook",
                             "/api/docks/auth/email/request", "/api/docks/auth/email/exchange",
                             "/api/docks/auth/sign-out", "/api/docks/devices", "/api/docks/trial",
-                            "/api/docks/access-key/redeem", "/api/docks/devices/{id}",
+                            "/api/docks/access-key/redeem", "/api/docks/devices/{id}", "/api/docks/account",
                             "/api/docks/reports", "/api/docks/reports/preference", "/api/docks/reports/latest",
                             "/api/docks/reports/support-access",
                             "/api/docks/research/preference", "/api/docks/research/contribution",

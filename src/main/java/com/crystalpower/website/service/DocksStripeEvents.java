@@ -74,7 +74,7 @@ public class DocksStripeEvents {
         if (attempt.isEmpty()) return;
         var matched = attempt.get();
         tx.executeWithoutResult(status -> {
-            lock(matched.account());
+            if (!lock(matched.account())) return;
             if (!handled(eventId) && reconcile(matched, reference, null)) record(eventId, matched.id());
         });
     }
@@ -105,12 +105,15 @@ public class DocksStripeEvents {
 
         tx.executeWithoutResult(status -> {
             // Normal lifecycle events take the same account lock before reading Stripe.
-            targets.stream().map(target -> target.attempt().account()).distinct().sorted().forEach(this::lock);
+            var present = new java.util.HashSet<UUID>();
+            targets.stream().map(target -> target.attempt().account()).distinct().sorted()
+                    .filter(this::lock).forEach(present::add);
             if (handled(eventId)) return;
             var outcome = paymentRisk.outcome(source.get());
             UUID firstApplied = null;
             for (var target : targets) {
-                if (reconcile(target.attempt(), target.reference(), new RiskUpdate(source.get(), outcome, target.invoice()))
+                if (present.contains(target.attempt().account())
+                        && reconcile(target.attempt(), target.reference(), new RiskUpdate(source.get(), outcome, target.invoice()))
                         && firstApplied == null) firstApplied = target.attempt().id();
             }
             if (firstApplied != null) record(eventId, firstApplied);
@@ -181,8 +184,9 @@ public class DocksStripeEvents {
                 """, Integer.class, attempt, invoice) > 0;
     }
 
-    private void lock(UUID account) {
-        db.queryForObject("SELECT id FROM docks_account WHERE id = ? FOR UPDATE", UUID.class, account);
+    private boolean lock(UUID account) {
+        return !db.query("SELECT id FROM docks_account WHERE id = ? FOR UPDATE",
+                (row, index) -> row.getObject(1, UUID.class), account).isEmpty();
     }
 
     private boolean handled(String eventId) {
@@ -202,11 +206,12 @@ public class DocksStripeEvents {
                 """;
         var bySubscription = db.query(fields + """
                 JOIN docks_subscription_status s ON s.attempt_id = a.attempt_id
-                WHERE s.stripe_subscription_id = ? AND a.live_mode = ?
+                WHERE s.stripe_subscription_id = ? AND a.live_mode = ? AND a.account_id IS NOT NULL
                 """, this::readAttempt, reference.subscriptionId(), mode.live());
         if (!bySubscription.isEmpty()) return Optional.of(bySubscription.get(0));
         if (reference.attemptId() == null) return Optional.empty();
-        return db.query(fields + " WHERE a.attempt_id = ? AND a.live_mode = ?", this::readAttempt, reference.attemptId(), mode.live()).stream()
+        return db.query(fields + " WHERE a.attempt_id = ? AND a.live_mode = ? AND a.account_id IS NOT NULL",
+                this::readAttempt, reference.attemptId(), mode.live()).stream()
                 .filter(attempt -> reference.sessionId() == null || attempt.sessionId() == null
                         || reference.sessionId().equals(attempt.sessionId())).findFirst();
     }

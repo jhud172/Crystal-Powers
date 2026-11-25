@@ -61,6 +61,8 @@ class CrystalPowerApplicationTests {
     @Test
     void clearingDocksReportsRequiresAValidDocksBearer() throws Exception {
         mockMvc.perform(delete("/api/docks/reports")).andExpect(status().isUnauthorized());
+        mockMvc.perform(delete("/api/docks/account")).andExpect(status().isUnauthorized())
+                .andExpect(header().string("Cache-Control", "no-store"));
         mockMvc.perform(delete("/api/docks/reports").header("Authorization", "Bearer " + "a".repeat(43)))
                 .andExpect(status().isUnauthorized()).andExpect(header().string("Cache-Control", "no-store"));
     }

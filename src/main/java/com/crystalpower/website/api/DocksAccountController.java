@@ -2,6 +2,7 @@ package com.crystalpower.website.api;
 
 import com.crystalpower.website.security.AttemptLimiter;
 import com.crystalpower.website.service.DocksAccessKeys;
+import com.crystalpower.website.service.DocksAccountDeletion;
 import com.crystalpower.website.repository.DocksDeviceRepository;
 import com.crystalpower.website.service.DocksEmailSignIn;
 import com.crystalpower.website.service.DocksEntitlements;
@@ -17,6 +18,7 @@ import java.util.UUID;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/docks")
@@ -26,14 +28,17 @@ public class DocksAccountController {
     private final DocksEntitlements entitlements;
     private final DocksAccessKeys keys;
     private final AttemptLimiter limiter;
+    private final DocksAccountDeletion accountDeletion;
 
     public DocksAccountController(DocksEmailSignIn signIn, DocksDeviceRepository devices,
-            DocksEntitlements entitlements, DocksAccessKeys keys, AttemptLimiter limiter) {
+            DocksEntitlements entitlements, DocksAccessKeys keys, AttemptLimiter limiter,
+            DocksAccountDeletion accountDeletion) {
         this.signIn = signIn;
         this.devices = devices;
         this.entitlements = entitlements;
         this.keys = keys;
         this.limiter = limiter;
+        this.accountDeletion = accountDeletion;
     }
 
     public record EmailRequest(@NotBlank @Email @Size(max = 254) String email) {}
@@ -119,6 +124,25 @@ public class DocksAccountController {
             @PathVariable UUID id) {
         return signIn.account(token).map(account -> devices.removeOwnedBy(account, id)
                 ? response(204, null) : unknownDevice()).orElseGet(DocksAccountController::unauthorised);
+    }
+
+    @DeleteMapping("/account")
+    public ResponseEntity<?> deleteAccount(@RequestHeader(name = "Authorization", required = false) String token) {
+        return signIn.account(token).map(account -> {
+            try {
+                limiter.check("docks-account-deletion:" + account, 3, 900);
+                return switch (accountDeletion.delete(token)) {
+                    case DELETED -> response(204, null);
+                    case UNAUTHORISED -> unauthorised();
+                    case SIGN_IN_AGAIN -> response(403, Map.of("message", "Sign out and sign in again to confirm your identity."));
+                    case BILLING_OPEN -> response(409, Map.of("message",
+                            "Resolve any open checkout or active Stripe subscription before deleting your account. Contact support if needed."));
+                };
+            } catch (ResponseStatusException failure) {
+                return response(failure.getStatusCode().value(), Map.of("message", failure.getReason() == null
+                        ? "Account deletion is temporarily unavailable." : failure.getReason()));
+            }
+        }).orElseGet(DocksAccountController::unauthorised);
     }
 
     private static ResponseEntity<Object> unauthorised() {

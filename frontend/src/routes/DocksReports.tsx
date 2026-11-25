@@ -97,13 +97,27 @@ export default function DocksReports() {
 
   function signOut() {
     void run(async () => {
-      setToken("");
-      setDesktopCode("");
-      setView(null);
-      setRequested(false);
-      setEmail("");
+      clearSession();
       try { await request("auth/sign-out", "POST", undefined, token); }
       catch { setNotice("Signed out of this page. The server session could not be revoked."); }
+    });
+  }
+
+  function clearSession() {
+    setToken("");
+    setDesktopCode("");
+    setView(null);
+    setRequested(false);
+    setEmail("");
+    setCode("");
+  }
+
+  function deleteAccount() {
+    if (!window.confirm("Permanently delete this Crystal Docks account and its uploaded data?")) return;
+    void run(async () => {
+      await request("account", "DELETE", undefined, token);
+      clearSession();
+      setNotice("Your Crystal Docks account and uploaded data have been deleted.");
     });
   }
 
@@ -181,6 +195,15 @@ export default function DocksReports() {
         {view.enabled && <button className="admin-secondary" type="button" disabled={busy} onClick={disable}>Turn off sharing and delete reports</button>}
         <ReportSupport token={token} canGrant={view.enabled && view.reports.length > 0} changingReports={busy} />
       </>}
+      <details>
+        <summary>Account privacy</summary>
+        <section className="admin-form" aria-label="Delete Crystal Docks account">
+          <p>Delete your Docks account, enrolled devices and uploaded reports, logs and research data. Saved checks on Windows and past billing records are kept.</p>
+          <p>To remove saved Windows checks too, use Clear saved checks in Advanced view before deleting your account.</p>
+          <p>Sign in again if your session is older than ten minutes. If you have a subscription, arrange cancellation in Stripe and wait for the paid period to end.</p>
+          <button className="admin-secondary" type="button" disabled={busy} onClick={deleteAccount}>Delete Docks account</button>
+        </section>
+      </details>
     </> : <>
       {googleEnabled && <button className="admin-secondary" type="button" disabled={busy}
         onClick={startGoogle}>Sign in with Google</button>}
