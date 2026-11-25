@@ -2,7 +2,7 @@
 
 The Docks reports page exposes a test checkout when the server has a Stripe test connection and configured recurring price IDs. The default configuration leaves Docks billing disabled. Existing Crystal Powers invoice and customer portal routes are independent.
 
-Configure the isolated staging environment with `DOCKS_STRIPE_TEST_ENABLED=true`, `STRIPE_LIVE_MODE=false`, a test Stripe secret, the existing billing webhook's test signing secret, and the staging origin in the existing billing settings. Configure up to four active recurring GBP Stripe test Prices, one for each combination of monthly/annual and one-device/household. The variables are listed in `.env.example`. Confirm the recurring interval and amount in Stripe before offering a Price ID to testers.
+Configure isolated staging with `DOCKS_STRIPE_TEST_ENABLED=true`, `STRIPE_LIVE_MODE=false`, the test API key in `STRIPE_SECRET_KEY`, and the staging origin in `PUBLIC_URL`. Use the Docks endpoint's signing secret in `DOCKS_STRIPE_WEBHOOK_SECRET`. The separate invoice webhook has its own configuration. Configure up to four active recurring GBP Stripe test Prices, one for each combination of monthly/annual and one-device/household. The variables are listed in `.env.example`. Confirm the recurring interval and amount in Stripe before offering a Price ID to testers.
 
 Sign in to `/docks/reports`, select a test plan, prepare the checkout and open the returned Stripe-hosted page. Use Stripe test payment details. The account's open checkout is reused for the same plan. A different plan can start when the previous one expires. The Stripe return routes only navigate back to reports.
 

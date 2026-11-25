@@ -1,5 +1,7 @@
 package com.crystalpower.website.service;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import java.time.Instant;
 import java.util.EnumMap;
 import java.util.List;
@@ -42,7 +44,8 @@ public class DocksSubscriptions {
     private final String testPortalConfiguration;
     private final EnumMap<Plan, String> prices = new EnumMap<>(Plan.class);
 
-    public DocksSubscriptions(JdbcTemplate db, TransactionTemplate tx, StripeGateway stripe, DocksBillingMode mode,
+    public DocksSubscriptions(JdbcTemplate db, TransactionTemplate tx,
+            @Qualifier("docksStripeGateway") StripeGateway stripe, DocksBillingMode mode,
             @Value("${app.docks.stripe-live-portal:}") String portalConfiguration,
             @Value("${app.docks.stripe-test-portal:}") String testPortalConfiguration,
             @Value("${app.docks.price-single-monthly:}") String singleMonthly,

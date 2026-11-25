@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /** Synthetic key shapes only; no Stripe request or real credential is used. */
@@ -16,6 +17,21 @@ class StripeGatewayConfigurationTests {
         return result;
     }
     @AfterEach void close() { gateways.forEach(StripeGateway::stopBodyDeadlines); }
+
+    @Test void docksUsesItsOwnWebhookWithoutConnectingWebsiteBilling() {
+        new ApplicationContextRunner()
+                .withBean(ObjectMapper.class, ObjectMapper::new)
+                .withUserConfiguration(StripeGateway.class, DocksStripeConfiguration.class, DocksBillingMode.class)
+                .withPropertyValues("app.public-url=https://pilot.example.invalid", "app.billing.enabled=false",
+                        "app.billing.stripe-secret=rk_test_SyntheticLocalOnly",
+                        "app.docks.stripe-test-enabled=true", "app.docks.stripe-test-entitlements=true",
+                        "app.docks.stripe-webhook-secret=whsec_SyntheticDocksOnly")
+                .run(context -> {
+                    assertThat(context.getBean(StripeGateway.class).connected()).isFalse();
+                    assertThat(context.getBean("docksStripeGateway", StripeGateway.class).connected()).isTrue();
+                    assertThat(context.getBean(DocksBillingMode.class).seatsEnabled()).isTrue();
+                });
+    }
 
     @Test void sandboxRestrictedKeysSupportPaymentsAndReadOnlyManagementConfiguration() {
         for (String key : List.of("sk_test_SyntheticLocalOnly", "rk_test_SyntheticLocalOnly")) {

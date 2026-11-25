@@ -1,5 +1,7 @@
 package com.crystalpower.website.service;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -17,7 +19,8 @@ public class DocksAccountDeletion {
     private final DocksEmailSignIn signIn;
     private final StripeGateway stripe;
 
-    public DocksAccountDeletion(JdbcTemplate db, TransactionTemplate tx, DocksEmailSignIn signIn, StripeGateway stripe) {
+    public DocksAccountDeletion(JdbcTemplate db, TransactionTemplate tx, DocksEmailSignIn signIn,
+            @Qualifier("docksStripeGateway") StripeGateway stripe) {
         this.db = db;
         this.tx = tx;
         this.signIn = signIn;

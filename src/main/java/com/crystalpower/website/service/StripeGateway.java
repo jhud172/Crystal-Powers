@@ -3,6 +3,7 @@ package com.crystalpower.website.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,6 +25,7 @@ import java.util.UUID;
 
 /** Server-only Stripe boundary. Callers must persist and authorise billing intents before using it. */
 @Component
+@Primary
 public class StripeGateway {
     public static final String API_VERSION = "2026-09-30.endive";
     private static final String CLAIMABLE_SANDBOX_API_VERSION = "2026-11-18.endive";

@@ -1,5 +1,7 @@
 package com.crystalpower.website.service;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -22,7 +24,7 @@ public class DocksStripeRisk {
     record Outcome(String value, boolean holdsAccess) {}
 
     private final StripeGateway stripe;
-    public DocksStripeRisk(StripeGateway stripe) { this.stripe = stripe; }
+    public DocksStripeRisk(@Qualifier("docksStripeGateway") StripeGateway stripe) { this.stripe = stripe; }
 
     static Kind kind(String eventType) {
         return switch (eventType) {

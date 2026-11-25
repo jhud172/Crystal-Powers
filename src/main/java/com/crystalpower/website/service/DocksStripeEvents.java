@@ -1,5 +1,7 @@
 package com.crystalpower.website.service;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -29,7 +31,8 @@ public class DocksStripeEvents {
     public record PaymentReview(String subscriptionId, String invoiceId, String chargeId, String kind, String outcome,
                                 boolean holdsAccess, long observedAtEpoch) {}
 
-    public DocksStripeEvents(JdbcTemplate db, TransactionTemplate tx, StripeGateway stripe, DocksBillingMode mode,
+    public DocksStripeEvents(JdbcTemplate db, TransactionTemplate tx,
+            @Qualifier("docksStripeGateway") StripeGateway stripe, DocksBillingMode mode,
                             DocksStripeRisk paymentRisk) {
         this.db = db;
         this.tx = tx;

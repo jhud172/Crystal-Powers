@@ -1,5 +1,7 @@
 package com.crystalpower.website.service;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +13,7 @@ public class DocksBillingMode {
     private final boolean liveEnabled;
     private final String webhook;
 
-    public DocksBillingMode(StripeGateway stripe,
+    public DocksBillingMode(@Qualifier("docksStripeGateway") StripeGateway stripe,
             @Value("${app.docks.stripe-test-enabled:false}") boolean testEnabled,
             @Value("${app.docks.stripe-test-entitlements:false}") boolean testEntitlements,
             @Value("${app.docks.stripe-live-enabled:false}") boolean liveEnabled,
