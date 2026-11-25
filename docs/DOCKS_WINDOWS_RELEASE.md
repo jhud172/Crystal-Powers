@@ -8,6 +8,12 @@ Before enabling the release feed, run `packaging/Test-ReleaseMsix.ps1` from the 
 
 Set `DOCKS_RELEASE_WINDOWS_X64_VERSION` to the four-part MSIX version, `DOCKS_RELEASE_WINDOWS_X64_URL` to the exact HTTPS asset URL, and `DOCKS_RELEASE_WINDOWS_X64_SHA256` to the verified digest of the signed package. The feed and redirect require all three settings. From a signed-out browser, confirm the feed returns the expected `version` and `sha256` and the matching `/{version}/download` route delivers a package that passes `Test-ReleaseMsix.ps1`. Compare with the build record independently of the feed.
 
+From the desktop repository in PowerShell 7.4 or newer, run the hosted package check with the expected details from the build record:
+
+```powershell
+.\packaging\Test-ReleaseMsix.ps1 -Origin https://crystal-powers.com -Version $releaseVersion -Publisher $releasePublisher -Sha256 $buildSha256
+```
+
 Open `/docks` in a signed-out browser and check the version and Windows download link. The same page shows the release status with no download link when the feed is empty. Its app preview comes from the Windows smoke test with example data. The reports link opens the separate account area.
 
 Desktop users choose when to check and whether to open the browser. Windows handles the signed package installation. To withdraw an offer, clear the environment settings. If a faulty release has already been installed, publish a corrected package with a higher version and the same publisher.
