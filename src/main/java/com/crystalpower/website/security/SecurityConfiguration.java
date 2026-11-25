@@ -55,6 +55,8 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.PUT, "/api/docks/reports/preference", "/api/docks/reports/latest").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/docks/research").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/docks/explanations/online").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/docks/releases/windows-x64",
+                        "/api/docks/releases/windows-x64/{version}/download").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/docks/explanations/online").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/docks/auth/google", "/api/docks/auth/google/callback").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/docks/auth/google/start", "/api/docks/auth/google/exchange",

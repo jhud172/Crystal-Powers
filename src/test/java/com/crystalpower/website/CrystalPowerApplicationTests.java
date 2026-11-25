@@ -41,6 +41,17 @@ class CrystalPowerApplicationTests {
     }
 
     @Test
+    void windowsReleaseFeedIsPublicAndAnUnpublishedDownloadIsMissing() throws Exception {
+        mockMvc.perform(get("/api/docks/releases/windows-x64"))
+                .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(content().json("{}"));
+        mockMvc.perform(get("/api/docks/releases/windows-x64/1.2.3.0/download"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/api/docks/releases/windows-x64/1.2.3.0/download").with(csrf()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void googleOAuthStartAndBrowserExchangeRejectUnexpectedOrigins() throws Exception {
         mockMvc.perform(post("/api/docks/auth/google/start").header("Origin", "https://example.test"))
                 .andExpect(status().isForbidden());
