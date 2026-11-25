@@ -1,0 +1,110 @@
+.docks-page {
+  --docks-button: #4b23cb;
+  padding-block: clamp(3rem, 7vw, 7rem);
+}
+
+.docks-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: center;
+}
+
+.docks-copy h1 {
+  margin: .65rem 0 1.25rem;
+  max-width: 10ch;
+  font-size: clamp(3rem, 7vw, 6.1rem);
+  font-weight: 550;
+  line-height: .99;
+  letter-spacing: -.065em;
+}
+
+.docks-lede {
+  max-width: 40ch;
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  line-height: 1.58;
+}
+
+.docks-download { margin-top: 1.8rem; }
+
+.docks-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem 1.1rem;
+}
+
+.docks-actions a, .docks-actions button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  font: inherit;
+  font-weight: 650;
+}
+
+.docks-primary {
+  padding: .65rem 1rem;
+  border: 1px solid transparent;
+  border-radius: .6rem;
+  background: var(--docks-button);
+  color: white;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color .2s ease;
+}
+
+.docks-primary:hover { background: #351496; }
+.docks-report-link { text-underline-offset: .25em; }
+.docks-report-link span { transition: transform .2s ease; }
+.docks-report-link:hover span { transform: translateX(.2em); }
+.docks-actions :focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+.docks-actions .docks-primary:focus-visible { outline-color: var(--studio-text); }
+
+.docks-release, .docks-requirements, .docks-preview figcaption {
+  margin: .35rem 0 0;
+  color: var(--studio-muted);
+  font-size: .875rem;
+}
+
+.docks-preview { margin: 0; }
+
+.docks-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--studio-control-line);
+  border-radius: .75rem;
+  box-shadow: 0 1.4rem 3.5rem -2rem #24174777;
+}
+
+.docks-preview figcaption { margin-top: .65rem; }
+
+.docks-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.75rem;
+  margin-top: clamp(2.75rem, 7vw, 6rem);
+  padding-top: 1.45rem;
+  border-top: 1px solid var(--studio-line);
+}
+
+.docks-details h2 { font-size: 1.2rem; margin: 0 0 .45rem; }
+.docks-details p { max-width: 38ch; margin: 0; }
+
+@media (max-width: 760px) {
+  .docks-intro, .docks-details { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .docks-preview { animation: docks-appear .45s ease-out both; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .docks-actions a span, .docks-actions button, .docks-actions .docks-primary { transition: none; }
+}
+
+@keyframes docks-appear {
+  from { opacity: 0; transform: translateY(.65rem); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -41,6 +41,18 @@ class CrystalPowerApplicationTests {
     }
 
     @Test
+    void docksDownloadPageHasPublicMetadataAndReportsRemainPrivate() throws Exception {
+        mockMvc.perform(get("/docks/"))
+                .andExpect(status().isOk()).andExpect(header().doesNotExist("X-Robots-Tag"))
+                .andExpect(content().string(allOf(
+                        containsString("<title>Crystal Docks for Windows | Crystal Powers</title>"),
+                        containsString("/renders/docks/overview.png"),
+                        containsString("content=\"index, follow\""))));
+        mockMvc.perform(get("/docks/reports"))
+                .andExpect(status().isOk()).andExpect(header().string("X-Robots-Tag", "noindex, nofollow"));
+    }
+
+    @Test
     void windowsReleaseFeedIsPublicAndAnUnpublishedDownloadIsMissing() throws Exception {
         mockMvc.perform(get("/api/docks/releases/windows-x64"))
                 .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))

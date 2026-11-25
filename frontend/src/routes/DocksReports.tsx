@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { Link } from "react-router-dom";
 
 type Summary = { deviceLabel: string; checkedAt: string; cpuPercent: number | null; memoryPercent: number | null };
 type Reports = { enabled: boolean; reports: Summary[] };
@@ -162,6 +163,7 @@ export default function DocksReports() {
   return <section className="studio-section" aria-labelledby="docks-reports-title" aria-busy={busy}>
     <h1 id="docks-reports-title">Crystal Docks reports</h1>
     <p>View the device summaries you shared from the Windows app. Each summary expires 30 days after its check.</p>
+    <p><Link to="/docks">About Crystal Docks</Link></p>
     {error && <p role="alert">{error}</p>}
     {notice && <p role="status">{notice}</p>}
     {token ? <>
