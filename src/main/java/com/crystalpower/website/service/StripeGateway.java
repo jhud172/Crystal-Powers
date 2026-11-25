@@ -87,16 +87,16 @@ public class StripeGateway {
         return new Checkout(id, url, response.path("expires_at").asLong());
     }
 
-    public Checkout docksTestCheckout(UUID account, UUID attempt, String priceId, long expiresAt) {
+    public Checkout docksCheckout(UUID account, UUID attempt, String priceId, long expiresAt) {
         requireConnected();
-        if (liveMode || !priceId.matches("price_[A-Za-z0-9]{1,94}"))
-            throw new IllegalArgumentException("Docks checkout requires a Stripe test price.");
+        if (!priceId.matches("price_[A-Za-z0-9]{1,94}"))
+            throw new IllegalArgumentException("Docks checkout requires a Stripe price.");
         var response = post("/checkout/sessions", docksCheckoutFields(account, attempt, priceId, expiresAt),
                 "cp-docks-checkout-" + attempt);
         String id = response.path("id").asText();
         String url = response.path("url").asText();
-        if (!id.matches("cs_test_[A-Za-z0-9]{1,90}") || !response.path("livemode").isBoolean()
-                || response.path("livemode").asBoolean()
+        if (!docksSessionId(id, liveMode) || !response.path("livemode").isBoolean()
+                || response.path("livemode").asBoolean() != liveMode
                 || !attempt.toString().equals(response.path("client_reference_id").asText())
                 || !account.toString().equals(response.path("metadata").path("docks_account_id").asText())
                 || response.path("expires_at").asLong(-1) != expiresAt || url.length() > 2048
@@ -105,11 +105,28 @@ public class StripeGateway {
         return new Checkout(id, url, expiresAt);
     }
 
+    static boolean docksSessionId(String id, boolean live) {
+        return id.matches((live ? "cs_live_" : "cs_test_") + "[A-Za-z0-9]{1,90}");
+    }
+
+    void verifyDocksPrice(String priceId, DocksSubscriptions.Plan plan) {
+        if (!priceId.matches("price_[A-Za-z0-9]{1,94}")) throw unavailable();
+        var price = get("/prices/" + priceId);
+        var recurring = price.path("recurring");
+        if (!priceId.equals(price.path("id").asText()) || !"price".equals(price.path("object").asText())
+                || !price.path("active").asBoolean() || !"gbp".equals(price.path("currency").asText())
+                || !"per_unit".equals(price.path("billing_scheme").asText())
+                || !price.path("unit_amount").isIntegralNumber() || price.path("unit_amount").asLong() <= 0
+                || !plan.interval().equals(recurring.path("interval").asText())
+                || recurring.path("interval_count").asInt() != 1 || !"licensed".equals(recurring.path("usage_type").asText()))
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "This Premium plan is not available.");
+    }
+
     Map<String, String> docksCheckoutFields(UUID account, UUID attempt, String priceId, long expiresAt) {
         Map<String, String> fields = new LinkedHashMap<>();
         fields.put("mode", "subscription");
-        fields.put("payment_method_types[0]", "card");
         fields.put("locale", "en-GB");
+        fields.put("integration_identifier", "crystal-docks-premium-qmrvkxht");
         fields.put("line_items[0][price]", priceId);
         fields.put("line_items[0][quantity]", "1");
         fields.put("client_reference_id", attempt.toString());
@@ -128,6 +145,20 @@ public class StripeGateway {
         var response = post("/billing_portal/sessions", Map.of("customer", storedCustomerId, "return_url", publicUrl + "/client/billing"), "cp-portal-" + attempt);
         String url = response.path("url").asText();
         if (!providerUrl(url, "billing.stripe.com")) throw unavailable();
+        return url;
+    }
+
+    String docksPortal(String customerId, String configuration) {
+        requireConnected();
+        if (!liveMode || !customerId.matches("cus_[A-Za-z0-9]{1,96}")
+                || !configuration.matches("bpc_[A-Za-z0-9]{1,96}")) throw unavailable();
+        var portal = post("/billing_portal/sessions", Map.of("customer", customerId, "configuration", configuration,
+                "return_url", publicUrl + "/docks/reports"), "cp-docks-portal-" + UUID.randomUUID());
+        String url = portal.path("url").asText();
+        if (!"billing_portal.session".equals(portal.path("object").asText())
+                || !portal.path("livemode").isBoolean() || !portal.path("livemode").asBoolean()
+                || !customerId.equals(portal.path("customer").asText()) || !configuration.equals(portal.path("configuration").asText())
+                || url.length() > 2048 || !providerUrl(url, "billing.stripe.com")) throw unavailable();
         return url;
     }
     public String createCustomer(UUID account,String email,String name) {
@@ -166,9 +197,9 @@ public class StripeGateway {
         return verifyEvent(body, signature, webhookSecret);
     }
 
-    public JsonNode verifyDocksTestEvent(byte[] body, String signature, String signingSecret) {
+    public JsonNode verifyDocksEvent(byte[] body, String signature, String signingSecret) {
         requireConnected();
-        if (liveMode || !signingSecret.matches("whsec_[A-Za-z0-9]+")) throw invalidSignature();
+        if (!signingSecret.matches("whsec_[A-Za-z0-9]+")) throw invalidSignature();
         return verifyEvent(body, signature, signingSecret);
     }
 

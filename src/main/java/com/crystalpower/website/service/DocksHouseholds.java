@@ -34,16 +34,16 @@ public class DocksHouseholds {
                 FROM docks_household_invitation h
                 JOIN docks_subscription_status s ON s.stripe_subscription_id = h.stripe_subscription_id
                 JOIN docks_subscription_checkout a ON a.attempt_id = s.attempt_id
-                WHERE h.member_account_id = ?
+                WHERE a.live_mode = ? AND (h.member_account_id = ?
                     OR (a.account_id = ? AND (h.member_account_id IS NOT NULL OR h.expires_at_epoch > ?))
                     OR (h.member_account_id IS NULL AND h.expires_at_epoch > ?
                         AND s.provider_state = 'paid' AND s.paid_until_epoch > ?
                         AND EXISTS (SELECT 1 FROM docks_identity i
-                            WHERE i.account_id = ? AND i.issuer = ? AND i.subject = h.invited_email))
+                            WHERE i.account_id = ? AND i.issuer = ? AND i.subject = h.invited_email)))
                 ORDER BY h.expires_at_epoch DESC, h.id
                 """, (row, i) -> new Invitation(row.getObject(1, UUID.class), row.getString(2), row.getBoolean(3),
                     row.getBoolean(4), row.getBoolean(5)),
-                account, DocksEmailSignIn.ISSUER, account, now, account, account, now, now, now, account, DocksEmailSignIn.ISSUER);
+                account, DocksEmailSignIn.ISSUER, account, now, seats.live(), account, account, now, now, now, account, DocksEmailSignIn.ISSUER);
         return new View(true, householdSubscription(account) != null, items);
     }
 
@@ -72,9 +72,9 @@ public class DocksHouseholds {
         if (count >= DocksSubscriptions.Plan.HOUSEHOLD_MONTHLY.deviceLimit() - 1)
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Remove an invitation or member before inviting another adult.");
         db.update("""
-                INSERT INTO docks_household_invitation (id, stripe_subscription_id, invited_email, expires_at_epoch)
-                VALUES (?, ?, ?, ?)
-                """, UUID.randomUUID(), subscription, email, now + 7 * 86400L);
+                INSERT INTO docks_household_invitation (id, stripe_subscription_id, invited_email, expires_at_epoch, live_mode)
+                VALUES (?, ?, ?, ?, ?)
+                """, UUID.randomUUID(), subscription, email, now + 7 * 86400L, seats.live());
     }
 
     @Transactional
@@ -88,8 +88,8 @@ public class DocksHouseholds {
         if (account.equals(invite.member())) return;
         long now = Instant.now().getEpochSecond();
         if (invite.member() != null || invite.expires() <= now) throw unavailable();
-        int existing = db.queryForObject("SELECT COUNT(*) FROM docks_household_invitation WHERE member_account_id = ?",
-                Integer.class, account);
+        int existing = db.queryForObject("SELECT COUNT(*) FROM docks_household_invitation WHERE member_account_id = ? AND live_mode = ?",
+                Integer.class, account, seats.live());
         if (existing > 0)
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Leave your current household before joining another.");
         db.update("UPDATE docks_household_invitation SET member_account_id = ? WHERE id = ?", account, id);
@@ -126,10 +126,10 @@ public class DocksHouseholds {
         return db.query("""
                 SELECT s.stripe_subscription_id FROM docks_subscription_status s
                 JOIN docks_subscription_checkout a ON a.attempt_id = s.attempt_id
-                WHERE a.account_id = ? AND a.plan IN ('HOUSEHOLD_MONTHLY', 'HOUSEHOLD_ANNUAL')
+                WHERE a.account_id = ? AND a.live_mode = ? AND a.plan IN ('HOUSEHOLD_MONTHLY', 'HOUSEHOLD_ANNUAL')
                     AND s.provider_state = 'paid' AND s.paid_until_epoch > ?
                 ORDER BY a.expires_at_epoch DESC, s.stripe_subscription_id LIMIT 1
-                """, (row, i) -> row.getString(1), account, Instant.now().getEpochSecond())
+                """, (row, i) -> row.getString(1), account, seats.live(), Instant.now().getEpochSecond())
                 .stream().findFirst().orElse(null);
     }
 
@@ -139,9 +139,9 @@ public class DocksHouseholds {
                 FROM docks_household_invitation h
                 JOIN docks_subscription_status s ON s.stripe_subscription_id = h.stripe_subscription_id
                 JOIN docks_subscription_checkout a ON a.attempt_id = s.attempt_id
-                WHERE h.id = ?
+                WHERE h.id = ? AND a.live_mode = ?
                 """, (row, i) -> new Entry(row.getString(1), row.getString(2), row.getObject(3, UUID.class),
-                    row.getObject(4, UUID.class), row.getLong(5)), id).stream().findFirst().orElseThrow(DocksHouseholds::unavailable);
+                    row.getObject(4, UUID.class), row.getLong(5)), id, seats.live()).stream().findFirst().orElseThrow(DocksHouseholds::unavailable);
     }
 
     private void requireEnabled() {

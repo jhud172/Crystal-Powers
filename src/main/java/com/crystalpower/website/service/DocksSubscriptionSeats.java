@@ -5,7 +5,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -17,15 +16,11 @@ public class DocksSubscriptionSeats {
     private record Payment(String state, Long until) {}
 
     private final JdbcTemplate db;
-    private final StripeGateway stripe;
-    private final boolean sandboxEntitlements;
+    private final DocksBillingMode mode;
 
-    public DocksSubscriptionSeats(JdbcTemplate db, StripeGateway stripe,
-            @Value("${app.docks.stripe-test-enabled:false}") boolean sandboxBilling,
-            @Value("${app.docks.stripe-test-entitlements:false}") boolean sandboxEntitlements) {
+    public DocksSubscriptionSeats(JdbcTemplate db, DocksBillingMode mode) {
         this.db = db;
-        this.stripe = stripe;
-        this.sandboxEntitlements = sandboxBilling && sandboxEntitlements;
+        this.mode = mode;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -39,7 +34,7 @@ public class DocksSubscriptionSeats {
                 SELECT s.stripe_subscription_id, a.plan, a.account_id = ?
                 FROM docks_subscription_status s
                 JOIN docks_subscription_checkout a ON a.attempt_id = s.attempt_id
-                WHERE s.provider_state = 'paid' AND s.paid_until_epoch > ?
+                WHERE a.live_mode = ? AND s.provider_state = 'paid' AND s.paid_until_epoch > ?
                   AND (a.account_id = ? OR (a.plan IN ('HOUSEHOLD_MONTHLY', 'HOUSEHOLD_ANNUAL')
                       AND EXISTS (SELECT 1 FROM docks_household_invitation h
                           WHERE h.stripe_subscription_id = s.stripe_subscription_id AND h.member_account_id = ?)))
@@ -47,7 +42,7 @@ public class DocksSubscriptionSeats {
                          a.expires_at_epoch DESC, s.stripe_subscription_id
                 LIMIT 1
                 """, (row, i) -> new Subscription(row.getString(1), DocksSubscriptions.Plan.valueOf(row.getString(2)),
-                    row.getBoolean(3)), accountId, Instant.now().getEpochSecond(), accountId, accountId, accountId);
+                    row.getBoolean(3)), accountId, mode.live(), Instant.now().getEpochSecond(), accountId, accountId, accountId);
         if (subscriptions.isEmpty()) return Optional.empty();
         var subscription = subscriptions.get(0);
         // Re-read membership after acquiring the shared lock. A concurrent removal
@@ -67,8 +62,10 @@ public class DocksSubscriptionSeats {
     }
 
     boolean enabled() {
-        return sandboxEntitlements && !stripe.liveMode() && stripe.connected();
+        return mode.seatsEnabled();
     }
+
+    boolean live() { return mode.live(); }
 
     boolean isMember(String subscription, UUID account) {
         return Boolean.TRUE.equals(db.queryForObject("""
@@ -89,9 +86,11 @@ public class DocksSubscriptionSeats {
 
     private Optional<Payment> lockPayment(String subscription) {
         return db.query("""
-                SELECT provider_state, paid_until_epoch FROM docks_subscription_status
-                WHERE stripe_subscription_id = ? FOR UPDATE
-                """, (row, i) -> new Payment(row.getString(1), row.getObject(2, Long.class)), subscription)
+                SELECT s.provider_state, s.paid_until_epoch FROM docks_subscription_status s
+                WHERE s.stripe_subscription_id = ? AND EXISTS (
+                    SELECT 1 FROM docks_subscription_checkout a WHERE a.attempt_id = s.attempt_id AND a.live_mode = ?
+                ) FOR UPDATE
+                """, (row, i) -> new Payment(row.getString(1), row.getObject(2, Long.class)), subscription, mode.live())
                 .stream().findFirst();
     }
 }

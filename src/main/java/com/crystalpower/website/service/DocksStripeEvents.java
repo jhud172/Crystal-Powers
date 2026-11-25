@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -16,28 +15,26 @@ public class DocksStripeEvents {
     private final JdbcTemplate db;
     private final TransactionTemplate tx;
     private final StripeGateway stripe;
-    private final boolean enabled;
-    private final String signingSecret;
+    private final DocksBillingMode mode;
 
     private record Reference(String subscriptionId, UUID attemptId, String sessionId) {}
     private record Attempt(UUID id, UUID account, String price, String plan, String sessionId) {}
     private record Status(String providerState, Long paidUntil) {}
 
-    public DocksStripeEvents(JdbcTemplate db, TransactionTemplate tx, StripeGateway stripe,
-            @Value("${app.docks.stripe-test-enabled:false}") boolean enabled,
-            @Value("${app.docks.stripe-webhook-secret:}") String signingSecret) {
+    public DocksStripeEvents(JdbcTemplate db, TransactionTemplate tx, StripeGateway stripe, DocksBillingMode mode) {
         this.db = db;
         this.tx = tx;
         this.stripe = stripe;
-        this.enabled = enabled;
-        this.signingSecret = signingSecret;
+        this.mode = mode;
     }
 
     public void receive(byte[] raw, String signature) {
-        if (!enabled || stripe.liveMode()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        if (signingSecret.isBlank())
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Docks sandbox events are disabled.");
-        var event = stripe.verifyDocksTestEvent(raw, signature, signingSecret);
+        if (!mode.enabled()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        if (mode.webhook().isBlank())
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Docks subscription events are unavailable.");
+        var event = stripe.verifyDocksEvent(raw, signature, mode.webhook());
+        if (!event.path("livemode").isBoolean() || event.path("livemode").asBoolean() != mode.live())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unexpected Stripe event mode.");
         String eventId = event.path("id").asText();
         if (!eventId.matches("evt_[A-Za-z0-9]{1,96}"))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Stripe event ID.");
@@ -63,7 +60,7 @@ public class DocksStripeEvents {
         var subscription = stripe.subscription(reference.subscriptionId());
         if (!reference.subscriptionId().equals(subscription.path("id").asText())
                 || !"subscription".equals(subscription.path("object").asText())
-                || !subscription.path("livemode").isBoolean() || subscription.path("livemode").asBoolean())
+                || !subscription.path("livemode").isBoolean() || subscription.path("livemode").asBoolean() != mode.live())
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Unexpected Stripe subscription.");
 
         var metadata = subscription.path("metadata");
@@ -96,11 +93,11 @@ public class DocksStripeEvents {
                 """;
         var bySubscription = db.query(fields + """
                 JOIN docks_subscription_status s ON s.attempt_id = a.attempt_id
-                WHERE s.stripe_subscription_id = ?
-                """, this::readAttempt, reference.subscriptionId());
+                WHERE s.stripe_subscription_id = ? AND a.live_mode = ?
+                """, this::readAttempt, reference.subscriptionId(), mode.live());
         if (!bySubscription.isEmpty()) return Optional.of(bySubscription.get(0));
         if (reference.attemptId() == null) return Optional.empty();
-        return db.query(fields + " WHERE a.attempt_id = ?", this::readAttempt, reference.attemptId()).stream()
+        return db.query(fields + " WHERE a.attempt_id = ? AND a.live_mode = ?", this::readAttempt, reference.attemptId(), mode.live()).stream()
                 .filter(attempt -> reference.sessionId() == null || attempt.sessionId() == null
                         || reference.sessionId().equals(attempt.sessionId())).findFirst();
     }
@@ -121,7 +118,7 @@ public class DocksStripeEvents {
             return new Status("unverified", null);
         var item = data.path(0);
         var price = item.path("price");
-        String interval = attempt.plan().endsWith("_ANNUAL") ? "year" : "month";
+        String interval = DocksSubscriptions.Plan.valueOf(attempt.plan()).interval();
         if (!attempt.price().equals(price.path("id").asText()) || item.path("quantity").asInt(-1) != 1
                 || !"gbp".equals(price.path("currency").asText())
                 || !interval.equals(price.path("recurring").path("interval").asText())
@@ -153,17 +150,17 @@ public class DocksStripeEvents {
                 ? new Status("paid", end) : new Status("unverified", null);
     }
 
-    private static Reference reference(JsonNode event) {
+    private Reference reference(JsonNode event) {
         var object = event.path("data").path("object");
         String subscription;
         String attempt;
         String session = null;
         switch (event.path("type").asText()) {
-            case "checkout.session.completed" -> {
+            case "checkout.session.completed", "checkout.session.async_payment_succeeded" -> {
                 subscription = object.path("subscription").asText();
                 attempt = object.path("client_reference_id").asText();
                 session = object.path("id").asText();
-                if (!session.matches("cs_test_[A-Za-z0-9]{1,90}")) return null;
+                if (!StripeGateway.docksSessionId(session, mode.live())) return null;
             }
             case "customer.subscription.updated", "customer.subscription.deleted" -> {
                 subscription = object.path("id").asText();

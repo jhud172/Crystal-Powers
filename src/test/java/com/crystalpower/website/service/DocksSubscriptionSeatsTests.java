@@ -30,14 +30,15 @@ class DocksSubscriptionSeatsTests {
                         "classpath:db/migration/V92__docks_subscription_checkout.sql",
                         "classpath:db/migration/V93__docks_subscription_status.sql",
                         "classpath:db/migration/V94__docks_subscription_seats.sql",
-                        "classpath:db/migration/V95__docks_household_members.sql").build();
+                        "classpath:db/migration/V95__docks_household_members.sql",
+                        "classpath:db/migration/V102__docks_stripe_mode_isolation.sql").build();
         var workers = Executors.newFixedThreadPool(6);
         try {
             var db = new JdbcTemplate(database);
             var devices = new DocksDeviceRepository(db);
             var stripe = mock(StripeGateway.class);
             when(stripe.connected()).thenReturn(true);
-            var seats = new DocksSubscriptionSeats(db, stripe, true, true);
+            var seats = new DocksSubscriptionSeats(db, new DocksBillingMode(stripe, true, true, false, ""));
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));
             var entitlements = new DocksEntitlements(db, tx, seats);
             var households = new DocksHouseholds(db, seats);

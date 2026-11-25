@@ -31,13 +31,15 @@ class DocksStripeEventsTests {
                         "classpath:db/migration/V92__docks_subscription_checkout.sql",
                         "classpath:db/migration/V93__docks_subscription_status.sql",
                         "classpath:db/migration/V94__docks_subscription_seats.sql",
-                        "classpath:db/migration/V95__docks_household_members.sql").build();
+                        "classpath:db/migration/V95__docks_household_members.sql",
+                        "classpath:db/migration/V102__docks_stripe_mode_isolation.sql").build();
         try {
             var db = new JdbcTemplate(database);
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));
             var stripe = spy(new StripeGateway(json, false, false, "sk_test_Fixture", "whsec_FixtureWebsite",
                     "https://example.com"));
-            var events = new DocksStripeEvents(db, tx, stripe, true, HOOK);
+            var sandbox = new DocksBillingMode(stripe, true, true, false, HOOK);
+            var events = new DocksStripeEvents(db, tx, stripe, sandbox);
             var account = UUID.randomUUID();
             var attempt = UUID.randomUUID();
             db.update("INSERT INTO docks_account(id, display_name) VALUES (?, 'Fixture')", account);
@@ -46,8 +48,9 @@ class DocksStripeEventsTests {
             devices.enrol(account, installation, "Fixture PC");
             var next = UUID.randomUUID();
             devices.enrol(account, next, "Second PC");
-            var entitlements = new DocksEntitlements(db, tx, new DocksSubscriptionSeats(db, stripe, true, true));
-            var disabled = new DocksEntitlements(db, tx, new DocksSubscriptionSeats(db, stripe, true, false));
+            var entitlements = new DocksEntitlements(db, tx, new DocksSubscriptionSeats(db, sandbox));
+            var disabled = new DocksEntitlements(db, tx, new DocksSubscriptionSeats(db,
+                    new DocksBillingMode(stripe, true, false, false, HOOK)));
             db.update("""
                     INSERT INTO docks_subscription_checkout
                       (account_id, attempt_id, plan, stripe_price, expires_at_epoch, stripe_session)
@@ -81,13 +84,20 @@ class DocksStripeEventsTests {
             assertFalse(disabled.status(account, installation).orElseThrow().canRepair());
             assertEquals(end, entitlements.status(account, installation).orElseThrow().subscriptionExpiresAt().toEpochSecond());
             assertFalse(entitlements.status(account, next).orElseThrow().canRepair());
-            var liveStripe = mock(StripeGateway.class);
-            when(liveStripe.liveMode()).thenReturn(true);
-            when(liveStripe.connected()).thenReturn(true);
-            var live = new DocksEntitlements(db, tx, new DocksSubscriptionSeats(db, liveStripe, true, true));
+            var liveStripe = spy(new StripeGateway(json, false, true, "sk_live_Fixture", "whsec_FixtureWebsite",
+                    "https://example.com"));
+            var liveMode = new DocksBillingMode(liveStripe, true, true, true, HOOK);
+            var live = new DocksEntitlements(db, tx, new DocksSubscriptionSeats(db, liveMode));
             assertFalse(live.status(account, installation).orElseThrow().canRepair());
+            var liveEvents = new DocksStripeEvents(db, tx, liveStripe, liveMode);
+            assertThrows(ResponseStatusException.class, () -> liveEvents.receive(completed, sign(completed, HOOK)));
+            var crossMode = event("evt_CrossMode", "checkout.session.completed", """
+                    {"id":"cs_live_Fixture","subscription":"sub_CrossMode","client_reference_id":"%s"}
+                    """.formatted(attempt), true);
+            liveEvents.receive(crossMode, sign(crossMode, HOOK));
+            verify(liveStripe, never()).subscription(anyString());
 
-            var billing = new DocksSubscriptions(db, tx, stripe, true, "price_Fixture", "", "", "");
+            var billing = new DocksSubscriptions(db, tx, stripe, sandbox, "", "price_Fixture", "", "", "");
             assertEquals(409, assertThrows(ResponseStatusException.class,
                     () -> billing.checkout(account, DocksSubscriptions.Plan.SINGLE_MONTHLY)).getStatusCode().value());
 
@@ -101,13 +111,35 @@ class DocksStripeEventsTests {
             assertNull(db.queryForObject("SELECT paid_until_epoch FROM docks_subscription_status", Long.class));
             assertEquals(3, db.queryForObject("SELECT COUNT(*) FROM docks_subscription_event", Integer.class));
             assertFalse(entitlements.status(account, installation).orElseThrow().canRepair());
+
+            var liveAttempt = UUID.randomUUID();
+            db.update("""
+                    INSERT INTO docks_subscription_checkout
+                      (account_id, attempt_id, plan, stripe_price, expires_at_epoch, stripe_session, live_mode)
+                    VALUES (?, ?, 'SINGLE_MONTHLY', 'price_Fixture', ?, 'cs_live_Fixture', TRUE)
+                    """, account, liveAttempt, Instant.now().plusSeconds(3600).getEpochSecond());
+            var liveSubscription = json.readTree(active.toString()
+                    .replace("sub_Fixture", "sub_LiveFixture").replace(attempt.toString(), liveAttempt.toString())
+                    .replace("\"livemode\":false", "\"livemode\":true"));
+            doReturn(liveSubscription).when(liveStripe).subscription("sub_LiveFixture");
+            var paid = event("evt_LiveAsync", "checkout.session.async_payment_succeeded", """
+                    {"id":"cs_live_Fixture","subscription":"sub_LiveFixture","client_reference_id":"%s"}
+                    """.formatted(liveAttempt), true);
+            liveEvents.receive(paid, sign(paid, HOOK));
+            assertEquals(end, live.status(account, next).orElseThrow().subscriptionExpiresAt().toEpochSecond());
+            assertFalse(live.status(account, installation).orElseThrow().canRepair());
+            assertFalse(entitlements.status(account, next).orElseThrow().canRepair());
         } finally { database.shutdown(); }
     }
 
     private static byte[] event(String id, String type, String object) {
+        return event(id, type, object, false);
+    }
+
+    private static byte[] event(String id, String type, String object, boolean live) {
         return """
-                {"id":"%s","type":"%s","livemode":false,"api_version":"%s","data":{"object":%s}}
-                """.formatted(id, type, StripeGateway.API_VERSION, object).getBytes(StandardCharsets.UTF_8);
+                {"id":"%s","type":"%s","livemode":%b,"api_version":"%s","data":{"object":%s}}
+                """.formatted(id, type, live, StripeGateway.API_VERSION, object).getBytes(StandardCharsets.UTF_8);
     }
 
     private static String sign(byte[] body, String secret) throws Exception {

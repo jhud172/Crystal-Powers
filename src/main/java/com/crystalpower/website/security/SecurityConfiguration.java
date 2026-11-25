@@ -48,7 +48,8 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.DELETE, "/api/docks/reports", "/api/docks/reports/support-access").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/docks/reports/support-access").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/docks/billing/plans").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/docks/billing/checkout", "/api/docks/billing/stripe/webhook").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/docks/billing/checkout", "/api/docks/billing/portal",
+                        "/api/docks/billing/stripe/webhook").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/docks/household").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/docks/household/invitations", "/api/docks/household/invitations/{id}/accept").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/docks/household/invitations/{id}").permitAll()
@@ -88,7 +89,7 @@ public class SecurityConfiguration {
                             "/api/docks/explanations/online",
                             "/api/docks/auth/google/start", "/api/docks/auth/google/exchange",
                             "/api/docks/auth/google/desktop-code", "/api/docks/auth/google/desktop-exchange",
-                            "/api/docks/billing/checkout", "/api/docks/billing/stripe/webhook",
+                            "/api/docks/billing/checkout", "/api/docks/billing/portal", "/api/docks/billing/stripe/webhook",
                             "/api/docks/household/invitations", "/api/docks/household/invitations/{id}/accept",
                             "/api/docks/household/invitations/{id}"))
             .formLogin(config -> config.disable())

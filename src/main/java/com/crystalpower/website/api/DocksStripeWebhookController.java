@@ -5,6 +5,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,5 +26,10 @@ public class DocksStripeWebhookController {
             throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "The Stripe event is too large.");
         events.receive(bytes, signature);
         return Map.of("received", true);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Void> rejected(ResponseStatusException failure) {
+        return ResponseEntity.status(failure.getStatusCode()).build();
     }
 }

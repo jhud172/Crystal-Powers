@@ -9,6 +9,7 @@ import java.util.Map;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/docks/billing")
@@ -24,14 +25,30 @@ public class DocksSubscriptionsController {
     }
 
     public record Choice(@NotNull DocksSubscriptions.Plan plan) {}
-    public record SandboxBilling(java.util.List<DocksSubscriptions.Plan> plans, boolean testMode,
-                                 DocksSubscriptions.TestStatus subscription) {}
+    public record Billing(java.util.List<DocksSubscriptions.Plan> plans, boolean testMode,
+                          DocksSubscriptions.SubscriptionStatus subscription, boolean canManage) {}
 
     @GetMapping("/plans")
     public ResponseEntity<Object> plans(@RequestHeader(name = "Authorization", required = false) String token) {
-        return auth.account(token).map(account -> response(200, new SandboxBilling(
-                        subscriptions.availablePlans(), true, subscriptions.latestStatus(account).orElse(null))))
-                .orElseGet(DocksSubscriptionsController::unauthorised);
+        return auth.account(token).map(account -> {
+            var status = subscriptions.latestStatus(account).orElse(null);
+            return response(200, new Billing(subscriptions.availablePlans(), subscriptions.testMode(), status,
+                    status != null && subscriptions.portalConfigured()));
+        }).orElseGet(DocksSubscriptionsController::unauthorised);
+    }
+
+    @PostMapping("/portal")
+    public ResponseEntity<Object> portal(@RequestHeader(name = "Authorization", required = false) String token) {
+        return auth.account(token).map(account -> {
+            limiter.check("docks-portal:" + account, 8, 900);
+            return response(200, subscriptions.portal(account));
+        }).orElseGet(DocksSubscriptionsController::unauthorised);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Object> rejected(ResponseStatusException failure) {
+        return response(failure.getStatusCode().value(), Map.of("message",
+                failure.getReason() == null ? "Crystal Docks billing is unavailable." : failure.getReason()));
     }
 
     @PostMapping("/checkout")

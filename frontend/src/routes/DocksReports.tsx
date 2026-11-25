@@ -10,7 +10,7 @@ const planLabels = {
   HOUSEHOLD_ANNUAL: "Household, annual",
 };
 type Plan = keyof typeof planLabels;
-type TestSubscription = { plan: Plan; state: string; paidUntilEpoch: number | null };
+type Subscription = { plan: Plan; state: string; paidUntilEpoch: number | null };
 
 async function request<T>(path: string, method = "GET", value?: unknown, token?: string, browserCookies = false): Promise<T> {
   const headers = new Headers();
@@ -165,7 +165,7 @@ export default function DocksReports() {
           <small id="docks-code-help">Paste this code into your own Crystal Docks app within two minutes. Keep it private.</small>
         </div>}
       </section>}
-      <SandboxCheckout token={token} />
+      <PremiumBilling token={token} />
       <Household token={token} />
       <ResearchPreference token={token} />
       <ReportSupport key={token} token={token} forLog />
@@ -314,23 +314,28 @@ function ReportSupport({ token, canGrant = false, changingReports = false, forLo
   </section>;
 }
 
-function SandboxCheckout({ token }: { token: string }) {
+function PremiumBilling({ token }: { token: string }) {
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [subscription, setSubscription] = useState<TestSubscription | null>(null);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [testMode, setTestMode] = useState(true);
+  const [canManage, setCanManage] = useState(false);
   const [plan, setPlan] = useState<Plan | "">("");
   const [link, setLink] = useState("");
+  const [portalLink, setPortalLink] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let current = true;
-    void request<{ plans?: string[]; testMode?: boolean; subscription?: TestSubscription | null }>(
+    void request<{ plans?: string[]; testMode?: boolean; subscription?: Subscription | null; canManage?: boolean }>(
       "billing/plans", "GET", undefined, token,
     ).then(result => {
-      if (!current || result?.testMode !== true) return;
+      if (!current || typeof result?.testMode !== "boolean") return;
       const available = (result.plans ?? []).filter((item): item is Plan =>
         Object.prototype.hasOwnProperty.call(planLabels, item));
       setPlans(available);
+      setTestMode(result.testMode);
+      setCanManage(!result.testMode && result.canManage === true);
       setPlan(available[0] ?? "");
       setSubscription(result.subscription ?? null);
     }).catch(() => { /* Billing is optional and must not interrupt the report viewer. */ });
@@ -346,32 +351,54 @@ function SandboxCheckout({ token }: { token: string }) {
     try {
       const result = await request<{ url: string; testMode: boolean }>("billing/checkout", "POST", { plan }, token);
       const url = new URL(result.url);
-      if (result.testMode !== true || url.origin !== "https://checkout.stripe.com" || url.username || url.password)
-        throw new Error("Stripe did not return a valid test checkout.");
+      if (result.testMode !== testMode || url.origin !== "https://checkout.stripe.com" || url.username || url.password)
+        throw new Error("Stripe did not return a valid checkout.");
       setLink(url.href);
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : "Checkout is currently unavailable.");
     } finally { setBusy(false); }
   }
 
+  async function manage() {
+    if (busy || !canManage) return;
+    setBusy(true);
+    setError("");
+    setPortalLink("");
+    try {
+      const result = await request<{ url: string; testMode: boolean }>("billing/portal", "POST", undefined, token);
+      const url = new URL(result.url);
+      if (result.testMode !== false || url.origin !== "https://billing.stripe.com" || url.username || url.password)
+        throw new Error("Stripe did not return a valid subscription management link.");
+      setPortalLink(url.href);
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Subscription management is currently unavailable.");
+    } finally { setBusy(false); }
+  }
+
   if (plans.length === 0 && !subscription) return null;
   const canPrepare = plans.length > 0 && (!subscription
     || subscription.state === "canceled" || subscription.state === "incomplete_expired");
-  return <section className="admin-form" aria-label="Premium test checkout">
-    <h2>Premium test checkout</h2>
-    <p>Use Stripe test card details. This sandbox does not charge money.</p>
+  const title = testMode ? "Premium test checkout" : "Premium subscription";
+  return <section className="admin-form" aria-label={title} aria-busy={busy}>
+    <h2>{title}</h2>
+    <p>{testMode ? "Use Stripe test card details. This sandbox does not charge money."
+      : "Choose one device or a household of up to five devices. Stripe shows the price and renewal terms before you pay."}</p>
     {subscription && <p>
       <strong>{planLabels[subscription.plan]}</strong> · {subscription.state.replace(/_/g, " ")}
       {subscription.paidUntilEpoch !== null && <> · Paid through {new Date(subscription.paidUntilEpoch * 1000).toLocaleDateString("en-GB")}</>}
     </p>}
     {canPrepare && <form onSubmit={prepare}>
-      <label>Choose a test plan<select value={plan} disabled={busy} onChange={event => {
+      <label>{testMode ? "Choose a test plan" : "Choose a Premium plan"}<select value={plan} disabled={busy} onChange={event => {
         setPlan(event.target.value as Plan); setLink("");
       }}>{plans.map(item => <option key={item} value={item}>{planLabels[item]}</option>)}</select></label>
-      <button className="admin-secondary" disabled={busy}>Prepare test checkout</button>
+      <button className="admin-secondary" disabled={busy}>{testMode ? "Prepare test checkout" : "Prepare checkout"}</button>
     </form>}
     {error && <p role="alert">{error}</p>}
-    {link && <a className="studio-button" href={link} rel="noreferrer">Open Stripe test checkout</a>}
+    {link && <a className="studio-button" href={link} rel="noreferrer">{testMode ? "Open Stripe test checkout" : "Open Stripe checkout"}</a>}
+    {canManage && <button type="button" className="admin-secondary" disabled={busy} onClick={() => void manage()}>
+      Manage subscription
+    </button>}
+    {portalLink && <a className="studio-button" href={portalLink} rel="noreferrer">Open Stripe subscription management</a>}
   </section>;
 }
 
