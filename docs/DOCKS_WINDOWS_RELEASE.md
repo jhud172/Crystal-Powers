@@ -6,7 +6,7 @@ Upload the signed MSIX to the `docks-downloads` public bucket in the website's c
 
 Before enabling the release feed, run `packaging/Test-ReleaseMsix.ps1` from the Windows repository on the downloaded file on a clean Windows 11 machine. Pass the digest, version and publisher from the release build record. It checks the download bytes, exact package identity, architecture, publisher and trusted timestamped signature.
 
-Set `DOCKS_RELEASE_WINDOWS_X64_VERSION` to the four-part MSIX version and `DOCKS_RELEASE_WINDOWS_X64_URL` to the exact HTTPS asset URL. Confirm `GET /api/docks/releases/windows-x64` returns that version and the matching `/{version}/download` route delivers the verified package from a signed-out browser. Both environment values default to blank.
+Set `DOCKS_RELEASE_WINDOWS_X64_VERSION` to the four-part MSIX version, `DOCKS_RELEASE_WINDOWS_X64_URL` to the exact HTTPS asset URL, and `DOCKS_RELEASE_WINDOWS_X64_SHA256` to the verified digest of the signed package. The feed and redirect require all three settings. From a signed-out browser, confirm the feed returns the expected `version` and `sha256` and the matching `/{version}/download` route delivers a package that passes `Test-ReleaseMsix.ps1`. Compare with the build record independently of the feed.
 
 Open `/docks` in a signed-out browser and check the version and Windows download link. The same page shows the release status with no download link when the feed is empty. Its app preview comes from the Windows smoke test with example data. The reports link opens the separate account area.
 

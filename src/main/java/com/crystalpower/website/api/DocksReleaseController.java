@@ -19,7 +19,7 @@ public class DocksReleaseController {
     @GetMapping(ROOT)
     public ResponseEntity<Map<String, String>> current() {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(
-                releases.current().map(value -> Map.of("version", value.version())).orElseGet(Map::of));
+                releases.current().map(value -> Map.of("version", value.version(), "sha256", value.sha256())).orElseGet(Map::of));
     }
 
     @GetMapping(ROOT + "/{version}/download")

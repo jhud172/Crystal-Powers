@@ -5,7 +5,7 @@ import "../styles/pages/docks.css";
 
 const releasePath = "/api/docks/releases/windows-x64";
 const preview = "/renders/docks/overview.png";
-type Release = { state: "loading" | "unlisted" | "error" } | { state: "available"; version: string };
+type Release = { state: "loading" | "unlisted" | "error" } | { state: "available"; version: string; sha256: string };
 
 function readRelease(data: unknown): Release {
   if (!data || typeof data !== "object" || Array.isArray(data)) return { state: "error" };
@@ -15,7 +15,9 @@ function readRelease(data: unknown): Release {
     return { state: "error" };
   const parts = version.split(".").map(Number);
   if (parts.some(part => part > 65535) || (parts[0] === 0 && parts[1] === 0)) return { state: "error" };
-  return { state: "available", version };
+  const sha256 = "sha256" in data ? data.sha256 : undefined;
+  if (typeof sha256 !== "string" || !/^[a-f0-9]{64}$/.test(sha256)) return { state: "error" };
+  return { state: "available", version, sha256 };
 }
 
 export default function Docks() {
@@ -70,6 +72,11 @@ export default function Docks() {
             {release.state === "available" && `Signed installer · Version ${release.version}`}
           </p>
           <p className="docks-requirements">Requires Windows 11 (x64) and a Crystal Docks account.</p>
+          {release.state === "available" && <details className="docks-integrity">
+            <summary>Installer checksum</summary>
+            <p>Compare this SHA-256 checksum with the downloaded file before installing.</p>
+            <code>{release.sha256}</code>
+          </details>}
         </div>
       </header>
       <figure className="docks-preview">

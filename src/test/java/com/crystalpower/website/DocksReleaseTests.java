@@ -18,6 +18,7 @@ class DocksReleaseTests {
         assertEquals(404, release.download(version).getStatusCode().value());
         config.setProperty("DOCKS_RELEASE_WINDOWS_X64_VERSION", version);
         config.setProperty("app.media.supabase-url", "https://fixture.supabase.co");
+        config.setProperty("DOCKS_RELEASE_WINDOWS_X64_SHA256", "ab".repeat(32));
         for (String bad : new String[] {"http://fixture.supabase.co" + path, "https://other.invalid" + path,
                 "https://fixture.supabase.co" + path + "?skip=1", "https://fixture.supabase.co" + path.replace("signed", "unsigned")}) {
             config.setProperty("DOCKS_RELEASE_WINDOWS_X64_URL", bad);
@@ -26,7 +27,15 @@ class DocksReleaseTests {
         }
         String storage = "https://fixture.supabase.co" + path;
         config.setProperty("DOCKS_RELEASE_WINDOWS_X64_URL", storage);
+        config.setProperty("DOCKS_RELEASE_WINDOWS_X64_SHA256", "");
+        assertTrue(release.current().getBody().isEmpty());
+        assertEquals(404, release.download(version).getStatusCode().value());
+        config.setProperty("DOCKS_RELEASE_WINDOWS_X64_SHA256", "not-a-digest");
+        assertTrue(release.current().getBody().isEmpty());
+        assertEquals(404, release.download(version).getStatusCode().value());
+        config.setProperty("DOCKS_RELEASE_WINDOWS_X64_SHA256", "AB".repeat(32));
         assertEquals(version, release.current().getBody().get("version"));
+        assertEquals("ab".repeat(32), release.current().getBody().get("sha256"));
         assertEquals("no-store", release.current().getHeaders().getCacheControl());
         assertEquals(302, release.download(version).getStatusCode().value());
         assertEquals(storage, release.download(version).getHeaders().getLocation().toString());

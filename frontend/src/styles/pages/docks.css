@@ -67,6 +67,11 @@
   font-size: .875rem;
 }
 
+.docks-integrity { margin-top: .75rem; font-size: .875rem; }
+.docks-integrity summary { cursor: pointer; }
+.docks-integrity p { margin: .4rem 0; }
+.docks-integrity code { overflow-wrap: anywhere; user-select: all; }
+
 .docks-preview { margin: 0; }
 
 .docks-preview img {

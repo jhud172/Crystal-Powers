@@ -1,13 +1,14 @@
 package com.crystalpower.website.service;
 
 import java.net.URI;
+import java.util.Locale;
 import java.util.Optional;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DocksWindowsRelease {
-    public record Release(String version, URI asset) {}
+    public record Release(String version, URI asset, String sha256) {}
 
     private final Environment config;
 
@@ -20,6 +21,8 @@ public class DocksWindowsRelease {
         String[] parts = version.split("\\.");
         for (String part : parts) if (Integer.parseInt(part) > 65535) return Optional.empty();
         if (Integer.parseInt(parts[0]) == 0 && Integer.parseInt(parts[1]) == 0) return Optional.empty();
+        String sha256 = config.getProperty("DOCKS_RELEASE_WINDOWS_X64_SHA256", "");
+        if (!sha256.matches("[a-fA-F0-9]{64}")) return Optional.empty();
         String filename = "Crystal-Docks-" + version + "-win-x64-signed.msix";
         try {
             URI asset = URI.create(config.getProperty("DOCKS_RELEASE_WINDOWS_X64_URL", ""));
@@ -32,7 +35,7 @@ public class DocksWindowsRelease {
                     && path.equals("/jhud172/crystal-docks/releases/download/v" + version + "/" + filename);
             boolean approvedStorage = asset.getHost().equalsIgnoreCase(supabase.getHost())
                     && path.equals("/storage/v1/object/public/docks-downloads/" + filename);
-            return approvedGitHub || approvedStorage ? Optional.of(new Release(version, asset)) : Optional.empty();
+            return approvedGitHub || approvedStorage ? Optional.of(new Release(version, asset, sha256.toLowerCase(Locale.ROOT))) : Optional.empty();
         } catch (IllegalArgumentException invalidUri) {
             return Optional.empty();
         }
