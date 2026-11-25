@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -24,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.ResultActions;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -49,19 +51,22 @@ class DocksCustomerJourneyTests {
     @Autowired ObjectMapper json;
     @MockitoBean EmailTransport mail;
     @MockitoBean OwnerService owners;
+    private final AtomicReference<EmailTransport.Message> delivered = new AtomicReference<>();
 
-    @Test
-    void enrolledCustomerControlsReportsSupportLogsAndResearchIndependently() throws Exception {
-        var delivered = new AtomicReference<EmailTransport.Message>();
+    @BeforeEach
+    void captureEmail() {
         when(mail.configured()).thenReturn(true);
-        http.perform(get(DOCKS + "/auth/email")).andExpect(status().isOk()).andExpect(jsonPath("$.enabled").value(true));
         doAnswer(invocation -> {
             delivered.set(invocation.getArgument(0));
             return null;
         }).when(mail).send(any(EmailTransport.Message.class));
+    }
 
-        String customer = signIn(delivered);
-        String other = signIn(delivered);
+    @Test
+    void enrolledCustomerControlsReportsSupportLogsAndResearchIndependently() throws Exception {
+        http.perform(get(DOCKS + "/auth/email")).andExpect(status().isOk()).andExpect(jsonPath("$.enabled").value(true));
+        String customer = signIn();
+        String other = signIn();
         UUID installation = UUID.randomUUID();
         String entitlement = DOCKS + "/entitlement?installationId=" + installation;
         asCustomer(get(entitlement), customer).andExpect(status().isNotFound());
@@ -130,7 +135,91 @@ class DocksCustomerJourneyTests {
         asCustomer(get(REPORTS), customer).andExpect(status().isUnauthorized());
     }
 
-    private String signIn(AtomicReference<EmailTransport.Message> delivered) throws Exception {
+    @Test
+    void ownerKeyCanBeTransferredButCannotCrossAccountsOrSurviveRevocation() throws Exception {
+        String customer = signIn();
+        String other = signIn();
+        UUID first = UUID.randomUUID();
+        UUID replacement = UUID.randomUUID();
+        UUID otherInstallation = UUID.randomUUID();
+        String firstId = enrol(customer, first, "First PC");
+        enrol(customer, replacement, "Replacement PC");
+        enrol(other, otherInstallation, "Other account PC");
+
+        String keys = "/api/admin/docks/access-keys";
+        var issue = Map.of("durationDays", 30, "deviceLimit", 1);
+        var principal = new OwnerPrincipal(UUID.randomUUID(), "owner@example.invalid", 1);
+        when(owners.valid(principal)).thenReturn(true);
+        var owner = UsernamePasswordAuthenticationToken.authenticated(principal, null,
+                List.of(new SimpleGrantedAuthority("ROLE_OWNER")));
+        asCustomer(body(post(keys).with(csrf()), issue), customer).andExpect(status().isUnauthorized());
+        http.perform(body(post(keys).with(authentication(owner)), issue)).andExpect(status().isForbidden());
+        var issued = response(http.perform(body(post(keys).with(authentication(owner)).with(csrf()), issue))
+                .andExpect(status().isCreated()).andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(jsonPath("$.key.expiresAt").isEmpty()));
+        String code = issued.get("code").asText();
+        String keyPath = keys + "/" + issued.get("key").get("id").asText();
+        http.perform(get(keys).with(authentication(owner)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].code").doesNotExist());
+
+        asCustomer(get(entitlement(first)), customer).andExpect(status().isOk())
+                .andExpect(jsonPath("$.canRepair").value(false));
+        redeem(customer, first, code).andExpect(status().isNoContent());
+        var redeemed = response(asCustomer(get(entitlement(first)), customer)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.canRepair").value(true)));
+        var expiry = OffsetDateTime.parse(redeemed.get("accessKeyExpiresAt").asText());
+        redeem(other, otherInstallation, code).andExpect(status().isUnprocessableEntity());
+        redeem(customer, replacement, code).andExpect(status().isConflict());
+
+        String oldDevice = DOCKS + "/devices/" + firstId;
+        asCustomer(delete(oldDevice), other).andExpect(status().isNotFound());
+        asCustomer(get(entitlement(first)), customer).andExpect(status().isOk())
+                .andExpect(jsonPath("$.canRepair").value(true));
+        asCustomer(delete(oldDevice), customer).andExpect(status().isNoContent());
+        asCustomer(get(entitlement(first)), customer).andExpect(status().isNotFound());
+        redeem(customer, replacement, code).andExpect(status().isNoContent());
+        asCustomer(get(entitlement(replacement)), customer).andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessKeyExpiresAt").value(redeemed.get("accessKeyExpiresAt").asText()));
+
+        http.perform(body(post(keyPath + "/state").with(authentication(owner)).with(csrf()),
+                Map.of("state", "SUSPENDED"))).andExpect(status().isNoContent());
+        asCustomer(get(entitlement(replacement)), customer).andExpect(status().isOk())
+                .andExpect(jsonPath("$.canRepair").value(false));
+        http.perform(body(post(keyPath + "/state").with(authentication(owner)).with(csrf()),
+                Map.of("state", "ACTIVE"))).andExpect(status().isNoContent());
+        http.perform(body(post(keyPath + "/extend").with(authentication(owner)).with(csrf()),
+                Map.of("days", 7))).andExpect(status().isNoContent());
+        var extended = response(asCustomer(get(entitlement(replacement)), customer)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.canRepair").value(true)));
+        assertEquals(expiry.plusDays(7).toInstant(),
+                OffsetDateTime.parse(extended.get("accessKeyExpiresAt").asText()).toInstant());
+
+        http.perform(body(post(keyPath + "/state").with(authentication(owner)).with(csrf()),
+                Map.of("state", "REVOKED"))).andExpect(status().isNoContent());
+        asCustomer(get(entitlement(replacement)), customer).andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(jsonPath("$.canRepair").value(false));
+        redeem(customer, replacement, code).andExpect(status().isUnprocessableEntity());
+        http.perform(body(post(keyPath + "/state").with(authentication(owner)).with(csrf()),
+                Map.of("state", "ACTIVE"))).andExpect(status().isConflict());
+    }
+
+    private String enrol(String customer, UUID installation, String label) throws Exception {
+        return response(asCustomer(body(post(DOCKS + "/devices"),
+                Map.of("installationId", installation, "label", label)), customer)
+                .andExpect(status().isOk())).get("id").asText();
+    }
+
+    private ResultActions redeem(String customer, UUID installation, String code) throws Exception {
+        return asCustomer(body(post(DOCKS + "/access-key/redeem"),
+                Map.of("installationId", installation, "code", code)), customer);
+    }
+
+    private String entitlement(UUID installation) {
+        return DOCKS + "/entitlement?installationId=" + installation;
+    }
+
+    private String signIn() throws Exception {
         var email = "pilot-" + UUID.randomUUID() + "@example.invalid";
         delivered.set(null);
         http.perform(body(post(DOCKS + "/auth/email/request"), Map.of("email", email))).andExpect(status().isAccepted());
