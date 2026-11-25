@@ -109,6 +109,7 @@ export default function DocksReports() {
       <button className="admin-secondary" type="button" disabled={busy} onClick={signOut}>Sign out</button>
       <SandboxCheckout token={token} />
       <Household token={token} />
+      <ResearchPreference token={token} />
       {view && <>
         {view.reports.length === 0 && <p>{view.enabled ? "You have not shared a device summary yet." : "Report sharing is turned off. You can turn it on in the Windows app."}</p>}
         {view.reports.length > 0 && <ul>{view.reports.map((report, index) => <li key={`${report.checkedAt}-${index}`}>
@@ -131,6 +132,43 @@ export default function DocksReports() {
         <button className="studio-button" disabled={busy}>Sign in</button>
       </form>}
     </>}
+  </section>;
+}
+
+function ResearchPreference({ token }: { token: string }) {
+  const [enabled, setEnabled] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let live = true;
+    void request<{ enabled: boolean }>("research", "GET", undefined, token).then(result => {
+      if (live) setEnabled(result.enabled === true);
+    }).catch(() => { /* Keep the reports usable independently of research. */ });
+    return () => { live = false; };
+  }, [token]);
+
+  async function withdraw() {
+    if (busy || !window.confirm("Turn off research and delete your current contribution?")) return;
+    setBusy(true);
+    setError("");
+    try {
+      const result = await request<{ enabled: boolean }>("research/preference", "PUT", { enabled: false }, token);
+      setEnabled(result.enabled);
+      setNotice(result.enabled ? "" : "Research is off and your contribution was removed.");
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Could not change research settings.");
+    } finally { setBusy(false); }
+  }
+
+  if (!enabled && !notice && !error) return null;
+  return <section className="admin-form" aria-labelledby="docks-research-preference">
+    <h2 id="docks-research-preference">Diagnostic research</h2>
+    {enabled && <button className="admin-secondary" type="button" disabled={busy}
+      onClick={() => void withdraw()}>Turn off research and delete contribution</button>}
+    {notice && <p role="status">{notice}</p>}
+    {error && <p role="alert">{error}</p>}
   </section>;
 }
 
@@ -189,7 +227,7 @@ function ReportSupport({ token, canGrant, changingReports }: {
     } finally { setBusy(false); }
   }
 
-  if (!state || (!canGrant && !state.grant && state.activity.length === 0)) return null;
+  if (!state || !Array.isArray(state.activity) || (!canGrant && !state.grant && state.activity.length === 0)) return null;
   return <section className="admin-form" aria-labelledby="docks-report-support" aria-busy={busy}>
     <h2 id="docks-report-support">Support access</h2>
     <p>Give Crystal Powers support up to an hour to view your uploaded summaries.</p>

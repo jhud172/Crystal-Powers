@@ -8,14 +8,17 @@ import org.springframework.scheduling.annotation.Scheduled;
 @EnableScheduling
 public class DocksReportRetentionSchedule {
     private final DocksReports reports;
+    private final DocksResearch research;
 
-    public DocksReportRetentionSchedule(DocksReports reports) {
+    public DocksReportRetentionSchedule(DocksReports reports, DocksResearch research) {
         this.reports = reports;
+        this.research = research;
     }
 
     @Scheduled(fixedDelay = 300000, initialDelay = 60000)
     public void removeExpiredReports() {
         reports.purgeExpired();
         reports.purgeExpiredSupport();
+        research.purgeExpired();
     }
 }

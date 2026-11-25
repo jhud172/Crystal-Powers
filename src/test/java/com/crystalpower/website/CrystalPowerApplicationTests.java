@@ -59,6 +59,12 @@ class CrystalPowerApplicationTests {
     }
 
     @Test
+    void researchTotalsAndPreferencesRequireTheirRespectiveSignIns() throws Exception {
+        mockMvc.perform(get("/api/admin/docks/research")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/docks/research")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void publicPageAllowsEmbeddedModelTexturesWithoutRemoteConnectionsOrInlineScripts() throws Exception {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())

@@ -6,6 +6,7 @@ import { AuthenticatorCode } from "./AuthenticatorCode";
 import { AuthenticatorKey } from "./AuthenticatorKey";
 import { DocksKeys } from "./DocksKeys";
 import { DocksReportSupport } from "./DocksReportSupport";
+import { DocksResearchTotals } from "./DocksResearchTotals";
 import { useRecoveryCodeExitGuard } from "./useRecoveryCodeExitGuard";
 
 const changes = [{ value: "password", label: "Password", detail: "Choose a new sign-in password.", title: "Change your password." }, { value: "authenticator", label: "Authenticator", detail: "Move to a different authenticator.", title: "Move to a new authenticator." }, { value: "recovery-codes", label: "Recovery codes", detail: "Replace the one-time backup codes.", title: "Replace your recovery codes." }] as const;
@@ -70,6 +71,7 @@ export function OwnerSettings({ onBack, onSessionExpired, reauthenticationVersio
       </fieldset></form>{secret && <button className="admin-text-button" disabled={busy} onClick={() => void cancelSetup()}>Cancel new authenticator setup</button>}</section>
     <DocksKeys onSessionExpired={onSessionExpired} />
     <DocksReportSupport onSessionExpired={onSessionExpired} />
+    <DocksResearchTotals onSessionExpired={onSessionExpired} />
     </>}
   </section>;
 }
