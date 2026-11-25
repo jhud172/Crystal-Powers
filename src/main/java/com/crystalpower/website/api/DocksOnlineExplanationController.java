@@ -11,7 +11,10 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -47,5 +50,19 @@ public class DocksOnlineExplanationController {
     private UUID requireAccount(String token) {
         return auth.account(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                 "Sign in to Crystal Docks."));
+    }
+
+    @ExceptionHandler({ MethodArgumentNotValidException.class, HttpMessageNotReadableException.class })
+    public ResponseEntity<Map<String, String>> invalidReadings() {
+        return failure(HttpStatus.BAD_REQUEST, "Approve sharing and provide valid readings for this computer.");
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, String>> refused(ResponseStatusException error) {
+        return failure(error.getStatusCode(), error.getReason());
+    }
+
+    private static ResponseEntity<Map<String, String>> failure(HttpStatusCode status, String message) {
+        return ResponseEntity.status(status).cacheControl(CacheControl.noStore()).body(Map.of("message", message));
     }
 }
