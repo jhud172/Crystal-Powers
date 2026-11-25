@@ -42,7 +42,7 @@ Migration `V104__docks_stripe_event_queue.sql` passed in an isolated PostgreSQL 
 
 Keep `DOCKS_STRIPE_LIVE_ENABLED=false` until the sandbox and HTTPS pilot exercise payment, automatic renewal, failed payment, cancellation, refunds, fraud and dispute handling, account and device limits, and the portal. Confirm pricing and tax treatment before live checkout. [Stripe go-live checklist](https://docs.stripe.com/get-started/checklist/go-live)
 
-On staging, verify payment, renewal, failure, cancellation, duplicate event delivery, household acceptance and seat transfer. The desktop app must point to that staging environment for the checks. Customer billing management and live billing still require implementation and verification.
+On staging, verify payment, renewal, failure, cancellation, duplicate event delivery, household acceptance and seat transfer. For desktop checks, build the staging MSIX with the Crystal Docks packaging script and pass the staging host as -PilotHost. Use the customer portal in the signed-in reports page. Verify the hosted test journeys before enabling the live catalogue.
 
 ## Local provider verification
 
