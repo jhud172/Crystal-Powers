@@ -10,6 +10,7 @@ const planLabels = {
   HOUSEHOLD_ANNUAL: "Household, annual",
 };
 type Plan = keyof typeof planLabels;
+type TestSubscription = { plan: Plan; state: string; paidUntilEpoch: number | null };
 
 async function request<T>(path: string, method = "GET", value?: unknown, token?: string): Promise<T> {
   const headers = new Headers();
@@ -122,6 +123,7 @@ export default function DocksReports() {
 
 function SandboxCheckout({ token }: { token: string }) {
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [subscription, setSubscription] = useState<TestSubscription | null>(null);
   const [plan, setPlan] = useState<Plan | "">("");
   const [link, setLink] = useState("");
   const [busy, setBusy] = useState(false);
@@ -129,12 +131,15 @@ function SandboxCheckout({ token }: { token: string }) {
 
   useEffect(() => {
     let current = true;
-    void request<{ plans?: string[]; testMode?: boolean }>("billing/plans", "GET", undefined, token).then(result => {
+    void request<{ plans?: string[]; testMode?: boolean; subscription?: TestSubscription | null }>(
+      "billing/plans", "GET", undefined, token,
+    ).then(result => {
       if (!current || result?.testMode !== true) return;
       const available = (result.plans ?? []).filter((item): item is Plan =>
         Object.prototype.hasOwnProperty.call(planLabels, item));
       setPlans(available);
       setPlan(available[0] ?? "");
+      setSubscription(result.subscription ?? null);
     }).catch(() => { /* Billing is optional and must not interrupt the report viewer. */ });
     return () => { current = false; };
   }, [token]);
@@ -156,16 +161,22 @@ function SandboxCheckout({ token }: { token: string }) {
     } finally { setBusy(false); }
   }
 
-  if (plans.length === 0) return null;
+  if (plans.length === 0 && !subscription) return null;
+  const canPrepare = plans.length > 0 && (!subscription
+    || subscription.state === "canceled" || subscription.state === "incomplete_expired");
   return <section className="admin-form" aria-label="Premium test checkout">
     <h2>Premium test checkout</h2>
     <p>Use Stripe test card details. This sandbox does not charge money or activate Premium access.</p>
-    <form onSubmit={prepare}>
+    {subscription && <p>
+      <strong>{planLabels[subscription.plan]}</strong> · {subscription.state.replace(/_/g, " ")}
+      {subscription.paidUntilEpoch !== null && <> · Paid through {new Date(subscription.paidUntilEpoch * 1000).toLocaleDateString("en-GB")}</>}
+    </p>}
+    {canPrepare && <form onSubmit={prepare}>
       <label>Choose a test plan<select value={plan} disabled={busy} onChange={event => {
         setPlan(event.target.value as Plan); setLink("");
       }}>{plans.map(item => <option key={item} value={item}>{planLabels[item]}</option>)}</select></label>
       <button className="admin-secondary" disabled={busy}>Prepare test checkout</button>
-    </form>
+    </form>}
     {error && <p role="alert">{error}</p>}
     {link && <a className="studio-button" href={link} rel="noreferrer">Open Stripe test checkout</a>}
   </section>;

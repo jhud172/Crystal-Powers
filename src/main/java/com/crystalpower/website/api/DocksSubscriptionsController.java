@@ -24,11 +24,13 @@ public class DocksSubscriptionsController {
     }
 
     public record Choice(@NotNull DocksSubscriptions.Plan plan) {}
+    public record SandboxBilling(java.util.List<DocksSubscriptions.Plan> plans, boolean testMode,
+                                 DocksSubscriptions.TestStatus subscription) {}
 
     @GetMapping("/plans")
     public ResponseEntity<Object> plans(@RequestHeader(name = "Authorization", required = false) String token) {
-        return auth.account(token).map(account -> response(200, Map.of(
-                        "plans", subscriptions.availablePlans(), "testMode", true)))
+        return auth.account(token).map(account -> response(200, new SandboxBilling(
+                        subscriptions.availablePlans(), true, subscriptions.latestStatus(account).orElse(null))))
                 .orElseGet(DocksSubscriptionsController::unauthorised);
     }
 

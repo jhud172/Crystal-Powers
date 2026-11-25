@@ -18,7 +18,8 @@ class DocksSubscriptionsTests {
     void checkoutIsTestOnlyAndRetriesDoNotOpenAnotherSession() {
         var database = new EmbeddedDatabaseBuilder().generateUniqueName(true).setType(EmbeddedDatabaseType.H2)
                 .addScripts("classpath:db/migration/V87__docks_accounts_and_devices.sql",
-                            "classpath:db/migration/V92__docks_subscription_checkout.sql").build();
+                            "classpath:db/migration/V92__docks_subscription_checkout.sql",
+                            "classpath:db/migration/V93__docks_subscription_status.sql").build();
         try {
             var jdbc = new JdbcTemplate(database);
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));

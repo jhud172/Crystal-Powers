@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class DocksSubscriptions {
     public enum Plan { SINGLE_MONTHLY, SINGLE_ANNUAL, HOUSEHOLD_MONTHLY, HOUSEHOLD_ANNUAL }
     public record Link(String url, boolean testMode) {}
+    public record TestStatus(Plan plan, String state, Long paidUntilEpoch) {}
     private record Attempt(UUID id, String price, Plan plan, long expiry, String session, String url) {}
 
     private final JdbcTemplate db;
@@ -45,6 +46,17 @@ public class DocksSubscriptions {
                 .map(java.util.Map.Entry::getKey).toList();
     }
 
+    public java.util.Optional<TestStatus> latestStatus(UUID account) {
+        if (!enabled || stripe.liveMode() || !stripe.connected()) return java.util.Optional.empty();
+        return db.query("""
+                SELECT a.plan, s.provider_state, s.paid_until_epoch
+                FROM docks_subscription_status s
+                JOIN docks_subscription_checkout a ON a.attempt_id = s.attempt_id
+                WHERE a.account_id = ? ORDER BY a.expires_at_epoch DESC LIMIT 1
+                """, (row, i) -> new TestStatus(Plan.valueOf(row.getString(1)), row.getString(2),
+                    row.getObject(3, Long.class)), account).stream().findFirst();
+    }
+
     public Link checkout(UUID account, Plan selected) {
         if (!availablePlans().contains(selected))
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "That test plan is unavailable.");
@@ -65,6 +77,13 @@ public class DocksSubscriptions {
 
     private Attempt reserve(UUID account, Plan selected) {
         db.queryForObject("SELECT id FROM docks_account WHERE id = ? FOR UPDATE", UUID.class, account);
+        var currentSubscriptions = db.queryForObject("""
+                SELECT COUNT(*) FROM docks_subscription_status s
+                JOIN docks_subscription_checkout a ON a.attempt_id = s.attempt_id
+                WHERE a.account_id = ? AND s.provider_state NOT IN ('canceled', 'incomplete_expired')
+                """, Integer.class, account);
+        if (currentSubscriptions > 0)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Your account already has a Stripe test subscription.");
         var now = Instant.now().getEpochSecond();
         var previous = db.query("""
                 SELECT attempt_id, stripe_price, plan, expires_at_epoch, stripe_session, checkout_url

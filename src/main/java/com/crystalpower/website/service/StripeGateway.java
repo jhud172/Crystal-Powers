@@ -163,6 +163,16 @@ public class StripeGateway {
     /** Validate the exact raw bytes before parsing. The caller must persist/deduplicate and reconcile events. */
     public JsonNode verifyEvent(byte[] body, String signature) {
         requireConnected();
+        return verifyEvent(body, signature, webhookSecret);
+    }
+
+    public JsonNode verifyDocksTestEvent(byte[] body, String signature, String signingSecret) {
+        requireConnected();
+        if (liveMode || !signingSecret.matches("whsec_[A-Za-z0-9]+")) throw invalidSignature();
+        return verifyEvent(body, signature, signingSecret);
+    }
+
+    private JsonNode verifyEvent(byte[] body, String signature, String signingSecret) {
         if (body == null || body.length > 262144 || signature == null || signature.length() > 4096) throw invalidSignature();
         String timestamp = null;
         for (String field : signature.split(",")) {
@@ -172,7 +182,7 @@ public class StripeGateway {
         try {
             if (timestamp == null || !timestamp.matches("[0-9]{1,12}") || Math.abs(Instant.now().getEpochSecond() - Long.parseLong(timestamp)) > 300) throw invalidSignature();
             Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(webhookSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            mac.init(new SecretKeySpec(signingSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             mac.update((timestamp + ".").getBytes(StandardCharsets.UTF_8));
             byte[] expected = mac.doFinal(body); boolean verified = false;
             for (String field : signature.split(",")) {
