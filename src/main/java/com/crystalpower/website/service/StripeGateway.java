@@ -26,6 +26,7 @@ import java.util.UUID;
 @Component
 public class StripeGateway {
     public static final String API_VERSION = "2026-09-30.endive";
+    private static final String CLAIMABLE_SANDBOX_API_VERSION = "2026-11-18.endive";
     public record Checkout(String id, String url, long expiresAt) {}
     private final ObjectMapper json;
     private final boolean enabled, liveMode;
@@ -41,7 +42,21 @@ public class StripeGateway {
     public boolean configured() {
         return enabled && connected();
     }
-    public boolean connected() { return secret.matches(liveMode ? "(?:sk|rk)_live_[A-Za-z0-9]+" : "(?:sk|rk)_test_[A-Za-z0-9]+") && webhookSecret.matches("whsec_[A-Za-z0-9]+") && validPublicUrl(); }
+    public boolean connected() {
+        boolean standardKey = secret.matches(liveMode ? "(?:sk|rk)_live_[A-Za-z0-9]+" : "(?:sk|rk)_test_[A-Za-z0-9]+");
+        return (standardKey || claimableSandboxKey()) && webhookSecret.matches("whsec_[A-Za-z0-9]+") && validPublicUrl();
+    }
+
+    private boolean claimableSandboxKey() {
+        if (enabled || liveMode || !secret.matches("rkcs_test_[A-Za-z0-9]+")) return false;
+        try {
+            var origin = URI.create(publicUrl);
+            return "http".equals(origin.getScheme())
+                    && ("127.0.0.1".equals(origin.getHost()) || "localhost".equals(origin.getHost()));
+        } catch (IllegalArgumentException invalid) { return false; }
+    }
+
+    private String apiVersion() { return claimableSandboxKey() ? CLAIMABLE_SANDBOX_API_VERSION : API_VERSION; }
     public void requireConnected() { if(!connected()) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,"Stripe billing management is not configured. Contact the team for help with an existing payment or subscription."); }
     public boolean liveMode() { return liveMode; }
     public void requireConfigured() { if (!configured()) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Payments are not configured. No charge or subscription has been created."); }
@@ -236,7 +251,7 @@ public class StripeGateway {
             }
             if (!verified) throw invalidSignature();
             JsonNode event = json.reader().with(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS).readTree(body);
-            if (event == null || !event.isObject() || !event.path("id").isTextual() || event.path("id").asText().length()>100 || !event.path("id").asText().matches("evt_[A-Za-z0-9]+") || !event.path("livemode").isBoolean() || event.path("livemode").asBoolean() != liveMode || !API_VERSION.equals(event.path("api_version").asText())) throw invalidSignature();
+            if (event == null || !event.isObject() || !event.path("id").isTextual() || event.path("id").asText().length()>100 || !event.path("id").asText().matches("evt_[A-Za-z0-9]+") || !event.path("livemode").isBoolean() || event.path("livemode").asBoolean() != liveMode || !apiVersion().equals(event.path("api_version").asText())) throw invalidSignature();
             return event;
         } catch (ResponseStatusException expected) { throw expected; }
         catch (Exception invalid) { throw invalidSignature(); }
@@ -245,7 +260,7 @@ public class StripeGateway {
         try {
             String form = fields.entrySet().stream().map(entry -> encode(entry.getKey()) + "=" + encode(entry.getValue())).collect(java.util.stream.Collectors.joining("&"));
             var request = HttpRequest.newBuilder(URI.create("https://api.stripe.com/v1" + path)).timeout(Duration.ofSeconds(20))
-                    .header("Authorization", "Bearer " + secret).header("Stripe-Version", API_VERSION).header("Idempotency-Key", key)
+                    .header("Authorization", "Bearer " + secret).header("Stripe-Version", apiVersion()).header("Idempotency-Key", key)
                     .header("Content-Type", "application/x-www-form-urlencoded").POST(HttpRequest.BodyPublishers.ofString(form)).build();
             long deadline=System.nanoTime()+Duration.ofSeconds(20).toNanos();var response = http.send(request, HttpResponse.BodyHandlers.ofInputStream());
             try (var input = response.body()) {
@@ -264,7 +279,7 @@ public class StripeGateway {
     private JsonNode get(String path,boolean modeRequired) {
         requireConnected();
         try {
-            var request=HttpRequest.newBuilder(URI.create("https://api.stripe.com/v1"+path)).timeout(Duration.ofSeconds(20)).header("Authorization","Bearer "+secret).header("Stripe-Version",API_VERSION).GET().build();
+            var request=HttpRequest.newBuilder(URI.create("https://api.stripe.com/v1"+path)).timeout(Duration.ofSeconds(20)).header("Authorization","Bearer "+secret).header("Stripe-Version",apiVersion()).GET().build();
             long deadline=System.nanoTime()+Duration.ofSeconds(20).toNanos();var response=http.send(request,HttpResponse.BodyHandlers.ofInputStream());
             try(var input=response.body()) {
                 byte[] bytes=readBody(input,deadline); if(response.statusCode()<200 || response.statusCode()>=300 || bytes.length>1048576) throw unavailable();

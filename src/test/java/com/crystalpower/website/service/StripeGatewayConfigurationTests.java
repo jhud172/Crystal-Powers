@@ -33,6 +33,17 @@ class StripeGatewayConfigurationTests {
         assertThat(gateway(true, true, "rk_test_SyntheticLocalOnly", "whsec_SyntheticLocalOnly", "https://example.invalid").connected()).isFalse();
     }
 
+    @Test void claimableSandboxKeyIsLimitedToLoopbackWithWebsiteBillingDisabled() {
+        String key = "rkcs_test_SyntheticLocalOnly";
+        String secret = "whsec_SyntheticLocalOnly";
+        var local = gateway(false, false, key, secret, "http://127.0.0.1:18085");
+        assertThat(local.connected()).isTrue();
+        assertThat(local.configured()).isFalse();
+        assertThat(gateway(true, false, key, secret, "http://127.0.0.1:18085").connected()).isFalse();
+        assertThat(gateway(false, true, key, secret, "http://127.0.0.1:18085").connected()).isFalse();
+        assertThat(gateway(false, false, key, secret, "https://example.invalid").connected()).isFalse();
+    }
+
     @Test void unsupportedKeysOrMissingWebhookAndUnsafeReturnOriginsStayDisconnected() {
         for (String key : List.of("pk_test_SyntheticLocalOnly", "sk_org_SyntheticLocalOnly", "rk_test_Synthetic-WithPunctuation", "rk_live_SyntheticLocalOnly", ""))
             assertThat(gateway(true, false, key, "whsec_SyntheticLocalOnly", "https://example.invalid").connected()).isFalse();
