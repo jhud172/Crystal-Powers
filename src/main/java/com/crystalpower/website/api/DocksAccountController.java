@@ -2,10 +2,12 @@ package com.crystalpower.website.api;
 
 import com.crystalpower.website.repository.DocksDeviceRepository;
 import com.crystalpower.website.service.DocksEmailSignIn;
+import com.crystalpower.website.service.DocksEntitlements;
 import com.crystalpower.website.service.EmailTransport;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.Map;
@@ -19,16 +21,20 @@ import org.springframework.web.bind.annotation.*;
 public class DocksAccountController {
     private final DocksEmailSignIn signIn;
     private final DocksDeviceRepository devices;
+    private final DocksEntitlements entitlements;
 
-    public DocksAccountController(DocksEmailSignIn signIn, DocksDeviceRepository devices) {
+    public DocksAccountController(DocksEmailSignIn signIn, DocksDeviceRepository devices,
+            DocksEntitlements entitlements) {
         this.signIn = signIn;
         this.devices = devices;
+        this.entitlements = entitlements;
     }
 
     public record EmailRequest(@NotBlank @Email @Size(max = 254) String email) {}
     public record CodeRequest(@NotBlank @Pattern(regexp = "[A-Za-z0-9_-]{43}") String code) {}
-    public record DeviceRequest(@jakarta.validation.constraints.NotNull UUID installationId,
+    public record DeviceRequest(@NotNull UUID installationId,
                                 @NotBlank @Size(max = 120) String label) {}
+    public record TrialRequest(@NotNull UUID installationId) {}
 
     @PostMapping("/auth/email/request")
     public ResponseEntity<?> request(@Valid @RequestBody EmailRequest request) {
@@ -66,6 +72,26 @@ public class DocksAccountController {
         return signIn.account(token).map(account -> response(200,
                 devices.enrol(account, request.installationId(), request.label().strip())))
                 .orElseGet(DocksAccountController::unauthorised);
+    }
+
+    @GetMapping("/entitlement")
+    public ResponseEntity<?> entitlement(@RequestHeader(name = "Authorization", required = false) String token,
+            @RequestParam UUID installationId) {
+        return signIn.account(token).map(account -> entitlements.status(account, installationId)
+                .map(status -> response(200, status)).orElseGet(DocksAccountController::unknownDevice))
+                .orElseGet(DocksAccountController::unauthorised);
+    }
+
+    @PostMapping("/trial")
+    public ResponseEntity<?> startTrial(@RequestHeader(name = "Authorization", required = false) String token,
+            @Valid @RequestBody TrialRequest request) {
+        return signIn.account(token).map(account -> entitlements.startTrial(account, request.installationId())
+                .map(status -> response(200, status)).orElseGet(DocksAccountController::unknownDevice))
+                .orElseGet(DocksAccountController::unauthorised);
+    }
+
+    private static ResponseEntity<Object> unknownDevice() {
+        return response(404, Map.of("message", "This installation is not enrolled on your account."));
     }
 
     private static ResponseEntity<Object> unauthorised() {
