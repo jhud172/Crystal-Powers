@@ -19,7 +19,7 @@ repositories {
 
 // Security patches newer than the compatible Spring Boot BOM.
 ext['tomcat.version'] = '10.1.59'
-ext['jackson-bom.version'] = '2.21.5'
+ext['jackson-bom.version'] = '2.21.7'
 ext['log4j2.version'] = '2.25.5'
 ext['postgresql.version'] = '42.7.12'
 

@@ -20,6 +20,10 @@ The Crystal Powers Stripe test environment has a dedicated Docks portal configur
 
 Pilot deploy `b4a8d01` applied account deletion migrations V106 and V107. The deployed reports bundle includes the account deletion controls. A signed-out mobile browser opened the product page, navigated to private reports by keyboard and returned to the product page. The service returned an empty release feed, a 404 for an unpublished download and a 401 for an anonymous report request. The product page retains the pilot's indexing exclusion. [Pilot download page](https://crystal-docks-pilot-xpyl.onrender.com/docks)
 
+## Release dependency review
+
+The packaged website uses Jackson 2.21.7. The runtime scan cleared the seven Jackson advisories found in 2.21.5. It still reports two Spring MVC 6.2.19 advisories for XSLT rendering and Server-Sent Event view fragments. The website source uses neither facility. The direct fixes on the existing Spring 6.2 line require Enterprise Support.
+
 ## Database access
 
 Docks uses the server's PostgreSQL role and application authorisation. Migration `V105__protect_docks_database.java` enables row-level security for its existing tables and revokes direct table access from `PUBLIC`, `anon`, `authenticated` and `service_role` when those API roles are present. The application's table owner continues to serve authorised requests. Keep new Docks tables out of the hosted Data API by applying the same protections. [Supabase Data API hardening](https://supabase.com/docs/guides/database/hardening-data-api)
