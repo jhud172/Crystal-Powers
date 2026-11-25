@@ -10,6 +10,12 @@ Before enabling the release feed, run `packaging/Test-ReleaseMsix.ps1` from the 
 
 Set `DOCKS_RELEASE_WINDOWS_X64_VERSION` to the four-part MSIX version, `DOCKS_RELEASE_WINDOWS_X64_URL` to the exact HTTPS asset URL, and `DOCKS_RELEASE_WINDOWS_X64_SHA256` to the verified digest of the signed package. The feed and redirect require all three settings. From a signed-out browser, confirm the feed returns the expected `version` and `sha256` and the matching `/{version}/download` route delivers a package that passes `Test-ReleaseMsix.ps1`. Compare with the build record independently of the feed.
 
+Check the production routes from this website repository in PowerShell 7. The script checks public pages, report privacy, provider availability and the configured offer without using an account:
+
+```powershell
+.\scripts\verify-docks-public-routes.ps1 -Target Production -EmailEnabled -GoogleEnabled -Version $releaseVersion -Sha256 $buildSha256
+```
+
 From the desktop repository in PowerShell 7.4 or newer, run the hosted package check with the expected details from the build record:
 
 ```powershell

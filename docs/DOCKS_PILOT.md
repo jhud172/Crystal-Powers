@@ -14,6 +14,8 @@ In the owner studio, open **Account security → Crystal Docks release configura
 
 The Windows app, download page and reports page link to `/docks/support`. It uses the existing support intake and works before a customer can sign in. The browser link carries no account details or diagnostic references. Customers review what they enter and can include a reference they previously chose to share. The pilot disables outbound mail until delivery is configured.
 
+Run `./scripts/verify-docks-public-routes.ps1` in PowerShell 7 to check the hosted pilot while sign-in and the download feed are disabled. Pass `-EmailEnabled` or `-GoogleEnabled` to check the expected provider flags after configuration. The script checks the anonymous routes and indexing headers. Complete the sign-in journeys separately with approved test accounts.
+
 Free Render PostgreSQL expires after 30 days and the free web service sleeps when idle. [Render free services](https://render.com/docs/free)
 
 The free pilot deployed commit `6dad3d0` on 25 November 2026. Render applied 84 migrations through V105. An HTTPS browser run verified the mobile reports sign-in screen, denied anonymous report reads, checked indexing exclusion and confirmed Google sign-in and the download feed were disabled. Provider journeys still need their pilot credentials and end-to-end verification. [Pilot reports](https://crystal-docks-pilot-xpyl.onrender.com/docks/reports)
@@ -25,6 +27,8 @@ Pilot deploy `b4a8d01` applied account deletion migrations V106 and V107. The de
 ## Release dependency review
 
 The packaged website uses Jackson 2.21.7. The runtime scan cleared the seven Jackson advisories found in 2.21.5. It still reports two Spring MVC 6.2.19 advisories for XSLT rendering and Server-Sent Event view fragments. The website source uses neither facility. The direct fixes on the existing Spring 6.2 line require Enterprise Support.
+
+On 25 November 2026, the full website release build and 320 backend tests passed against the Docks integration containing the support form. The packaged application also passed the Windows customer journey over local HTTPS with PostgreSQL 17.10 and test mail. OSV returned the same two Spring advisories across 72 resolved Maven runtime dependencies. The production npm audit and the Windows NuGet audit returned no advisories. [Spring XSLT advisory](https://spring.io/security/cve-2026-47884/) and [Spring event fragment advisory](https://spring.io/security/cve-2026-47890/)
 
 ## Database access
 
