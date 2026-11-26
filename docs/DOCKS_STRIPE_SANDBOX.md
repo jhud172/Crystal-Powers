@@ -40,6 +40,8 @@ Open **Account security → Crystal Docks payment review → Stripe delivery que
 
 Migration `V104__docks_stripe_event_queue.sql` passed in an isolated PostgreSQL run with signed receipt, deduplication and background completion. Local tests covered provider failure, restart, competing workers and manual retry. Include a deliberate transient failure during the Stripe HTTPS pilot and verify that access reconciles after recovery.
 
+On 26 November 2026, Stripe Workbench resent the paid household Checkout event to the same staging endpoint. Workbench recorded HTTP 200 for both the original delivery and the manual replay. The staging database blocks external connections, so this check verified HTTPS receipt. The local queue test separately verified one processing run for a duplicate event ID.
+
 Keep `DOCKS_STRIPE_LIVE_ENABLED=false` until the sandbox and HTTPS pilot exercise payment, automatic renewal, failed payment, cancellation, refunds, fraud and dispute handling, account and device limits, and the portal. Confirm pricing and tax treatment before live checkout. [Stripe go-live checklist](https://docs.stripe.com/get-started/checklist/go-live)
 
 On staging, verify payment, renewal, failure, cancellation, duplicate event delivery, household acceptance and seat transfer. For desktop checks, build the staging MSIX with the Crystal Docks packaging script and pass the staging host as -PilotHost. Use the customer portal in the signed-in reports page. Verify the hosted test journeys before enabling the live catalogue.
