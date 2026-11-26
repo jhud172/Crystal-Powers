@@ -12,6 +12,12 @@ Check `GET /api/docks/auth/email` before requesting a code. A value of `true` co
 
 The release build passed a local browser and SMTP check using the environment switch and a loopback-only recipient fixture. It exercised the real SMTP transport, code exchange, report sign-in and sign-out, and verified the page's unavailable and Google-only states. The hosted pilot also verified Resend delivery and single-use code exchange for both approved test accounts.
 
+For Google sign-in, use a Web application client in a dedicated Crystal Docks Google Cloud staging project. Register exactly `https://crystal-docks-pilot-xpyl.onrender.com/api/docks/auth/google/callback` as the authorised redirect URI. The server requests `openid email`. Docks checks the verified email against `DOCKS_PILOT_ALLOWED_EMAILS` before issuing a session. [Google OAuth setup](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred)
+
+Set `DOCKS_GOOGLE_CLIENT_ID` and `DOCKS_GOOGLE_CLIENT_SECRET` in the Render pilot environment and keep `PUBLIC_URL` set to the exact pilot HTTPS origin. Use a separate OAuth project and client for production. [Google production OAuth guidance](https://developers.google.com/identity/verification/authentication-policy-compliance)
+
+After the pilot reports Google as enabled, sign in through `/docks/reports` with an approved Google identity and verify that private reports load for that account. Generate a Windows sign-in code from the same session, redeem it in the staging desktop preview, and confirm that a second redemption fails. Verify that an unlisted account receives no Docks session. The current pilot reports Google as disabled and rejects the sign-in start request.
+
 In the owner studio, open **Account security → Crystal Docks release configuration** to see which sign-in methods, checkout plans, subscription portal, online explanations and installer version the server offers. Check **Crystal Docks payment review** for queued deliveries that need attention. Confirm provider and package behaviour with the pilot before rollout.
 
 The Windows app, download page and reports page link to `/docks/support`. It uses the existing support intake and works before a customer can sign in. The browser link carries no account details or diagnostic references. Customers review what they enter and can include a reference they previously chose to share. The pilot disables outbound mail until delivery is configured.
