@@ -17,12 +17,15 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class DocksSubscriptions {
     public enum Plan {
-        SINGLE_MONTHLY(1), SINGLE_ANNUAL(1), HOUSEHOLD_MONTHLY(5), HOUSEHOLD_ANNUAL(5);
+        SINGLE_MONTHLY(1, 1299), SINGLE_ANNUAL(1, 9999),
+        HOUSEHOLD_MONTHLY(5, 2499), HOUSEHOLD_ANNUAL(5, 17999);
 
         private final int deviceLimit;
+        private final int livePricePence;
 
-        Plan(int deviceLimit) {
+        Plan(int deviceLimit, int livePricePence) {
             this.deviceLimit = deviceLimit;
+            this.livePricePence = livePricePence;
         }
 
         int deviceLimit() {
@@ -30,6 +33,7 @@ public class DocksSubscriptions {
         }
 
         String interval() { return name().endsWith("_ANNUAL") ? "year" : "month"; }
+        int livePricePence() { return livePricePence; }
     }
     public record Link(String url, boolean testMode) {}
     public record SubscriptionStatus(Plan plan, String state, Long paidUntilEpoch) {}

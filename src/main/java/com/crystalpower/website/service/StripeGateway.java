@@ -128,15 +128,20 @@ public class StripeGateway {
 
     void verifyDocksPrice(String priceId, DocksSubscriptions.Plan plan) {
         if (!priceId.matches("price_[A-Za-z0-9]{1,94}")) throw unavailable();
-        var price = get("/prices/" + priceId);
-        var recurring = price.path("recurring");
-        if (!priceId.equals(price.path("id").asText()) || !"price".equals(price.path("object").asText())
-                || !price.path("active").asBoolean() || !"gbp".equals(price.path("currency").asText())
-                || !"per_unit".equals(price.path("billing_scheme").asText())
-                || !price.path("unit_amount").isIntegralNumber() || price.path("unit_amount").asLong() <= 0
-                || !plan.interval().equals(recurring.path("interval").asText())
-                || recurring.path("interval_count").asInt() != 1 || !"licensed".equals(recurring.path("usage_type").asText()))
+        if (!matchesDocksLivePrice(get("/prices/" + priceId), priceId, plan))
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "This Premium plan is not available.");
+    }
+
+    static boolean matchesDocksLivePrice(JsonNode price, String priceId, DocksSubscriptions.Plan plan) {
+        var recurring = price.path("recurring");
+        var amount = price.path("unit_amount");
+        return priceId.equals(price.path("id").asText()) && "price".equals(price.path("object").asText())
+                && price.path("livemode").isBoolean() && price.path("livemode").booleanValue()
+                && price.path("active").asBoolean() && "gbp".equals(price.path("currency").asText())
+                && "per_unit".equals(price.path("billing_scheme").asText())
+                && amount.isIntegralNumber() && amount.canConvertToInt() && amount.intValue() == plan.livePricePence()
+                && plan.interval().equals(recurring.path("interval").asText())
+                && recurring.path("interval_count").asInt() == 1 && "licensed".equals(recurring.path("usage_type").asText());
     }
 
     Map<String, String> docksCheckoutFields(UUID account, UUID attempt, String priceId, long expiresAt) {
