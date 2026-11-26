@@ -5,6 +5,8 @@ import com.crystalpower.website.service.DocksEmailSignIn;
 import com.crystalpower.website.service.DocksSubscriptions;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
@@ -25,15 +27,22 @@ public class DocksSubscriptionsController {
     }
 
     public record Choice(@NotNull DocksSubscriptions.Plan plan) {}
-    public record Billing(java.util.List<DocksSubscriptions.Plan> plans, boolean testMode,
-                          DocksSubscriptions.SubscriptionStatus subscription, boolean canManage) {}
+    public record Billing(List<DocksSubscriptions.Plan> plans, boolean testMode,
+                          DocksSubscriptions.SubscriptionStatus subscription, boolean canManage,
+                          Map<DocksSubscriptions.Plan, Integer> pricePence) {}
 
     @GetMapping("/plans")
     public ResponseEntity<Object> plans(@RequestHeader(name = "Authorization", required = false) String token) {
         return auth.account(token).map(account -> {
             var status = subscriptions.latestStatus(account).orElse(null);
-            return response(200, new Billing(subscriptions.availablePlans(), subscriptions.testMode(), status,
-                    status != null && subscriptions.portalConfigured()));
+            var plans = subscriptions.availablePlans();
+            boolean testMode = subscriptions.testMode();
+            var pricePence = new EnumMap<DocksSubscriptions.Plan, Integer>(DocksSubscriptions.Plan.class);
+            if (!testMode) {
+                plans.forEach(plan -> pricePence.put(plan, plan.livePricePence()));
+            }
+            return response(200, new Billing(plans, testMode, status,
+                    status != null && subscriptions.portalConfigured(), pricePence));
         }).orElseGet(DocksSubscriptionsController::unauthorised);
     }
 

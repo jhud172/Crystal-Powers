@@ -3,7 +3,11 @@ package com.crystalpower.website.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import com.crystalpower.website.api.DocksSubscriptionsController;
+import com.crystalpower.website.security.AttemptLimiter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -73,6 +77,24 @@ class DocksSubscriptionsTests {
                     "price_liveMonthly", "price_liveAnnual", "price_liveHouseholdMonthly", "price_liveHouseholdAnnual");
             assertEquals(4, live.availablePlans().size());
             assertTrue(live.latestStatus(account).isEmpty());
+            var auth = mock(DocksEmailSignIn.class);
+            when(auth.account("Bearer fixture")).thenReturn(Optional.of(account));
+            var limiter = mock(AttemptLimiter.class);
+            var liveController = new DocksSubscriptionsController(auth, live, limiter);
+            var livePlans = assertInstanceOf(DocksSubscriptionsController.Billing.class,
+                    liveController.plans("Bearer fixture").getBody());
+            assertEquals(Map.of(DocksSubscriptions.Plan.SINGLE_MONTHLY, 1299,
+                    DocksSubscriptions.Plan.SINGLE_ANNUAL, 9999,
+                    DocksSubscriptions.Plan.HOUSEHOLD_MONTHLY, 2499,
+                    DocksSubscriptions.Plan.HOUSEHOLD_ANNUAL, 17999), livePlans.pricePence());
+            when(stripe.liveMode()).thenReturn(false);
+            var sandboxController = new DocksSubscriptionsController(auth, billing, limiter);
+            var sandboxPlans = assertInstanceOf(DocksSubscriptionsController.Billing.class,
+                    sandboxController.plans("Bearer fixture").getBody());
+            assertTrue(sandboxPlans.testMode());
+            assertFalse(sandboxPlans.plans().isEmpty());
+            assertTrue(sandboxPlans.pricePence().isEmpty());
+            when(stripe.liveMode()).thenReturn(true);
             assertEquals(404, assertThrows(ResponseStatusException.class, () -> live.portal(account)).getStatusCode().value());
             when(stripe.docksCheckout(any(), any(), eq("price_liveMonthly"), anyLong())).thenAnswer(call ->
                     new StripeGateway.Checkout("cs_live_Fixture", "https://checkout.stripe.com/c/pay/cs_live_Fixture",

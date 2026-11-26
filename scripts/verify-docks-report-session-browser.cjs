@@ -8,7 +8,7 @@ assert.match(base, /^http:\/\/127\.0\.0\.1:(5198|8084|18084)$/);
 async function main() {
   const browser = await chromium.launch({ executablePath: process.env.CRYSTAL_BROWSER_EXECUTABLE });
   try {
-    for (const mode of ['rejected', 'timer', 'google']) {
+    for (const mode of ['rejected', 'timer', 'google', 'livePricing']) {
       const context = await browser.newContext({viewport: {width:390,height:844}, reducedMotion:'reduce'});
       try {
         const page = await context.newPage();
@@ -50,7 +50,14 @@ async function main() {
               canManage:paymentConfirmed,
               subscription:paymentConfirmed ? {plan:'SINGLE_MONTHLY',state:'active',paidUntilEpoch:null} : null});
           }
-          if (path.endsWith('/billing/checkout')) return json({url:stripeCheckout,testMode:true});
+          if (path.endsWith('/billing/plans') && mode === 'livePricing') {
+            const pricePence = {SINGLE_MONTHLY:1299, SINGLE_ANNUAL:9999, HOUSEHOLD_MONTHLY:2499, HOUSEHOLD_ANNUAL:17999};
+            return json({plans:Object.keys(pricePence),testMode:false,pricePence});
+          }
+          if (path.endsWith('/billing/checkout')) {
+            if (mode === 'livePricing') assert.deepEqual(route.request().postDataJSON(), {plan:'HOUSEHOLD_ANNUAL'});
+            return json({url:stripeCheckout,testMode:mode !== 'livePricing'});
+          }
           if (path.endsWith('/billing/portal')) return json({url:stripePortal,testMode:true});
           if (path === '/api/docks/devices') return json([
             {id:'one',installationId:'12345678-0000-0000-0000-000000000000',label:'Windows PC',enrolledAt:'2026-11-23T12:00:00Z'},
@@ -77,9 +84,9 @@ async function main() {
           if (path.endsWith('/auth/sign-out')) return route.fulfill({status:204});
           return json({});
         });
-        const query = {google:'?google=ready',timer:'?checkout=returned',rejected:'?checkout=cancelled'}[mode];
+        const query = {livePricing:'',google:'?google=ready',timer:'?checkout=returned',rejected:'?checkout=cancelled'}[mode];
         await page.goto(base + '/docks/reports' + query);
-        if (mode !== 'google') {
+        if (mode === 'timer' || mode === 'rejected') {
           await expect(page.getByRole('status').filter({hasText:mode === 'timer' ? 'returned from Stripe' : 'left Stripe checkout'})).toBeVisible();
           assert(!new URL(page.url()).searchParams.has('checkout'));
           assert.equal(billingChecks, 0);
@@ -101,6 +108,20 @@ async function main() {
           await signIn.click();
         };
         if (mode !== 'google') await signInEmail(mode === 'rejected');
+        if (mode === 'livePricing') {
+          const plan = page.getByLabel('Choose a Premium plan');
+          await expect(plan.getByRole('option')).toHaveText([
+            'One device, monthly · £12.99', 'One device, annual · £99.99',
+            'Household, monthly · £24.99', 'Household, annual · £179.99',
+          ]);
+          await expect(page.getByText(/Stripe confirms the total, any applicable tax and renewal terms/)).toBeVisible();
+          await plan.selectOption('HOUSEHOLD_ANNUAL');
+          await page.getByRole('button',{name:'Prepare checkout',exact:true}).click();
+          await expect(page.getByRole('link',{name:/Open Stripe checkout/})).toHaveAttribute('href',stripeCheckout);
+          assert.deepEqual(errors,[]);
+          console.log('livePricing: verified all four GBP prices and selected checkout payload in Chrome');
+          continue;
+        }
         await expect(page.getByRole('heading',{name:'Old private device'})).toBeVisible();
         await expect(page.getByLabel('Diagnostic log reference')).toHaveValue('private-support-reference');
         await page.getByRole('button',{name:'Get a Windows sign-in code'}).click();
@@ -115,6 +136,7 @@ async function main() {
           rejectLog = false;
         } else if (mode === 'timer') {
           const billing = page.getByRole('region',{name:'Premium test checkout'});
+          await expect(billing.getByRole('option')).toHaveText(['One device, monthly']);
           const openStripe = async (name, url) => {
             const link = billing.getByRole('link',{name});
             const newTab = context.waitForEvent('page');

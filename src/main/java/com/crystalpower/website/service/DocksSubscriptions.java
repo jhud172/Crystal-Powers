@@ -33,7 +33,7 @@ public class DocksSubscriptions {
         }
 
         String interval() { return name().endsWith("_ANNUAL") ? "year" : "month"; }
-        int livePricePence() { return livePricePence; }
+        public int livePricePence() { return livePricePence; }
     }
     public record Link(String url, boolean testMode) {}
     public record SubscriptionStatus(Plan plan, String state, Long paidUntilEpoch) {}

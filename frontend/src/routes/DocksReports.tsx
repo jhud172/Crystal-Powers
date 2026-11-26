@@ -12,6 +12,7 @@ const planLabels = {
   HOUSEHOLD_ANNUAL: "Household, annual",
 };
 type Plan = keyof typeof planLabels;
+const pounds = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" });
 type Subscription = { plan: Plan; state: string; paidUntilEpoch: number | null };
 type SessionResponse = { accessToken: string; expiresAt: string };
 type Session = { accessToken: string; expiresAt: number; pending: AbortController };
@@ -514,6 +515,7 @@ function ReportSupport({ accountRequest, canGrant = false, changingReports = fal
 
 function PremiumBilling({ accountRequest, onCheckout }: { accountRequest: AccountRequest; onCheckout?: () => void }) {
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [pricePence, setPricePence] = useState<Partial<Record<Plan, number>>>({});
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [testMode, setTestMode] = useState(true);
   const [canManage, setCanManage] = useState(false);
@@ -527,13 +529,17 @@ function PremiumBilling({ accountRequest, onCheckout }: { accountRequest: Accoun
 
   useEffect(() => {
     let current = true;
-    void accountRequest<{ plans?: string[]; testMode?: boolean; subscription?: Subscription | null; canManage?: boolean }>(
+    void accountRequest<{
+      plans?: string[]; testMode?: boolean; subscription?: Subscription | null; canManage?: boolean;
+      pricePence?: Partial<Record<Plan, number>>;
+    }>(
       "billing/plans",
     ).then(result => {
       if (!current || typeof result?.testMode !== "boolean") return;
       const available = (result.plans ?? []).filter((item): item is Plan =>
         Object.prototype.hasOwnProperty.call(planLabels, item));
       setPlans(available);
+      setPricePence(result.pricePence ?? {});
       setTestMode(result.testMode);
       setCanManage(result.canManage === true);
       setPlan(previous => previous && available.includes(previous) ? previous : (available[0] ?? ""));
@@ -587,7 +593,7 @@ function PremiumBilling({ accountRequest, onCheckout }: { accountRequest: Accoun
   return <section className="admin-form" aria-label={title} aria-busy={busy}>
     <h2>{title}</h2>
     <p>{testMode ? "Use Stripe test card details. This sandbox does not charge money."
-      : "Choose one device or a household of up to five devices. Stripe shows the price and renewal terms before you pay."}</p>
+      : "Choose one device or a household of up to five devices. Stripe confirms the total, any applicable tax and renewal terms before you pay."}</p>
     {subscription && <p>
       <strong>{planLabels[subscription.plan]}</strong> · {subscription.state === "payment_review" ? "Payment under review" : subscription.state.replace(/_/g, " ")}
       {subscription.paidUntilEpoch !== null && <> · Paid through {new Date(subscription.paidUntilEpoch * 1000).toLocaleDateString("en-GB")}</>}
@@ -601,7 +607,12 @@ function PremiumBilling({ accountRequest, onCheckout }: { accountRequest: Accoun
     {canPrepare && <form onSubmit={prepare}>
       <label>{testMode ? "Choose a test plan" : "Choose a Premium plan"}<select value={plan} disabled={busy} onChange={event => {
         setPlan(event.target.value as Plan); setLink("");
-      }}>{plans.map(item => <option key={item} value={item}>{planLabels[item]}</option>)}</select></label>
+      }}>{plans.map(item => {
+        const amount = pricePence[item];
+        const label = !testMode && typeof amount === "number"
+          ? planLabels[item] + " · " + pounds.format(amount / 100) : planLabels[item];
+        return <option key={item} value={item}>{label}</option>;
+      })}</select></label>
       <button className="admin-secondary" disabled={busy}>{testMode ? "Prepare test checkout" : "Prepare checkout"}</button>
     </form>}
     {error && <p role="alert">{error}</p>}
