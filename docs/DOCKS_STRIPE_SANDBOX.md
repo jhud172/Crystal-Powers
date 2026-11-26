@@ -24,6 +24,13 @@ The paying adult creates an invitation under Household plan on the reports page 
 
 ## Live integration and release checks
 
+James approved these GBP launch prices on 26 November 2026. Confirm tax treatment before creating the live catalogue or enabling checkout.
+
+| Plan | Devices | Monthly | Annual |
+| --- | ---: | ---: | ---: |
+| Premium | 1 | £12.99 | £99.99 |
+| Household | Up to 5 | £24.99 | £179.99 |
+
 The live integration remains disabled by default. Flyway migration `V102__docks_stripe_mode_isolation.sql` classifies previous test checkouts as test records and preserves existing test memberships. Live Premium and household seats read only live records. A successful checkout redirect grants no access. A signed event triggers retrieval and validation of the Stripe subscription and its paid invoice.
 
 Verify the four distinct recurring GBP Prices for the two Docks products in Stripe. The configured live checkout checks the selected price and its billing interval before creating the session. Configure a dedicated Docks customer portal for invoices, payment method changes and cancellation at the end of the paid period. Keep portal plan changes disabled until plan changes and seat transfers are implemented and verified. Set `DOCKS_STRIPE_LIVE_PORTAL` to that configuration ID. Live mode also requires the existing Stripe live connection and the dedicated Docks webhook signing secret.
