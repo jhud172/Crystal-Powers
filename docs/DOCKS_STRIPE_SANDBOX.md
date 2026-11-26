@@ -80,3 +80,5 @@ After the scheduled cancellation, a fresh online entitlement request for a synth
 A new hosted Checkout completed for the £20 annual household sandbox plan. Stripe reported a paid test session and no pending webhook deliveries. Staging reports showed paid access through 26 November 2027.
 
 The 0.1.34.0 Windows staging preview independently showed the same annual paid-through date on an existing enrolled device. The Discord startup review opened with Cancel focused. Cancelling closed the review without approving a change.
+
+The annual household plan also passed a two-adult HTTPS test. An invited account signed in separately and received a seat after accepting. The accounts shared the five-device limit, and the paying account could neither read the member's device entitlement nor see the member's report. Removing the member revoked paid access and freed a seat without removing their report. The fixture removed its invitation, devices and report and revoked both test sessions.
