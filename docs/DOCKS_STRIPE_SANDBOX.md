@@ -71,3 +71,5 @@ With Stripe's decline-after-attaching test card as the subscription default, the
 After the scheduled cancellation, a fresh online entitlement request for a synthetic enrolled device returned Free, with repair access denied and no subscription paid-through date. The test removed its device, verified the original device list and revoked its session.
 
 A new hosted Checkout completed for the £20 annual household sandbox plan. Stripe reported a paid test session and no pending webhook deliveries. Staging reports showed paid access through 26 November 2027.
+
+The 0.1.34.0 Windows staging preview independently showed the same annual paid-through date on an existing enrolled device. The Discord startup review opened with Cancel focused. Cancelling closed the review without approving a change.
