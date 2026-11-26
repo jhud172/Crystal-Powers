@@ -56,6 +56,8 @@ A Chrome run used the packaged loopback website, a disposable account and Stripe
 
 On 26 November 2026, the hosted pilot used the Crystal Powers Stripe test account and a £1 monthly single-device test price. Resend delivered the staging sign-in code. Stripe Checkout completed with a test card, the provider reported a paid test session, the reports page showed the subscription as paid, and the enrolled Windows pilot reported the paid Premium entitlement. The public billing mode remained disabled.
 
-The test subscription was then scheduled to cancel at the end of its paid period. Stripe reported the same paid-through date and no pending webhook deliveries for the subscription update. Refreshing the staging reports page still showed the subscription as paid through 26 December 2026. Hosted renewal, actual end-of-period revocation, household billing and live catalogue checks remain open.
+The test subscription was then scheduled to cancel at the end of its paid period. Stripe reported the same paid-through date and no pending webhook deliveries for the subscription update. Refreshing the staging reports page still showed the subscription as paid through 26 December 2026.
 
 An immediate cancellation of the same test subscription also generated a `customer.subscription.deleted` event with no pending webhook deliveries. The staging reports page showed the cancellation, and a fresh online check in the enrolled Windows pilot no longer showed a paid entitlement. The pilot declined the trial and completed a Free device check, saving it locally.
+
+The hosted pilot then exposed all four verified sandbox prices. Stripe Checkout accepted a test card for the £2 monthly household plan, and reports showed the household subscription as paid through 26 December 2026. Hosted renewal, actual end-of-period revocation, household invitation acceptance and seat allocation, and live catalogue checks remain open.
