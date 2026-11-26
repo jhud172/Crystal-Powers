@@ -1,25 +1,27 @@
 package com.crystalpower.website;
 
-import com.crystalpower.website.security.OwnerPrincipal;
 import com.crystalpower.website.service.EmailTransport;
-import com.crystalpower.website.service.OwnerService;
+import com.eatthepath.otp.TimeBasedOneTimePasswordGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
+import javax.crypto.spec.SecretKeySpec;
+import org.apache.commons.codec.binary.Base32;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -30,17 +32,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(properties = {
         "app.docks.email-enabled=true",
+        "app.owner.setup-token=synthetic-docks-test-owner-setup-not-a-secret",
         "spring.datasource.url=${crystal.test.database-url:jdbc:h2:mem:crystal-docks-journey;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1}"
 })
 @AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DocksCustomerJourneyTests {
+    private static final String OWNER_AUTH = "/api/admin/auth";
+    private static final String OWNER_SUPPORT = "/api/admin/docks/support-reports";
     private static final String DOCKS = "/api/docks";
     private static final String REPORTS = DOCKS + "/reports";
     private static final String SUPPORT = REPORTS + "/support-access";
@@ -50,8 +55,38 @@ class DocksCustomerJourneyTests {
     @Autowired MockMvc http;
     @Autowired ObjectMapper json;
     @MockitoBean EmailTransport mail;
-    @MockitoBean OwnerService owners;
     private final AtomicReference<EmailTransport.Message> delivered = new AtomicReference<>();
+    private MockHttpSession owner;
+    private JsonNode ownerCsrf;
+
+    @BeforeAll
+    void signInFixtureOwner() throws Exception {
+        var credentials = Map.of("email", "docks-audit-owner@example.invalid",
+                "password", "Synthetic-Docks-Audit-Password-2026");
+        var setup = http.perform(body(post(OWNER_AUTH + "/setup").with(csrf()), Map.of(
+                "token", "synthetic-docks-test-owner-setup-not-a-secret",
+                "email", credentials.get("email"), "password", credentials.get("password"))))
+                .andExpect(status().isOk()).andReturn();
+        var enrolment = (MockHttpSession) setup.getRequest().getSession(false);
+        String secret = response(http.perform(get(OWNER_AUTH + "/enrolment").session(enrolment))
+                .andExpect(status().isOk())).get("secret").asText();
+        var generator = new TimeBasedOneTimePasswordGenerator();
+        var key = new SecretKeySpec(new Base32().decode(secret), generator.getAlgorithm());
+        String totp = generator.generateOneTimePasswordString(key, Instant.now());
+        var enrolmentResult = response(http.perform(body(post(OWNER_AUTH + "/verify").session(enrolment).with(csrf()),
+                Map.of("code", totp))).andExpect(status().isOk()));
+        http.perform(post(OWNER_AUTH + "/logout").session(enrolment).with(csrf())).andExpect(status().isOk());
+
+        var login = http.perform(body(post(OWNER_AUTH + "/login").with(csrf()), credentials))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.mfaRequired").value(true)).andReturn();
+        owner = (MockHttpSession) login.getRequest().getSession(false);
+        http.perform(body(post(OWNER_SUPPORT).session(owner).with(csrf()), Map.of("reference", UUID.randomUUID())))
+                .andExpect(status().isUnauthorized());
+        String recoveryCode = enrolmentResult.get("recoveryCodes").get(0).asText();
+        http.perform(body(post(OWNER_AUTH + "/verify").session(owner).with(csrf()), Map.of("code", recoveryCode)))
+                .andExpect(status().isOk());
+        ownerCsrf = response(http.perform(get(OWNER_AUTH + "/csrf").session(owner)).andExpect(status().isOk()));
+    }
 
     @BeforeEach
     void captureEmail() {
@@ -89,12 +124,8 @@ class DocksCustomerJourneyTests {
 
         var grant = response(asCustomer(post(SUPPORT), customer).andExpect(status().isOk()));
         String reference = grant.get("reference").asText();
-        var principal = new OwnerPrincipal(UUID.randomUUID(), "owner@example.invalid", 1);
-        when(owners.valid(principal)).thenReturn(true);
-        var owner = UsernamePasswordAuthenticationToken.authenticated(principal, null, List.of(new SimpleGrantedAuthority("ROLE_OWNER")));
-        String ownerPath = "/api/admin/docks/support-reports";
         asCustomer(get("/api/admin/docks/configuration"), customer).andExpect(status().isUnauthorized());
-        http.perform(get("/api/admin/docks/configuration").with(authentication(owner)))
+        http.perform(get("/api/admin/docks/configuration").session(owner))
                 .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))
                 .andExpect(content().json("""
                         {"emailSignIn":true,"googleSignIn":false,"testBilling":true,"checkoutPlans":0,
@@ -104,9 +135,11 @@ class DocksCustomerJourneyTests {
                 .andExpect(jsonPath("$.onlineAiBudget.reservedPence").value(0))
                 .andExpect(jsonPath("$.onlineAiBudget.remainingPence").isEmpty())
                 .andExpect(jsonPath("$.onlineAiBudget.key").doesNotExist());
-        asCustomer(body(post(ownerPath).with(csrf()), Map.of("reference", reference)), customer)
+        asCustomer(body(post(OWNER_SUPPORT).with(csrf()), Map.of("reference", reference)), customer)
                 .andExpect(status().isUnauthorized());
-        http.perform(body(post(ownerPath).with(csrf()).with(authentication(owner)), Map.of("reference", reference)))
+        http.perform(body(post(OWNER_SUPPORT).session(owner), Map.of("reference", reference)))
+                .andExpect(status().isForbidden());
+        http.perform(body(asOwner(post(OWNER_SUPPORT)), Map.of("reference", reference)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.reports[0].deviceLabel").value("Pilot PC"))
                 .andExpect(jsonPath("$.reports[0].deviceId").doesNotExist());
         asCustomer(get(SUPPORT), customer).andExpect(status().isOk()).andExpect(jsonPath("$.activity[0].action").value("VIEWED"));
@@ -116,11 +149,14 @@ class DocksCustomerJourneyTests {
         var diagnostic = Map.of("installationId", installation, "checkedAt", checkedAt, "readings", readings, "approved", true);
         var log = response(asCustomer(body(post(LOG), diagnostic), customer).andExpect(status().isOk()));
         String logReference = log.get("reference").asText();
-        http.perform(body(post(ownerPath).with(csrf()).with(authentication(owner)), Map.of("reference", logReference)))
+        http.perform(body(asOwner(post(OWNER_SUPPORT)), Map.of("reference", logReference)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.diagnosticLog.readings.installedApps").value(12));
-        asCustomer(get(LOG), other).andExpect(status().isOk()).andExpect(jsonPath("$.grant").isEmpty());
+        asCustomer(get(LOG), customer).andExpect(status().isOk())
+                .andExpect(jsonPath("$.activity[0].action").value("VIEWED"));
+        asCustomer(get(LOG), other).andExpect(status().isOk())
+                .andExpect(jsonPath("$.grant").isEmpty()).andExpect(jsonPath("$.activity").isEmpty());
         asCustomer(delete(LOG), customer).andExpect(status().isNoContent());
-        http.perform(body(post(ownerPath).with(csrf()).with(authentication(owner)), Map.of("reference", logReference)))
+        http.perform(body(asOwner(post(OWNER_SUPPORT)), Map.of("reference", logReference)))
                 .andExpect(status().isNotFound());
 
         var bands = Map.of("cpuBand", "MEDIUM", "memoryBand", "MEDIUM");
@@ -133,7 +169,7 @@ class DocksCustomerJourneyTests {
         asCustomer(get(REPORTS), customer).andExpect(status().isOk()).andExpect(jsonPath("$.reports[0].deviceLabel").value("Pilot PC"));
 
         asCustomer(body(put(REPORTS + "/preference"), Map.of("enabled", false)), customer).andExpect(status().isNoContent());
-        http.perform(body(post(ownerPath).with(csrf()).with(authentication(owner)), Map.of("reference", reference)))
+        http.perform(body(asOwner(post(OWNER_SUPPORT)), Map.of("reference", reference)))
                 .andExpect(status().isNotFound());
         asCustomer(get(REPORTS), customer).andExpect(status().isOk()).andExpect(jsonPath("$.reports").isEmpty());
         asCustomer(post(DOCKS + "/auth/sign-out"), customer).andExpect(status().isNoContent());
@@ -153,18 +189,14 @@ class DocksCustomerJourneyTests {
 
         String keys = "/api/admin/docks/access-keys";
         var issue = Map.of("durationDays", 30, "deviceLimit", 1);
-        var principal = new OwnerPrincipal(UUID.randomUUID(), "owner@example.invalid", 1);
-        when(owners.valid(principal)).thenReturn(true);
-        var owner = UsernamePasswordAuthenticationToken.authenticated(principal, null,
-                List.of(new SimpleGrantedAuthority("ROLE_OWNER")));
         asCustomer(body(post(keys).with(csrf()), issue), customer).andExpect(status().isUnauthorized());
-        http.perform(body(post(keys).with(authentication(owner)), issue)).andExpect(status().isForbidden());
-        var issued = response(http.perform(body(post(keys).with(authentication(owner)).with(csrf()), issue))
+        http.perform(body(post(keys).session(owner), issue)).andExpect(status().isForbidden());
+        var issued = response(http.perform(body(asOwner(post(keys)), issue))
                 .andExpect(status().isCreated()).andExpect(header().string("Cache-Control", "no-store"))
                 .andExpect(jsonPath("$.key.expiresAt").isEmpty()));
         String code = issued.get("code").asText();
         String keyPath = keys + "/" + issued.get("key").get("id").asText();
-        http.perform(get(keys).with(authentication(owner)))
+        http.perform(get(keys).session(owner))
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].code").doesNotExist());
 
         asCustomer(get(entitlement(first)), customer).andExpect(status().isOk())
@@ -205,26 +237,26 @@ class DocksCustomerJourneyTests {
         asCustomer(get(entitlement(replacement)), customer).andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessKeyExpiresAt").value(redeemed.get("accessKeyExpiresAt").asText()));
 
-        http.perform(body(post(keyPath + "/state").with(authentication(owner)).with(csrf()),
+        http.perform(body(asOwner(post(keyPath + "/state")),
                 Map.of("state", "SUSPENDED"))).andExpect(status().isNoContent());
         asCustomer(get(entitlement(replacement)), customer).andExpect(status().isOk())
                 .andExpect(jsonPath("$.canRepair").value(false));
-        http.perform(body(post(keyPath + "/state").with(authentication(owner)).with(csrf()),
+        http.perform(body(asOwner(post(keyPath + "/state")),
                 Map.of("state", "ACTIVE"))).andExpect(status().isNoContent());
-        http.perform(body(post(keyPath + "/extend").with(authentication(owner)).with(csrf()),
+        http.perform(body(asOwner(post(keyPath + "/extend")),
                 Map.of("days", 7))).andExpect(status().isNoContent());
         var extended = response(asCustomer(get(entitlement(replacement)), customer)
                 .andExpect(status().isOk()).andExpect(jsonPath("$.canRepair").value(true)));
         assertEquals(expiry.plusDays(7).toInstant(),
                 OffsetDateTime.parse(extended.get("accessKeyExpiresAt").asText()).toInstant());
 
-        http.perform(body(post(keyPath + "/state").with(authentication(owner)).with(csrf()),
+        http.perform(body(asOwner(post(keyPath + "/state")),
                 Map.of("state", "REVOKED"))).andExpect(status().isNoContent());
         asCustomer(get(entitlement(replacement)), customer).andExpect(status().isOk())
                 .andExpect(header().string("Cache-Control", "no-store"))
                 .andExpect(jsonPath("$.canRepair").value(false));
         redeem(customer, replacement, code).andExpect(status().isUnprocessableEntity());
-        http.perform(body(post(keyPath + "/state").with(authentication(owner)).with(csrf()),
+        http.perform(body(asOwner(post(keyPath + "/state")),
                 Map.of("state", "ACTIVE"))).andExpect(status().isConflict());
     }
 
@@ -296,6 +328,10 @@ class DocksCustomerJourneyTests {
                 .get("accessToken").asText();
         http.perform(body(post(DOCKS + "/auth/email/exchange"), code)).andExpect(status().isUnauthorized());
         return token;
+    }
+
+    private MockHttpServletRequestBuilder asOwner(MockHttpServletRequestBuilder request) {
+        return request.session(owner).header(ownerCsrf.get("headerName").asText(), ownerCsrf.get("token").asText());
     }
 
     private ResultActions asCustomer(MockHttpServletRequestBuilder request, String token) throws Exception {
