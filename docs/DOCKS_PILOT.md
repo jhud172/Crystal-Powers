@@ -26,6 +26,8 @@ The Crystal Powers Stripe test environment has a dedicated Docks portal configur
 
 Pilot deploy `b4a8d01` applied account deletion migrations V106 and V107. The deployed reports bundle includes the account deletion controls. A signed-out mobile browser opened the product page, navigated to private reports by keyboard and returned to the product page. The service returned an empty release feed, a 404 for an unpublished download and a 401 for an anonymous report request. The product page retains the pilot's indexing exclusion. [Pilot download page](https://crystal-docks-pilot-xpyl.onrender.com/docks)
 
+On 26 November 2026, an authenticated HTTPS pilot used one synthetic enrolled device with monthly household Premium. It verified single-use email sign-in, paid repair entitlement, and a private report round trip with synthetic CPU and memory readings. A diagnostic log had its own expiring support reference, and removing the log preserved the summary grant. Disabling report sharing removed the summary and revoked its grant. Research contribution required its own opt-in and was removed on withdrawal without affecting report sharing. The test removed its device, released the seat and revoked its session. A second adult account and the hosted support owner read and audit remain to be verified.
+
 ## Release dependency review
 
 The packaged website uses Jackson 2.21.7. The runtime scan cleared the seven Jackson advisories found in 2.21.5. It still reports two Spring MVC 6.2.19 advisories for XSLT rendering and Server-Sent Event view fragments. The website source uses neither facility. The direct fixes on the existing Spring 6.2 line require Enterprise Support.
