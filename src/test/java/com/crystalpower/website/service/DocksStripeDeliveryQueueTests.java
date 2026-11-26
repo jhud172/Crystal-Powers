@@ -29,7 +29,7 @@ class DocksStripeDeliveryQueueTests {
             var db = new JdbcTemplate(database);
             var stripe = mock(StripeGateway.class);
             when(stripe.connected()).thenReturn(true);
-            var mode = new DocksBillingMode(stripe, true, true, false, "whsec_Fixture");
+            var mode = new DocksBillingMode(stripe, true, true, false, true, "whsec_Fixture");
             var events = mock(DocksStripeEvents.class);
             var clock = Clock.fixed(Instant.ofEpochSecond(1800000000), ZoneOffset.UTC);
             var delivery = new DocksStripeEvents.Delivery("evt_Fixture", "invoice.paid", false,

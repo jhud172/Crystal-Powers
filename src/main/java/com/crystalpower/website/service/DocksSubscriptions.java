@@ -69,7 +69,7 @@ public class DocksSubscriptions {
     }
 
     public List<Plan> availablePlans() {
-        if (!mode.enabled()) return List.of();
+        if (!mode.checkoutEnabled()) return List.of();
         var offered = prices.entrySet().stream().filter(entry -> entry.getValue().matches("price_[A-Za-z0-9]{1,94}"))
                 .map(java.util.Map.Entry::getKey).toList();
         if (mode.live() && (!portalConfigured() || offered.size() != Plan.values().length

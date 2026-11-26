@@ -35,3 +35,11 @@ From the desktop repository in PowerShell 7.4 or newer, run the hosted package c
 Open `/docks` in a signed-out browser and check the version and Windows download link. The same page shows the release status with no download link when the feed is empty. Its app preview comes from the Windows smoke test with example data. The reports link opens the separate account area.
 
 Desktop users choose when to check and whether to open the browser. Windows handles the signed package installation. To withdraw an offer, clear the environment settings. If a faulty release has already been installed, publish a corrected package with a higher version and the same publisher.
+
+## Monitor the release
+
+Rerun the production route check after a provider setting or release-feed change. In **Owner Studio > Account security > Crystal Docks release configuration**, confirm the sign-in methods, number of checkout plans, portal availability and listed Windows version. Check **Crystal Docks payment review** for delivery retries or payment reviews, and match the event references in Stripe before retrying a delivery.
+
+If new live purchases need to stop, set `DOCKS_STRIPE_LIVE_CHECKOUT_ENABLED=false` on the website and verify the owner panel reports zero checkout plans. Keep the live Stripe integration active so existing customers retain paid repair access, renewals and the portal. Previously issued Checkout links can still work until Stripe expires them.
+
+For an installer issue, clear the release-feed settings and verify the feed is empty. Keep the existing signed build record and publish a higher version with the same publisher when the fix passes the Windows pilot.

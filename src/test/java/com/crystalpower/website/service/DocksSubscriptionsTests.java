@@ -34,7 +34,7 @@ class DocksSubscriptionsTests {
             when(stripe.docksCheckout(any(), any(), eq("price_monthly"), anyLong())).thenAnswer(call ->
                     new StripeGateway.Checkout("cs_test_preview", "https://checkout.stripe.com/c/pay/cs_test_preview",
                         call.getArgument(3)));
-            var billing = new DocksSubscriptions(jdbc, tx, stripe, new DocksBillingMode(stripe, true, false, false, ""),
+            var billing = new DocksSubscriptions(jdbc, tx, stripe, new DocksBillingMode(stripe, true, false, false, true, ""),
                     "bpc_IgnoredLive", "bpc_TestFixture",
                     "price_monthly", "price_annual", "price_householdMonthly", "price_householdAnnual");
             UUID account = UUID.randomUUID();
@@ -72,7 +72,7 @@ class DocksSubscriptionsTests {
             assertTrue(billing.availablePlans().isEmpty());
             assertEquals(503, assertThrows(ResponseStatusException.class,
                     () -> billing.checkout(account, DocksSubscriptions.Plan.SINGLE_MONTHLY)).getStatusCode().value());
-            var liveMode = new DocksBillingMode(stripe, true, false, true, "whsec_Fixture");
+            var liveMode = new DocksBillingMode(stripe, true, false, true, true, "whsec_Fixture");
             var live = new DocksSubscriptions(jdbc, tx, stripe, liveMode, "bpc_Fixture", "bpc_IgnoredTest",
                     "price_liveMonthly", "price_liveAnnual", "price_liveHouseholdMonthly", "price_liveHouseholdAnnual");
             assertEquals(4, live.availablePlans().size());
@@ -122,6 +122,16 @@ class DocksSubscriptionsTests {
             metadata.put("docks_account_id", account.toString());
             when(stripe.docksPortal("cus_LiveFixture", "bpc_Fixture")).thenReturn("https://billing.stripe.com/p/session/liveFixture");
             assertEquals("https://billing.stripe.com/p/session/liveFixture", live.portal(account).url());
+
+            var pausedMode = new DocksBillingMode(stripe, true, false, true, false, "whsec_Fixture");
+            var paused = new DocksSubscriptions(jdbc, tx, stripe, pausedMode, "bpc_Fixture", "bpc_IgnoredTest",
+                    "price_liveMonthly", "price_liveAnnual", "price_liveHouseholdMonthly", "price_liveHouseholdAnnual");
+            assertTrue(paused.availablePlans().isEmpty());
+            assertEquals(503, assertThrows(ResponseStatusException.class,
+                    () -> paused.checkout(account, DocksSubscriptions.Plan.SINGLE_MONTHLY)).getStatusCode().value());
+            assertEquals("paid", paused.latestStatus(account).orElseThrow().state());
+            assertEquals("https://billing.stripe.com/p/session/liveFixture", paused.portal(account).url());
+            verify(stripe, times(1)).docksCheckout(any(), any(), eq("price_liveMonthly"), anyLong());
         } finally {
             database.shutdown();
         }

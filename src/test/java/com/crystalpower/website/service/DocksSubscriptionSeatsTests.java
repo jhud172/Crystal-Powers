@@ -38,7 +38,7 @@ class DocksSubscriptionSeatsTests {
             var devices = new DocksDeviceRepository(db);
             var stripe = mock(StripeGateway.class);
             when(stripe.connected()).thenReturn(true);
-            var seats = new DocksSubscriptionSeats(db, new DocksBillingMode(stripe, true, true, false, ""));
+            var seats = new DocksSubscriptionSeats(db, new DocksBillingMode(stripe, true, true, false, true, ""));
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));
             var entitlements = new DocksEntitlements(db, tx, seats);
             var households = new DocksHouseholds(db, seats);

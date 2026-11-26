@@ -42,7 +42,7 @@ class DocksStripeEventsTests {
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));
             var stripe = spy(new StripeGateway(json, false, false, "sk_test_Fixture", "whsec_FixtureWebsite",
                     "https://example.com"));
-            var sandbox = new DocksBillingMode(stripe, true, true, false, HOOK);
+            var sandbox = new DocksBillingMode(stripe, true, true, false, false, HOOK);
             var events = new DocksStripeEvents(db, tx, stripe, sandbox, new DocksStripeRisk(stripe));
             var account = UUID.randomUUID();
             var attempt = UUID.randomUUID();
@@ -54,7 +54,7 @@ class DocksStripeEventsTests {
             devices.enrol(account, next, "Second PC");
             var entitlements = new DocksEntitlements(db, tx, new DocksSubscriptionSeats(db, sandbox));
             var disabled = new DocksEntitlements(db, tx, new DocksSubscriptionSeats(db,
-                    new DocksBillingMode(stripe, true, false, false, HOOK)));
+                    new DocksBillingMode(stripe, true, false, false, true, HOOK)));
             db.update("""
                     INSERT INTO docks_subscription_checkout
                       (account_id, attempt_id, plan, stripe_price, expires_at_epoch, stripe_session)
@@ -90,7 +90,9 @@ class DocksStripeEventsTests {
             assertFalse(entitlements.status(account, next).orElseThrow().canRepair());
             var liveStripe = spy(new StripeGateway(json, false, true, "sk_live_Fixture", "whsec_FixtureWebsite",
                     "https://example.com"));
-            var liveMode = new DocksBillingMode(liveStripe, true, true, true, HOOK);
+            var liveMode = new DocksBillingMode(liveStripe, true, true, true, false, HOOK);
+            assertTrue(sandbox.checkoutEnabled());
+            assertFalse(liveMode.checkoutEnabled());
             var live = new DocksEntitlements(db, tx, new DocksSubscriptionSeats(db, liveMode));
             assertFalse(live.status(account, installation).orElseThrow().canRepair());
             var liveEvents = new DocksStripeEvents(db, tx, liveStripe, liveMode, new DocksStripeRisk(liveStripe));
