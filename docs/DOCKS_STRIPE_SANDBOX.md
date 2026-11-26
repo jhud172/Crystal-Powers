@@ -69,3 +69,5 @@ Stripe attached a test clock to the synthetic household customer used for Checko
 With Stripe's decline-after-attaching test card as the subscription default, the next renewal produced an open, unpaid £2 invoice and reports changed to past due. Restoring the original working test card and paying the same invoice restored the paid status through 26 February 2027. Scheduling cancellation preserved that date. Advancing the sandbox clock beyond the paid period changed reports to cancelled. Stripe reported no pending deliveries for the failed payment, the recovered invoice or the scheduled subscription deletion. [Stripe test cards](https://docs.stripe.com/testing#declined-payments)
 
 After the scheduled cancellation, a fresh online entitlement request for a synthetic enrolled device returned Free, with repair access denied and no subscription paid-through date. The test removed its device, verified the original device list and revoked its session.
+
+A new hosted Checkout completed for the £20 annual household sandbox plan. Stripe reported a paid test session and no pending webhook deliveries. Staging reports showed paid access through 26 November 2027.
