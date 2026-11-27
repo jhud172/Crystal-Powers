@@ -96,7 +96,7 @@ async function main() {
         }
         const email = page.getByRole('textbox',{name:'Email address'});
         const send = page.getByRole('button',{name:'Send sign-in code',exact:true});
-        const code = page.getByLabel('Sign-in code',{exact:true});
+        const code = page.getByLabel('Nine-digit sign-in code',{exact:true});
         const signIn = page.getByRole('button',{name:'Sign in',exact:true});
         const signInEmail = async invalidFirst => {
           await email.fill('customer@example.invalid');
