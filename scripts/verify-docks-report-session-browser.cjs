@@ -36,7 +36,10 @@ async function main() {
           if (path === '/api/docks/auth/email' || path === '/api/docks/auth/google') return json({enabled:true});
           if (path.endsWith('/auth/email/request')) return json({},202);
           if (path.endsWith('/auth/email/exchange') || path.endsWith('/auth/google/exchange')) {
-            if (route.request().postDataJSON()?.code === 'x'.repeat(43)) return json({},401);
+            if (path.endsWith('/auth/email/exchange')) {
+              const body = route.request().postDataJSON();
+              if (body?.code !== '012345678' || body?.email !== 'customer@example.invalid') return json({},401);
+            }
             signedIn++;
             const now = mode === 'timer' ? await page.evaluate(() => Date.now()) : Date.now();
             expiresAt = new Date(now + (mode === 'timer' ? 60_000 : 3_600_000)).toISOString();
@@ -99,12 +102,12 @@ async function main() {
           await email.fill('customer@example.invalid');
           await send.click();
           if (invalidFirst) {
-            await code.fill('x'.repeat(43));
+            await code.fill('987654321');
             await signIn.click();
             await expect(page.getByRole('alert')).toHaveText(/code is invalid or expired/);
             await expect(code).toBeVisible();
           }
-          await code.fill('c'.repeat(43));
+          await code.fill('012345678');
           await signIn.click();
         };
         if (mode !== 'google') await signInEmail(mode === 'rejected');

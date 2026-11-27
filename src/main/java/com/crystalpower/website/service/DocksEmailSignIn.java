@@ -1,5 +1,6 @@
 package com.crystalpower.website.service;
 
+import com.crystalpower.website.security.SecretVault;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -22,12 +23,14 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Service
 public class DocksEmailSignIn {
     private static final SecureRandom RANDOM = new SecureRandom();
+    private static final int MAX_CODE_ATTEMPTS = 5;
     static final String ISSUER = "crystal-powers-email";
     private final JdbcTemplate db;
     private final TransactionTemplate transaction;
     private final EmailTransport mail;
     private final boolean enabled;
     private final DocksPilotAccess pilot;
+    private final SecretVault vault;
 
     public record Session(String accessToken, OffsetDateTime expiresAt, UUID accountId) {}
 
@@ -35,17 +38,18 @@ public class DocksEmailSignIn {
     public DocksEmailSignIn(JdbcTemplate db, TransactionTemplate transaction, EmailTransport mail,
             @Value("${app.docks.email-enabled:false}") boolean enabled, DocksPilotAccess pilot,
             @Value("${app.docks.pilot-resend-key:}") String pilotKey,
-            @Value("${app.docks.pilot-mail-from:}") String pilotFrom) {
-        this(db, transaction, pilot.restricted() ? mail.forDocksPilot(pilotKey, pilotFrom) : mail, enabled, pilot);
+            @Value("${app.docks.pilot-mail-from:}") String pilotFrom, SecretVault vault) {
+        this(db, transaction, pilot.restricted() ? mail.forDocksPilot(pilotKey, pilotFrom) : mail, enabled, pilot, vault);
     }
 
     public DocksEmailSignIn(JdbcTemplate db, TransactionTemplate transaction, EmailTransport mail,
-            boolean enabled, DocksPilotAccess pilot) {
+            boolean enabled, DocksPilotAccess pilot, SecretVault vault) {
         this.db = db;
         this.transaction = transaction;
         this.mail = mail;
         this.enabled = enabled;
         this.pilot = pilot;
+        this.vault = vault;
     }
 
     public boolean available() {
@@ -56,8 +60,8 @@ public class DocksEmailSignIn {
     public void request(String address) {
         String email = normaliseEmail(address);
         if (!pilot.allows(email)) return;
-        String code = randomToken();
-        String hash = digest(code);
+        String code = String.format(Locale.ROOT, "%09d", RANDOM.nextInt(1_000_000_000));
+        String hash = emailCodeHash(email, code);
         var now = now();
         Boolean reserved = transaction.execute(status -> {
             lockGate();
@@ -81,7 +85,7 @@ public class DocksEmailSignIn {
 
         try {
             mail.send(new EmailTransport.Message(email, null, "Your Crystal Docks sign-in code",
-                    "<p>Paste this code into Crystal Docks to sign in. It expires in 10 minutes.</p><p><strong>"
+                    "<p>Enter this nine-digit code in Crystal Docks to sign in. It expires in 10 minutes.</p><p><strong>"
                             + code + "</strong></p><p>If you did not request this code, you can ignore this email.</p>",
                     List.of()));
         } catch (EmailTransport.DeliveryException error) {
@@ -90,24 +94,40 @@ public class DocksEmailSignIn {
         }
     }
 
-    public Optional<Session> exchange(String code) {
-        String hash = digest(code);
+    public Optional<Session> exchange(String address, String code) {
+        boolean numeric = code.matches("[0-9]{9}");
+        if (numeric && (address == null || address.isBlank())) return Optional.empty();
+        String email = numeric ? normaliseEmail(address) : null;
+        // Previously issued email codes can finish exchanging during the transition.
+        String hash = numeric ? emailCodeHash(email, code) : digest(code);
         var now = now();
         return transaction.execute(status -> {
             lockGate();
-            var addresses = db.query("SELECT email FROM docks_email_challenge WHERE token_hash = ? AND expires_at > ?",
-                    (row, i) -> row.getString(1), hash, now);
-            if (addresses.isEmpty()) return Optional.empty();
+            var addresses = db.query("""
+                    SELECT email FROM docks_email_challenge
+                    WHERE token_hash = ? AND expires_at > ? AND failed_attempts < ?
+                    """, (row, i) -> row.getString(1), hash, now, MAX_CODE_ATTEMPTS);
+            if (addresses.isEmpty()) {
+                if (numeric) db.update("""
+                        UPDATE docks_email_challenge SET failed_attempts = failed_attempts + 1
+                        WHERE email = ? AND expires_at > ? AND failed_attempts < ?
+                        """, email, now, MAX_CODE_ATTEMPTS);
+                return Optional.empty();
+            }
             db.update("DELETE FROM docks_email_challenge WHERE token_hash = ?", hash);
-            String email = addresses.get(0);
-            if (!pilot.allows(email)) return Optional.empty();
-            UUID account = identity(ISSUER, email).orElseGet(() -> {
+            String verifiedEmail = addresses.get(0);
+            if (!pilot.allows(verifiedEmail)) return Optional.empty();
+            UUID account = identity(ISSUER, verifiedEmail).orElseGet(() -> {
                 var created = newAccount();
-                addIdentity(ISSUER, email, created);
+                addIdentity(ISSUER, verifiedEmail, created);
                 return created;
             });
             return Optional.of(issueSession(account));
         });
+    }
+
+    private String emailCodeHash(String email, String code) {
+        return vault.fingerprint("docks-email-sign-in", email + "\n" + code);
     }
 
     boolean pilotAvailable() { return pilot.available(); }

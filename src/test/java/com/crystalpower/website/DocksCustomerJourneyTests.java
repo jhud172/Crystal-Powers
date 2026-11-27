@@ -321,9 +321,9 @@ class DocksCustomerJourneyTests {
         var email = "pilot-" + UUID.randomUUID() + "@example.invalid";
         delivered.set(null);
         http.perform(body(post(DOCKS + "/auth/email/request"), Map.of("email", email))).andExpect(status().isAccepted());
-        var match = Pattern.compile("<strong>([A-Za-z0-9_-]{43})</strong>").matcher(delivered.get().html());
+        var match = Pattern.compile("<strong>([0-9]{9})</strong>").matcher(delivered.get().html());
         assertTrue(match.find(), "The captured fixture email contains a sign-in code");
-        var code = Map.of("code", match.group(1));
+        var code = Map.of("code", match.group(1), "email", email);
         String token = response(http.perform(body(post(DOCKS + "/auth/email/exchange"), code)).andExpect(status().isOk()))
                 .get("accessToken").asText();
         http.perform(body(post(DOCKS + "/auth/email/exchange"), code)).andExpect(status().isUnauthorized());

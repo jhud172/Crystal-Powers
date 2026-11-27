@@ -186,14 +186,14 @@ export default function DocksReports() {
     void run(async () => {
       await request("auth/email/request", "POST", { email });
       setRequested(true);
-      setNotice("Check your inbox for a Crystal Docks sign-in code. If it hasn’t arrived, wait at least two minutes after your last request before trying again.");
+      setNotice("Check your inbox for a nine-digit Crystal Docks sign-in code. If it hasn’t arrived, wait at least two minutes after your last request before trying again.");
     });
   }
 
   function signIn(event: FormEvent) {
     event.preventDefault();
     void run(async () => {
-      const response = await request<SessionResponse>("auth/email/exchange", "POST", { code: code.trim() });
+      const response = await request<SessionResponse>("auth/email/exchange", "POST", { email: email.trim(), code: code.trim() });
       setCode("");
       await openSession(response);
     });
@@ -388,7 +388,7 @@ export default function DocksReports() {
         <button className="studio-button" disabled={busy}>{requested ? "Send another code" : "Send sign-in code"}</button>
       </form>}
       {requested && <form className="admin-form" onSubmit={signIn}>
-        <label>Sign-in code<input type="password" autoComplete="one-time-code" maxLength={43} minLength={43} value={code} onChange={event => setCode(event.target.value)} required /></label>
+        <label>Nine-digit sign-in code<input type="password" inputMode="numeric" autoComplete="one-time-code" maxLength={9} minLength={9} pattern="[0-9]{9}" value={code} onChange={event => setCode(event.target.value)} required /></label>
         <button className="studio-button" disabled={busy}>Sign in</button>
       </form>}
     </>}

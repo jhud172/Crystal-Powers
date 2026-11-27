@@ -33,7 +33,7 @@ class DocksGoogleSignInTests {
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));
             var environment = new MockEnvironment().withProperty("DOCKS_PILOT_ALLOWED_EMAILS", "owner@gmail.com");
             if (staging) environment.setActiveProfiles("docks-pilot");
-            var accounts = new DocksEmailSignIn(db, tx, mock(EmailTransport.class), true, new DocksPilotAccess(environment));
+            var accounts = new DocksEmailSignIn(db, tx, mock(EmailTransport.class), true, new DocksPilotAccess(environment), mock(com.crystalpower.website.security.SecretVault.class));
             var provider = mock(GoogleDocksProvider.class);
             when(provider.enabled()).thenReturn(true);
             when(provider.authorise(anyString(), anyString())).thenAnswer(call ->

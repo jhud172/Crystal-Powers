@@ -38,7 +38,7 @@ class DocksAccountDeletionTests {
         try {
             var db = new JdbcTemplate(database);
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));
-            var signIn = new DocksEmailSignIn(db, tx, mock(EmailTransport.class), false, new DocksPilotAccess(new MockEnvironment()));
+            var signIn = new DocksEmailSignIn(db, tx, mock(EmailTransport.class), false, new DocksPilotAccess(new MockEnvironment()), mock(com.crystalpower.website.security.SecretVault.class));
             var stripe = mock(StripeGateway.class);
             when(stripe.connected()).thenReturn(true);
             var service = new DocksAccountDeletion(db, tx, signIn, stripe);
