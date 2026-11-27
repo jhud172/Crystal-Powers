@@ -3,6 +3,8 @@ package com.crystalpower.website.service;
 import com.crystalpower.website.repository.OwnerRepository;
 import com.crystalpower.website.repository.RecoveryRepository;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,19 +19,33 @@ import java.util.List;
 
 @Service
 public class OwnerRecoveryService {
+    private static final Logger LOG = LoggerFactory.getLogger(OwnerRecoveryService.class);
     private final OwnerRepository owners;
     private final RecoveryRepository recovery;
     private final OwnerService authentication;
     private final PasswordEncoder passwords;
     private final EmailTransport email;
     private final String publicUrl;
-    public OwnerRecoveryService(OwnerRepository owners, RecoveryRepository recovery, OwnerService authentication, PasswordEncoder passwords, EmailTransport email, @Value("${app.public-url}") String publicUrl) {
-        this.owners = owners; this.recovery = recovery; this.authentication = authentication; this.passwords = passwords; this.email = email; this.publicUrl = publicUrl.replaceAll("/+$", "");
+    private final boolean pilot;
+    public OwnerRecoveryService(OwnerRepository owners, RecoveryRepository recovery, OwnerService authentication,
+            PasswordEncoder passwords, EmailTransport email, DocksPilotAccess pilotAccess,
+            @Value("${app.public-url}") String publicUrl, @Value("${app.docks.pilot-resend-key:}") String pilotKey,
+            @Value("${app.docks.pilot-mail-from:}") String pilotFrom) {
+        this.owners = owners;
+        this.recovery = recovery;
+        this.authentication = authentication;
+        this.passwords = passwords;
+        this.pilot = pilotAccess.restricted();
+        this.email = pilot ? email.forDocksPilot(pilotKey, pilotFrom) : email;
+        this.publicUrl = publicUrl.replaceAll("/+$", "");
     }
     @Transactional
     public void request(String address) {
         var account = owners.byEmail(OwnerService.normaliseEmail(address)).filter(OwnerRepository.Owner::mfaEnabled);
-        if (account.isEmpty()) return;
+        if (account.isEmpty()) {
+            if (pilot) LOG.info("Pilot owner recovery had no eligible MFA-enrolled account.");
+            return;
+        }
         var owner = owners.lock(account.get().id()).orElseThrow();
         byte[] bytes = new byte[32]; new SecureRandom().nextBytes(bytes); String token = HexFormat.of().formatHex(bytes);
         recovery.create(owner.id(), DigestUtils.sha256Hex(token), Instant.now().plusSeconds(900));
@@ -38,6 +54,7 @@ public class OwnerRecoveryService {
         email.send(new EmailTransport.Message(owner.email(), null, "Reset your Crystal Powers password",
                 "<p>A password reset was requested for your Crystal Powers owner account.</p><p><a href=\"" + link + "\">Reset your password</a></p><p>This link expires in 15 minutes and works once. You will also need your authenticator or an unused recovery code. If you did not request this, you can ignore this email.</p>", List.of()));
         owners.audit(owner.id(), "OWNER_PASSWORD_RESET_REQUESTED");
+        if (pilot) LOG.info("Pilot owner recovery email accepted by the mail transport.");
     }
     @Transactional
     public void reset(String token, String password, String code) {
