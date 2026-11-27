@@ -323,6 +323,11 @@ class DocksCustomerJourneyTests {
         http.perform(body(post(DOCKS + "/auth/email/request"), Map.of("email", email))).andExpect(status().isAccepted());
         var match = Pattern.compile("<strong>([0-9]{9})</strong>").matcher(delivered.get().html());
         assertTrue(match.find(), "The captured fixture email contains a sign-in code");
+        var exchange = DOCKS + "/auth/email/exchange";
+        http.perform(body(post(exchange), Map.of("code", "01234567", "email", email)))
+                .andExpect(status().isBadRequest());
+        http.perform(body(post(exchange), Map.of("code", match.group(1))))
+                .andExpect(status().isBadRequest());
         var code = Map.of("code", match.group(1), "email", email);
         String token = response(http.perform(body(post(DOCKS + "/auth/email/exchange"), code)).andExpect(status().isOk()))
                 .get("accessToken").asText();

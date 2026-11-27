@@ -11,7 +11,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.Map;
 import java.util.UUID;
@@ -42,8 +41,7 @@ public class DocksAccountController {
     }
 
     public record EmailRequest(@NotBlank @Email @Size(max = 254) String email) {}
-    public record CodeRequest(@Email @Size(max = 254) String email,
-                              @NotBlank @Pattern(regexp = "[0-9]{9}|[A-Za-z0-9_-]{43}") String code) {}
+    public record CodeRequest(@Email @Size(max = 254) String email, String code) {}
     public record DeviceRequest(@NotNull UUID installationId,
                                 @NotBlank @Size(max = 120) String label) {}
     public record TrialRequest(@NotNull UUID installationId) {}
@@ -68,9 +66,13 @@ public class DocksAccountController {
     @PostMapping("/auth/email/exchange")
     public ResponseEntity<?> exchange(@Valid @RequestBody CodeRequest request) {
         if (!signIn.available()) return response(503, Map.of("message", "Email sign-in is currently unavailable."));
-        if (request.code().length() == 9 && (request.email() == null || request.email().isBlank()))
+        String code = request.code();
+        // Validate explicitly so rejected code values stay out of validation logs.
+        if (code == null || !code.matches("[0-9]{9}|[A-Za-z0-9_-]{43}"))
+            return response(400, Map.of("message", "Enter the nine-digit code from your email."));
+        if (code.length() == 9 && (request.email() == null || request.email().isBlank()))
             return response(400, Map.of("message", "Enter the email address that requested this code."));
-        return signIn.exchange(request.email(), request.code()).map(session -> response(200, session))
+        return signIn.exchange(request.email(), code).map(session -> response(200, session))
                 .orElseGet(() -> response(401, Map.of("message", "The code is invalid or expired.")));
     }
 

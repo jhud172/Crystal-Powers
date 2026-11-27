@@ -49,7 +49,11 @@ class DocksEmailSignInTests {
             var matcher = Pattern.compile("<strong>([0-9]{9})</strong>").matcher(message.getValue().html());
             assertTrue(matcher.find());
             String code = matcher.group(1);
-            assertNotEquals(code, db.queryForObject("SELECT token_hash FROM docks_email_challenge", String.class));
+            String storedHash = db.queryForObject("SELECT token_hash FROM docks_email_challenge", String.class);
+            assertNotEquals(code, storedHash);
+            byte[] rawDigest = java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(code.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            assertNotEquals(java.util.HexFormat.of().formatHex(rawDigest), storedHash);
             assertTrue(signIn.exchange("other@example.com", code).isEmpty());
             assertTrue(signIn.exchange(null, code).isEmpty());
             var session = signIn.exchange(" CUSTOMER@example.com ", code).orElseThrow();
@@ -70,6 +74,10 @@ class DocksEmailSignInTests {
             var second = Pattern.compile("<strong>([0-9]{9})</strong>").matcher(message.getValue().html());
             assertTrue(second.find());
             String freshCode = second.group(1);
+            var expiry = db.queryForObject("SELECT expires_at FROM docks_email_challenge", java.time.OffsetDateTime.class);
+            db.update("UPDATE docks_email_challenge SET expires_at = ?", expiry.minusMinutes(20));
+            assertTrue(signIn.exchange("customer@example.com", freshCode).isEmpty());
+            db.update("UPDATE docks_email_challenge SET expires_at = ?", expiry);
             String incorrectCode = freshCode.equals("000000000") ? "000000001" : "000000000";
             for (int i = 0; i < 5; i++) assertTrue(signIn.exchange("customer@example.com", incorrectCode).isEmpty());
             assertTrue(signIn.exchange("customer@example.com", freshCode).isEmpty());
