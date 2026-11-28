@@ -14,7 +14,20 @@ import subprocess
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 
 CORE_TABLES = ("admin_account", "recovery_code", "password_reset", "project", "project_revision", "project_media", "admin_audit", "flyway_schema_history")
-TABLES = CORE_TABLES + ("project_media_budget", "team_workspace", "team_account", "team_invitation", "team_audit", "team_channel", "team_message", "team_message_attachment", "support_request", "support_message", "support_event", "support_attachment", "billing_payment_request", "client_account", "client_invitation", "client_request", "client_reply", "billing_customer", "billing_intent", "billing_checkout_attempt", "billing_stripe_event", "team_group", "team_group_member", "team_channel_read", "team_mention", "team_role_profile", "team_preferences", "team_channel_preferences", "billing_observation", "billing_provider_payment", "billing_payment_link", "billing_provider_adjustment", "billing_payment_mutex", "billing_invoice_sync", "billing_invoice_allocation", "billing_client_invoice", "billing_refund_request", "assistant_budget")
+DOCKS_TABLES = (
+    "docks_access_key", "docks_access_key_audit", "docks_access_key_device",
+    "docks_account", "docks_ai_allowance", "docks_ai_budget",
+    "docks_ai_budget_gate", "docks_client_link", "docks_device",
+    "docks_device_report", "docks_email_challenge", "docks_email_gate",
+    "docks_email_rate", "docks_google_challenge", "docks_google_ticket",
+    "docks_household_invitation", "docks_identity", "docks_report_consent",
+    "docks_report_support_audit", "docks_report_support_grant", "docks_research_consent",
+    "docks_research_contribution", "docks_session", "docks_stripe_delivery",
+    "docks_subscription_checkout", "docks_subscription_event", "docks_subscription_payment_risk",
+    "docks_subscription_seat", "docks_subscription_status", "docks_support_diagnostic_log",
+    "docks_trial",
+)
+TABLES = CORE_TABLES + ("project_media_budget", "team_workspace", "team_account", "team_invitation", "team_audit", "team_channel", "team_message", "team_message_attachment", "support_request", "support_message", "support_event", "support_attachment", "billing_payment_request", "client_account", "client_invitation", "client_request", "client_reply", "billing_customer", "billing_intent", "billing_checkout_attempt", "billing_stripe_event", "team_group", "team_group_member", "team_channel_read", "team_mention", "team_role_profile", "team_preferences", "team_channel_preferences", "billing_observation", "billing_provider_payment", "billing_payment_link", "billing_provider_adjustment", "billing_payment_mutex", "billing_invoice_sync", "billing_invoice_allocation", "billing_client_invoice", "billing_refund_request", "assistant_budget") + DOCKS_TABLES
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -78,14 +91,18 @@ def backup(args):
     available = set(json.loads(sql("SELECT COALESCE(json_agg(table_name), '[]'::json) FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'")))
     if not set(CORE_TABLES).issubset(available):
         raise ValueError("The expected application schema is incomplete; backup stopped.")
-    unknown = {name for name in available if name.startswith(("team_", "support_", "client_", "billing_", "project_", "assistant_")) and name not in TABLES}
+    unknown = {name for name in available if name.startswith(("team_", "support_", "client_", "billing_", "project_", "assistant_", "docks_")) and name not in TABLES}
     if unknown:
         raise ValueError("New business tables require backup inventory review; no incomplete recovery point will be accepted.")
     selected = [name for name in TABLES if name in available]
     sequences = []
-    for table in ("team_message", "billing_observation"):
+    sequence_columns = [("team_message", "id"), ("billing_observation", "id")]
+    if "docks_report_support_audit" in selected and sql("SELECT COUNT(*) FROM information_schema.columns "
+            "WHERE table_schema='public' AND table_name='docks_report_support_audit' AND column_name='event_order'") == "1":
+        sequence_columns.append(("docks_report_support_audit", "event_order"))
+    for table, column in sequence_columns:
         if table in selected:
-            sequence = sql(f"SELECT pg_get_serial_sequence('public.{table}', 'id')")
+            sequence = sql(f"SELECT pg_get_serial_sequence('public.{table}', '{column}')")
             if not re.fullmatch(r"public\.[a-z0-9_]+", sequence):
                 raise ValueError(f"The {table} sequence is missing or unexpected.")
             sequences.append(sequence)

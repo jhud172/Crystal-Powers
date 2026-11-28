@@ -95,6 +95,15 @@ public class DocksEmailSignIn {
     }
 
     public Optional<Session> exchange(String address, String code) {
+        return exchange(address, code, false);
+    }
+
+    public Optional<Session> exchangeBrowser(String address, String code) {
+        if (code == null || !code.matches("[0-9]{9}")) return Optional.empty();
+        return exchange(address, code, true);
+    }
+
+    private Optional<Session> exchange(String address, String code, boolean browser) {
         boolean numeric = code.matches("[0-9]{9}");
         if (numeric && (address == null || address.isBlank())) return Optional.empty();
         String email = numeric ? normaliseEmail(address) : null;
@@ -122,7 +131,7 @@ public class DocksEmailSignIn {
                 addIdentity(ISSUER, verifiedEmail, created);
                 return created;
             });
-            return Optional.of(issueSession(account));
+            return Optional.of(issueSession(account, browser));
         });
     }
 
@@ -177,18 +186,30 @@ public class DocksEmailSignIn {
         db.update("INSERT INTO docks_identity(issuer, subject, account_id) VALUES (?, ?, ?)", issuer, subject, account);
     }
 
-    Session issueSession(UUID account) {
+    Session issueSession(UUID account, boolean browser) {
         var now = now();
         db.update("DELETE FROM docks_session WHERE expires_at <= ?", now);
         var access = randomToken();
         var expires = now.plusDays(7);
-        db.update("INSERT INTO docks_session(token_hash, account_id, expires_at, issued_at) VALUES (?, ?, ?, ?)",
-                digest(access), account, expires, now);
+        db.update("INSERT INTO docks_session(token_hash, account_id, expires_at, issued_at, browser_session) VALUES (?, ?, ?, ?, ?)",
+                digest(access), account, expires, now, browser);
         return new Session(access, expires, account);
     }
 
     static String normaliseEmail(String address) {
         return address.trim().toLowerCase(Locale.ROOT);
+    }
+
+    public Optional<String> browserGrant(String authorization) {
+        String token = bearer(authorization);
+        if (token == null) return Optional.empty();
+        String hash = digest(token);
+        return browserAccount(hash).map(ignored -> hash);
+    }
+
+    Optional<UUID> browserAccount(String hash) {
+        return db.query("SELECT account_id FROM docks_session WHERE token_hash = ? AND expires_at > ? AND browser_session = TRUE",
+                (row, i) -> row.getObject(1, UUID.class), hash, now()).stream().filter(this::pilotAllowsAccount).findFirst();
     }
 
     public Optional<UUID> account(String authorization) {

@@ -50,10 +50,18 @@ try {
         'docks/support' = 'Crystal Docks support'
         'docks/reports' = 'Crystal Docks reports'
     }
+    $privatePages = @('docks/reports')
+    if (!$isPilot) {
+        $docksPages['projects/docks'] = 'Crystal Docks for Windows'
+        foreach ($route in 'account/dashboard', 'account/dashboard/docks', 'account/dashboard/hub') {
+            $docksPages[$route] = 'Product dashboard'
+            $privatePages += $route
+        }
+    }
     foreach ($route in $docksPages.Keys) {
         $page = Read-Route $route 200
         if (!$page.Text.Contains("<title>$($docksPages[$route]) | Crystal Powers</title>") -or
-            ($page.NoIndex -ne ($isPilot -or $route -eq 'docks/reports'))) {
+            ($page.NoIndex -ne ($isPilot -or $route -in $privatePages))) {
             throw "$route returned unexpected page content or indexing rules."
         }
     }

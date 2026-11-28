@@ -54,6 +54,8 @@ class DocksCustomerJourneyTests {
 
     @Autowired MockMvc http;
     @Autowired ObjectMapper json;
+    @Autowired org.springframework.jdbc.core.JdbcTemplate database;
+    @Autowired org.springframework.security.crypto.password.PasswordEncoder passwords;
     @MockitoBean EmailTransport mail;
     private final AtomicReference<EmailTransport.Message> delivered = new AtomicReference<>();
     private MockHttpSession owner;
@@ -317,7 +319,45 @@ class DocksCustomerJourneyTests {
         return DOCKS + "/entitlement?installationId=" + installation;
     }
 
+    @Test
+    void linkedClientWorkspaceRequiresBrowserSignInAndBothCredentials() throws Exception {
+        String path = "/api/client/auth/product-link";
+        String desktop = signIn();
+        String browser = signIn(true);
+        String other = signIn(true);
+        UUID client = UUID.randomUUID();
+        http.perform(get("/api/team/workspace").session(owner)).andExpect(status().isOk());
+        UUID workspace = database.query("SELECT id FROM team_workspace", (row, i) -> row.getObject(1, UUID.class)).get(0);
+        String email = "client-link-" + client + "@example.invalid";
+        String password = "Synthetic-Client-Link-Password";
+        database.update("INSERT INTO client_account(id, workspace_id, email, display_name, password_hash, state) VALUES (?,?,?,?,?,'ACTIVE')",
+                client, workspace, email, "Synthetic linked client", passwords.encode(password));
+
+        asCustomer(get(path), desktop).andExpect(status().isUnauthorized());
+        asCustomer(get(path), browser).andExpect(status().isOk()).andExpect(jsonPath("$.connected").value(false));
+        asCustomer(body(post(path), Map.of("email", email, "password", password)), browser).andExpect(status().isForbidden());
+        asCustomer(body(post(path).with(csrf()), Map.of("email", email, "password", "incorrect")), browser)
+                .andExpect(status().isUnauthorized());
+        asCustomer(body(post(path).with(csrf()), Map.of("email", email, "password", password)), browser)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.connected").value(true));
+        asCustomer(post(path + "/open").with(csrf()), other).andExpect(status().isNotFound());
+        asCustomer(body(post(path).with(csrf()), Map.of("email", email, "password", password)), other)
+                .andExpect(status().isConflict());
+
+        var opened = asCustomer(post(path + "/open").with(csrf()), browser).andExpect(status().isOk())
+                .andExpect(jsonPath("$.client.id").value(client.toString())).andReturn();
+        var session = (MockHttpSession) opened.getRequest().getSession(false);
+        http.perform(get("/api/client/projects/page").session(session)).andExpect(status().isOk());
+        http.perform(get("/api/admin/projects").session(session)).andExpect(status().isForbidden());
+        asCustomer(post(DOCKS + "/auth/sign-out"), browser).andExpect(status().isNoContent());
+        http.perform(get("/api/client/projects/page").session(session)).andExpect(status().isUnauthorized());
+    }
+
     private String signIn() throws Exception {
+        return signIn(false);
+    }
+
+    private String signIn(boolean browser) throws Exception {
         var email = "pilot-" + UUID.randomUUID() + "@example.invalid";
         delivered.set(null);
         http.perform(body(post(DOCKS + "/auth/email/request"), Map.of("email", email))).andExpect(status().isAccepted());
@@ -329,9 +369,9 @@ class DocksCustomerJourneyTests {
         http.perform(body(post(exchange), Map.of("code", match.group(1))))
                 .andExpect(status().isBadRequest());
         var code = Map.of("code", match.group(1), "email", email);
-        String token = response(http.perform(body(post(DOCKS + "/auth/email/exchange"), code)).andExpect(status().isOk()))
-                .get("accessToken").asText();
-        http.perform(body(post(DOCKS + "/auth/email/exchange"), code)).andExpect(status().isUnauthorized());
+        var action = post(browser ? DOCKS + "/auth/browser/exchange" : exchange).with(csrf());
+        String token = response(http.perform(body(action, code)).andExpect(status().isOk())).get("accessToken").asText();
+        http.perform(body(post(exchange), code)).andExpect(status().isUnauthorized());
         return token;
     }
 

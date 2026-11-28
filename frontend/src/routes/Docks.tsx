@@ -26,7 +26,7 @@ export default function Docks() {
   const [release, setRelease] = useState<Release>({ state: "loading" });
   const [attempt, setAttempt] = useState(0);
   usePageMetadata("Crystal Docks for Windows | Crystal Powers",
-    "Check your Windows 11 PC, understand what Crystal Docks finds and review supported repairs.", "/docks", preview);
+    "Check your Windows 11 PC, understand what Crystal Docks finds and review supported repairs.", "/projects/docks", preview);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -65,7 +65,7 @@ export default function Docks() {
               setRelease({ state: "loading" });
               setAttempt(value => value + 1);
             }}>Check again</button>}
-            <Link className="docks-report-link" to="/docks/reports">Open device reports <span aria-hidden="true">→</span></Link>
+            <Link className="docks-report-link" to="/account/dashboard/docks">Open device reports <span aria-hidden="true">→</span></Link>
           </div>
           <p className="docks-release" role="status">
             {release.state === "loading" && "Checking for a Windows download…"}
@@ -102,7 +102,7 @@ export function DocksSupport() {
     <h1 id="docks-support-title">Crystal Docks support</h1>
     <p>Get help with the Windows app, your account or a subscription. You can send a request without signing in.</p>
     <p>If you chose to share a diagnostic log or device summary, you can include its support reference. Keep passwords and sign-in codes out of the request.</p>
-    <p><Link to="/docks">About Crystal Docks</Link>{" · "}<Link to="/docks/reports">Manage reports and access</Link></p>
+    <p><Link to="/projects/docks">About Crystal Docks</Link>{" · "}<Link to="/account/dashboard/docks">Manage reports and access</Link></p>
     <EnquiryProvider startingIntent="support"><EnquiryForm docksSupport /></EnquiryProvider>
   </section>;
 }

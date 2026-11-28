@@ -34,7 +34,8 @@ class DocksAccountDeletionTests {
                         "classpath:db/migration/V101__docks_diagnostic_log_sharing.sql",
                         "classpath:db/migration/V102__docks_stripe_mode_isolation.sql",
                         "classpath:db/migration/V106__docks_account_deletion.sql",
-                        "classpath:db/migration/V107__detach_closed_docks_billing.sql").build();
+                        "classpath:db/migration/V107__detach_closed_docks_billing.sql",
+                        "classpath:db/migration/V111__docks_browser_sessions.sql").build();
         try {
             var db = new JdbcTemplate(database);
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));
@@ -75,11 +76,11 @@ class DocksAccountDeletionTests {
             db.update("INSERT INTO docks_subscription_seat(stripe_subscription_id, device_id) VALUES ('sub_Fixture', ?)", otherDevice);
             db.update("INSERT INTO docks_subscription_event(stripe_event_id, attempt_id, handled_at_epoch) VALUES ('evt_Fixture', ?, 1)", terminal);
 
-            var oldToken = "Bearer " + signIn.issueSession(account).accessToken();
+            var oldToken = "Bearer " + signIn.issueSession(account, false).accessToken();
             db.update("UPDATE docks_session SET issued_at = ? WHERE account_id = ?", now.minusMinutes(11), account);
             assertEquals(DocksAccountDeletion.Result.SIGN_IN_AGAIN, service.delete(oldToken));
-            var otherToken = "Bearer " + signIn.issueSession(other).accessToken();
-            var token = "Bearer " + signIn.issueSession(account).accessToken();
+            var otherToken = "Bearer " + signIn.issueSession(other, false).accessToken();
+            var token = "Bearer " + signIn.issueSession(account, false).accessToken();
             assertEquals(DocksAccountDeletion.Result.UNAUTHORISED, service.delete(null));
             assertEquals(DocksAccountDeletion.Result.BILLING_OPEN, service.delete(token));
             verify(stripe, never()).session(anyString());

@@ -16,6 +16,7 @@ async function main() {
         page.on('pageerror', error => errors.push(error.message));
         if (mode === 'timer') await page.clock.install();
         let signedIn = 0;
+        let workspaceConnected=false;
         let rejectLog = false;
         let deferReport;
         let lateReportFinished = false;
@@ -33,17 +34,26 @@ async function main() {
         await page.route('**/api/**', async route => {
           const path = new URL(route.request().url()).pathname;
           const json = (value, status = 200) => route.fulfill({json:value,status});
+          if (path === '/api/admin/auth/csrf') return json({ token: 'fixture', headerName: 'X-CSRF-TOKEN' });
           if (path === '/api/docks/auth/email' || path === '/api/docks/auth/google') return json({enabled:true});
           if (path.endsWith('/auth/email/request')) return json({},202);
-          if (path.endsWith('/auth/email/exchange') || path.endsWith('/auth/google/exchange')) {
-            if (path.endsWith('/auth/email/exchange')) {
+          if (path.endsWith('/auth/browser/exchange') || path.endsWith('/auth/google/exchange')) {
+            if (path.endsWith('/auth/browser/exchange')) {
               const body = route.request().postDataJSON();
-              if (body?.code !== '012345678' || body?.email !== 'customer@example.invalid') return json({},401);
+              if (body?.code !== '012345678' || body?.email !== 'customer@example.invalid') return json({message:'The code is invalid or expired.'},401);
             }
             signedIn++;
             const now = mode === 'timer' ? await page.evaluate(() => Date.now()) : Date.now();
             expiresAt = new Date(now + (mode === 'timer' ? 60_000 : 3_600_000)).toISOString();
             return json({accessToken:activeToken(),expiresAt});
+          }
+          if (path === '/api/client/auth/product-link' && mode === 'livePricing') {
+            assert.equal(route.request().headers().authorization, 'Bearer ' + activeToken());
+            if (route.request().method() === 'POST') {
+              assert.equal(route.request().postDataJSON().email, 'client@example.invalid');
+              workspaceConnected = true;
+            }
+            return json({connected:workspaceConnected});
           }
           if (!path.startsWith('/api/docks/')) return json({}, 404);
           lastBearer = route.request().headers().authorization;
@@ -94,6 +104,7 @@ async function main() {
           assert(!new URL(page.url()).searchParams.has('checkout'));
           assert.equal(billingChecks, 0);
         }
+        if (mode !== 'google') await expect(page.getByRole('navigation', { name:'Your products' })).toHaveCount(0);
         const email = page.getByRole('textbox',{name:'Email address'});
         const send = page.getByRole('button',{name:'Send sign-in code',exact:true});
         const code = page.getByLabel('Nine-digit sign-in code',{exact:true});
@@ -112,6 +123,19 @@ async function main() {
         };
         if (mode !== 'google') await signInEmail(mode === 'rejected');
         if (mode === 'livePricing') {
+          const products = page.getByRole('navigation', { name:'Your products' });
+          await products.getByRole('link', { name:'CrystalHub', exact:true }).click();
+          await expect(page.getByText('Under construction.', { exact:true })).toBeVisible();
+          await expect(products.getByRole('link', { name:'CrystalHub', exact:true })).toHaveAttribute('aria-current', 'page');
+          if (process.env.CRYSTAL_DASHBOARD_SCREENSHOT) await page.screenshot({path:process.env.CRYSTAL_DASHBOARD_SCREENSHOT});
+          await products.getByRole('link', { name:'Crystal Powers', exact:true }).click();
+          await page.getByLabel('Client email address').fill('client@example.invalid');
+          await page.getByLabel('Client password', {exact:true}).fill('Synthetic-client-password');
+          await page.getByRole('button', {name:'Connect workspace'}).click();
+          await expect(page.getByRole('button', {name:'Open client workspace'})).toBeVisible();
+          await products.getByRole('link', { name:'Crystal Docks', exact:true }).click();
+          await expect(page.getByText('Manage enrolled devices',{exact:true})).toBeVisible();
+          assert.equal(signedIn, 1);
           const plan = page.getByLabel('Choose a Premium plan');
           await expect(plan.getByRole('option')).toHaveText([
             'One device, monthly · £12.99', 'One device, annual · £99.99',
@@ -185,7 +209,7 @@ async function main() {
         await expect(email).toBeVisible();
         if (mode !== 'google') {
           await expect(page.getByRole('alert')).toHaveText(/Your Crystal Docks session ended/);
-          await expect(page.getByRole('heading',{name:'Crystal Docks reports',exact:true})).toBeFocused();
+          await expect(page.getByRole('heading',{name:'Your product dashboard',exact:true})).toBeFocused();
         }
         await expect(page.getByRole('heading',{name:'Old private device'})).toHaveCount(0);
         await expect(page.getByLabel('Diagnostic log reference')).toHaveCount(0);

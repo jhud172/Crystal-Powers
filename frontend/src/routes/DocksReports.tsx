@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { DashboardNavigation, DashboardProductView } from "../features/account/ProductDashboard";
+import { api } from "../features/portfolio/projectApi";
+import "../styles/pages/product-dashboard.css";
 
 type Summary = { deviceId: string; deviceLabel: string; checkedAt: string; cpuPercent: number | null; memoryPercent: number | null };
 type Reports = { enabled: boolean; reports: Summary[] };
@@ -43,6 +46,10 @@ async function request<T>(path: string, method = "GET", value?: unknown, token?:
 }
 
 export default function DocksReports() {
+  const dashboardPath = useLocation().pathname.replace(/\/+$/, "");
+  const isDashboard = dashboardPath.startsWith("/account/dashboard");
+  const product = dashboardPath === "/account/dashboard" ? "powers"
+    : dashboardPath === "/account/dashboard/hub" ? "hub" : "docks";
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [requested, setRequested] = useState(false);
@@ -193,7 +200,9 @@ export default function DocksReports() {
   function signIn(event: FormEvent) {
     event.preventDefault();
     void run(async () => {
-      const response = await request<SessionResponse>("auth/email/exchange", "POST", { email: email.trim(), code: code.trim() });
+      const response = await api<SessionResponse>("/api/docks/auth/browser/exchange", {
+        method: "POST", body: JSON.stringify({ email: email.trim(), code: code.trim() }),
+      });
       setCode("");
       await openSession(response);
     });
@@ -303,10 +312,11 @@ export default function DocksReports() {
     setNotice("Device summary download started.");
   }
 
-  return <section className="studio-section" aria-labelledby="docks-reports-title" aria-busy={busy}>
-    <h1 id="docks-reports-title" ref={pageHeading} tabIndex={-1}>Crystal Docks reports</h1>
-    <p>View the device summaries you shared from the Windows app. Each summary expires 30 days after its check.</p>
-    <p><Link to="/docks">About Crystal Docks</Link>{" · "}<Link to="/docks/support">Get Crystal Docks support</Link></p>
+  return <section className="studio-section admin-studio product-dashboard" aria-labelledby="docks-reports-title" aria-busy={busy}>
+    <h1 id="docks-reports-title" ref={pageHeading} tabIndex={-1}>{isDashboard ? "Your product dashboard" : "Crystal Docks reports"}</h1>
+    {!isDashboard && <p>View the device summaries you shared from the Windows app. Each summary expires 30 days after its check.</p>}
+    {isDashboard && !session && <p>Sign in to open your dashboard and manage your Crystal Docks devices.</p>}
+    <p><Link to="/projects/docks">About Crystal Docks</Link>{" · "}<Link to="/docks/support">Get Crystal Docks support</Link></p>
     {error && <p role="alert">{error}</p>}
     {notice && <p role="status">{notice}</p>}
     {checkoutReturn === "returned" && <p role="status">{session
@@ -316,10 +326,18 @@ export default function DocksReports() {
       ? "You can start again under Premium."
       : "Return to your original Crystal Docks tab or sign in here to choose a plan again."}</p>}
     {session ? <>
+      <div className="product-dashboard-toolbar">
+        <DashboardNavigation product={product} />
+        <button className="admin-secondary" type="button" disabled={busy} onClick={signOut}>Sign out</button>
+      </div>
+      {product !== "docks" ? <DashboardProductView product={product} token={session.accessToken} /> : <>
+      {isDashboard && <div className="product-dashboard-intro">
+        <h2>Crystal Docks</h2>
+        <p>Manage the devices linked to your account and review the summaries you choose to share.</p>
+      </div>}
       <button className="admin-secondary" type="button" disabled={busy} onClick={() => void run(async () => {
         setView(await accountRequest<Reports>("reports"));
-      })}>Refresh reports</button>{" "}
-      <button className="admin-secondary" type="button" disabled={busy} onClick={signOut}>Sign out</button>
+      })}>Refresh reports</button>
       {googleEnabled && <section className="admin-form" aria-label="Windows sign-in">
         <button className="admin-secondary" type="button" disabled={busy} onClick={getDesktopCode}>Get a Windows sign-in code</button>
         {desktopCode && <div>
@@ -378,6 +396,7 @@ export default function DocksReports() {
           <button className="admin-secondary" type="button" disabled={busy} onClick={deleteAccount}>Delete Docks account</button>
         </section>
       </details>
+      </>}
     </> : <>
       {signInMethods === null && <p role="status">Checking sign-in availability…</p>}
       {signInMethods && !signInMethods.email && !signInMethods.google && <p role="status">Sign-in is currently unavailable. Try again later.</p>}

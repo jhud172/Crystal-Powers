@@ -43,3 +43,15 @@ Rerun the production route check after a provider setting or release-feed change
 If new live purchases need to stop, set `DOCKS_STRIPE_LIVE_CHECKOUT_ENABLED=false` on the website and verify the owner panel reports zero checkout plans. Keep the live Stripe integration active so existing customers retain paid repair access, renewals and the portal. Previously issued Checkout links can still work until Stripe expires them.
 
 For an installer issue, clear the release-feed settings and verify the feed is empty. Keep the existing signed build record and publish a higher version with the same publisher when the fix passes the Windows pilot.
+
+## Main-domain account and release cutover
+
+The product and release status are served at `/projects/docks`. The original `/docks` entry remains compatible. The legacy reports entry at `/docks/reports` opens `/account/dashboard/docks` and preserves Google and Stripe return query values. Support stays at `/docks/support` for the desktop app. The release feed remains under `/api/docks/releases/windows-x64`.
+
+The signed-in product dashboard has Crystal Powers, Crystal Docks and CrystalHub sections. CrystalHub is an informational placeholder. A customer connects an existing invited Crystal Powers client account by verifying its credentials from an authenticated browser Docks session. The two accounts link one-to-one. A desktop Docks token cannot open that client workspace. Removing the link, revoking the Docks session, changing the client credentials or suspending the account ends access granted by the link. The original client sign-in remains available.
+
+Before deployment, review the exact integration revision and the production migration history. The pilot's original V87–V109 files retain their identities. V111 adds the browser-session marker and V112 creates and protects the account-link table. Do not apply this revision to any database where the website-only V87 already ran. Back up the hosted database and private media with the matching encryption key and retain the confirmed predecessor. The backup inventory now covers Docks tables and the support audit ordering sequence.
+
+Use production Google and Stripe credentials configured for `https://crystal-powers.com`. Verify the Google callback on the main domain, a controlled email sign-in, the approved checkout price and webhook configuration, and the account-link scope. Preserve the pilot until the main domain and the signed Windows update are verified. Sandbox subscriptions, pilot sign-in tokens and synthetic records belong to the pilot environment. Do not copy the pilot database into production.
+
+Keep the download feed empty until the trusted Windows release and its laptop verification are complete. Use the signed package and exact digest described above. Then replay the public download, legacy links, Windows device sign-in, a private report, the client workspace link and sign-out before retiring the separate pilot.

@@ -1,0 +1,1 @@
+ALTER TABLE docks_session ADD COLUMN browser_session BOOLEAN NOT NULL DEFAULT FALSE;

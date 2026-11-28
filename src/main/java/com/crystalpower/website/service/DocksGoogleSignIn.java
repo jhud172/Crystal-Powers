@@ -91,7 +91,7 @@ public class DocksGoogleSignIn {
             if (match.isEmpty()) return Optional.empty();
             db.update("DELETE FROM docks_google_ticket WHERE token_hash = ?", hash(ticket));
             UUID account = match.get(0);
-            return accounts.pilotAllowsAccount(account) ? Optional.of(accounts.issueSession(account)) : Optional.empty();
+            return accounts.pilotAllowsAccount(account) ? Optional.of(accounts.issueSession(account, destination == Destination.BROWSER)) : Optional.empty();
         });
     }
 

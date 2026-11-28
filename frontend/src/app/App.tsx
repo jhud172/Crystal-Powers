@@ -32,14 +32,16 @@ export default function App() {
     );
   }
 
-  const privateLayout = /^\/(admin|team|client)(\/|$)|^\/docks\/reports(\/|$)/.test(location.pathname);
+  const privateLayout = /^\/(admin|team|client|account)(\/|$)|^\/docks\/reports(\/|$)/.test(location.pathname);
   return (
     <PrivacyPublication enabled={!privateLayout}><Layout owner={privateLayout}>
       <Routes>
         <Route path="/client/*" element={<Suspense fallback={<div className="studio-section" role="status">Opening your client workspace…</div>}><ClientEntry /></Suspense>} />
         <Route path="/team/*" element={<Suspense fallback={<div className="studio-section" role="status">Opening the team workspace…</div>}><TeamEntry /></Suspense>} />
         <Route path="/admin/*" element={<Suspense fallback={<div className="studio-section" role="status">Opening the owner studio…</div>}><Admin /></Suspense>} />
-        <Route path="/docks/reports" element={<Suspense fallback={<div className="studio-section" role="status">Opening Crystal Docks…</div>}><DocksReports /></Suspense>} />
+        <Route path="/account/dashboard/:product?" element={<Suspense fallback={<div className="studio-section" role="status">Opening your dashboard…</div>}><DocksReports /></Suspense>} />
+        <Route path="/projects/docks" element={<Suspense fallback={<div className="studio-section" role="status">Opening Crystal Docks…</div>}><Docks /></Suspense>} />
+        <Route path="/docks/reports" element={<Navigate replace to={{ pathname: "/account/dashboard/docks", search: location.search, hash: location.hash }} />} />
         <Route path="/docks" element={<Suspense fallback={<div className="studio-section" role="status">Opening Crystal Docks…</div>}><Docks /></Suspense>} />
         <Route path="/docks/support" element={<Suspense fallback={<div className="studio-section" role="status">Opening Crystal Docks support…</div>}><DocksSupport /></Suspense>} />
         <Route path="/" element={<Home />} />

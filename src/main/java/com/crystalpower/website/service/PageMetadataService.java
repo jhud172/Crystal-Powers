@@ -35,15 +35,19 @@ public class PageMetadataService {
         path = path.replaceAll("/+$", "");
         if (path.isEmpty() || path.equals("/home")) path = "/";
         String page = new ClassPathResource("static/index.html").getContentAsString(StandardCharsets.UTF_8);
-        Meta meta = PAGES.getOrDefault(path, new Meta("Page not found | Crystal Powers", "This page is unavailable. Explore the studio, published work or contact James."));
-        String image = base + (path.equals("/docks") ? "/renders/docks/overview.png" : "/renders/liquid-light/hero.png");
+        String publicPath = path.equals("/projects/docks") ? "/docks" : path;
+        String canonicalPath = publicPath.equals("/docks") ? "/projects/docks" : path;
+        Meta meta = PAGES.getOrDefault(publicPath, new Meta("Page not found | Crystal Powers", "This page is unavailable. Explore the studio, published work or contact James."));
+        String image = base + (publicPath.equals("/docks") ? "/renders/docks/overview.png" : "/renders/liquid-light/hero.png");
         boolean ownerPage = path.equals("/admin") || path.startsWith("/admin/");
         boolean teamPage = path.equals("/team") || path.startsWith("/team/");
         boolean clientPage = path.equals("/client") || path.startsWith("/client/");
         boolean specialPage = path.equals("/birthday/mission-vi");
         boolean docksReports = path.equals("/docks/reports");
-        boolean privatePage = ownerPage || teamPage || clientPage || specialPage || docksReports;
-        boolean missing = !PAGES.containsKey(path) && !privatePage;
+        boolean accountPage = path.equals("/account/dashboard") || path.equals("/account/dashboard/docks")
+                || path.equals("/account/dashboard/hub");
+        boolean privatePage = ownerPage || teamPage || clientPage || specialPage || docksReports || accountPage;
+        boolean missing = !PAGES.containsKey(publicPath) && !privatePage;
         if(path.equals("/privacy") && privacy.ready()){meta=new Meta("Privacy & your data | Crystal Powers","How Crystal Powers handles personal information, contact details and project communications.");missing=false;}
         if (path.startsWith("/portfolio/")) {
             try {
@@ -61,14 +65,15 @@ public class PageMetadataService {
         if (teamPage) meta = new Meta("Team workspace | Crystal Powers", "Private team communication.");
         if (clientPage) meta = new Meta("Client workspace | Crystal Powers", "Private project progress and conversations.");
         if (docksReports) meta = new Meta("Crystal Docks reports | Crystal Powers", "Your private device reports.");
+        if (accountPage) meta = new Meta("Product dashboard | Crystal Powers", "Private product settings and device reports.");
         if (specialPage) meta = new Meta("Mission VI | Crystal Powers", "A personal experience.");
         page = page.replaceFirst("<title>[^<]*</title>", Matcher.quoteReplacement("<title>" + HtmlUtils.htmlEscape(meta.title()) + "</title>"));
         page = tag(page, "name", "description", meta.description());
         page = tag(page, "property", "og:title", meta.title()); page = tag(page, "property", "og:description", meta.description());
         page = tag(page, "name", "twitter:title", meta.title()); page = tag(page, "name", "twitter:description", meta.description());
-        page = tag(page, "property", "og:image", image); page = tag(page, "name", "twitter:image", image); page = tag(page, "property", "og:url", base + path);
+        page = tag(page, "property", "og:image", image); page = tag(page, "name", "twitter:image", image); page = tag(page, "property", "og:url", base + canonicalPath);
         page = tag(page, "name", "robots", privatePage ? "noindex, nofollow" : "index, follow");
-        page = page.replaceFirst("<link rel=\"canonical\"[^>]*>", Matcher.quoteReplacement("<link rel=\"canonical\" href=\"" + HtmlUtils.htmlEscape(base + path) + "\" />"));
+        page = page.replaceFirst("<link rel=\"canonical\"[^>]*>", Matcher.quoteReplacement("<link rel=\"canonical\" href=\"" + HtmlUtils.htmlEscape(base + canonicalPath) + "\" />"));
         return new RenderedPage(page, missing ? HttpStatus.NOT_FOUND : HttpStatus.OK, privatePage);
     }
     private String tag(String html, String attribute, String name, String content) {

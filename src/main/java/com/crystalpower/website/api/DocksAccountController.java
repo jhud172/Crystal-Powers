@@ -76,6 +76,16 @@ public class DocksAccountController {
                 .orElseGet(() -> response(401, Map.of("message", "The code is invalid or expired.")));
     }
 
+    @PostMapping("/auth/browser/exchange")
+    public ResponseEntity<?> exchangeBrowser(@Valid @RequestBody CodeRequest request) {
+        if (!signIn.available()) return response(503, Map.of("message", "Email sign-in is currently unavailable."));
+        if (request.code() == null || !request.code().matches("[0-9]{9}")
+                || request.email() == null || request.email().isBlank())
+            return response(400, Map.of("message", "Enter your email address and nine-digit sign-in code."));
+        return signIn.exchangeBrowser(request.email(), request.code()).map(session -> response(200, session))
+                .orElseGet(() -> response(401, Map.of("message", "The code is invalid or expired.")));
+    }
+
     @PostMapping("/auth/sign-out")
     public ResponseEntity<?> signOut(@RequestHeader(name = "Authorization", required = false) String token) {
         signIn.signOut(token);

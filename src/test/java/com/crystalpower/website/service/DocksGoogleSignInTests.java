@@ -27,7 +27,8 @@ class DocksGoogleSignInTests {
                 .addScripts("classpath:db/migration/V87__docks_accounts_and_devices.sql",
                         "classpath:db/migration/V88__docks_email_sign_in.sql",
                         "classpath:db/migration/V106__docks_account_deletion.sql",
-                        "classpath:db/migration/V99__docks_google_sign_in.sql").build();
+                        "classpath:db/migration/V99__docks_google_sign_in.sql",
+                        "classpath:db/migration/V111__docks_browser_sessions.sql").build();
         try {
             var db = new JdbcTemplate(database);
             var tx = new TransactionTemplate(new DataSourceTransactionManager(database));
