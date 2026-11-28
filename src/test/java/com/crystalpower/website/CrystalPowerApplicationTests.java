@@ -10,6 +10,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -36,6 +38,110 @@ class CrystalPowerApplicationTests {
 
     @Test
     void contextLoads() {
+    }
+
+    @Test
+    void docksDownloadPageHasPublicMetadataAndReportsRemainPrivate() throws Exception {
+        mockMvc.perform(get("/docks/"))
+                .andExpect(status().isOk()).andExpect(header().doesNotExist("X-Robots-Tag"))
+                .andExpect(content().string(allOf(
+                        containsString("<title>Crystal Docks for Windows | Crystal Powers</title>"),
+                        containsString("/renders/docks/overview.png"),
+                        containsString("content=\"index, follow\""))));
+        mockMvc.perform(get("/docks/reports"))
+                .andExpect(status().isOk()).andExpect(header().string("X-Robots-Tag", "noindex, nofollow"));
+        mockMvc.perform(get("/docks/support"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<title>Crystal Docks support | Crystal Powers</title>")));
+    }
+
+    @Test
+    void docksSupportUsesTheExistingSupportIntakeWithoutAnAccount() throws Exception {
+        mockMvc.perform(post("/api/contact")
+                        .param("intent", "support")
+                        .param("websiteAddress", "https://crystal-powers.com/docks")
+                        .param("firstName", "Docks fixture")
+                        .param("email", "docks-fixture@example.invalid")
+                        .param("preferredContactPoint", "Email")
+                        .param("message", "Can you help me sign in to the Windows app?"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.requestId").isNotEmpty());
+        org.mockito.Mockito.verify(inquiryEmailService).sendInquiry(
+                org.mockito.ArgumentMatchers.argThat(form -> "support".equals(form.getIntent())
+                        && "https://crystal-powers.com/docks".equals(form.getWebsiteAddress())),
+                org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.eq("Contact page"),
+                org.mockito.ArgumentMatchers.startsWith("enquiry-"));
+    }
+
+    @Test
+    void unsignedInVisitorsCanCheckEmailAvailabilityWithoutRevealingProviderDetails() throws Exception {
+        mockMvc.perform(get("/api/docks/auth/email"))
+                .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(content().json("{\"enabled\":false}", true));
+    }
+
+    @Test
+    void windowsReleaseFeedIsPublicAndAnUnpublishedDownloadIsMissing() throws Exception {
+        mockMvc.perform(get("/api/docks/releases/windows-x64"))
+                .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(content().json("{}"));
+        mockMvc.perform(get("/api/docks/releases/windows-x64/1.2.3.0/download"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/api/docks/releases/windows-x64/1.2.3.0/download").with(csrf()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void googleOAuthStartAndBrowserExchangeRejectUnexpectedOrigins() throws Exception {
+        mockMvc.perform(post("/api/docks/auth/google/start").header("Origin", "https://example.test"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/docks/auth/google/exchange"))
+                .andExpect(status().isForbidden());
+    }
+    @Test
+    void clearingDocksReportsRequiresAValidDocksBearer() throws Exception {
+        mockMvc.perform(delete("/api/docks/reports")).andExpect(status().isUnauthorized());
+        mockMvc.perform(delete("/api/docks/account")).andExpect(status().isUnauthorized())
+                .andExpect(header().string("Cache-Control", "no-store"));
+        mockMvc.perform(delete("/api/docks/reports").header("Authorization", "Bearer " + "a".repeat(43)))
+                .andExpect(status().isUnauthorized()).andExpect(header().string("Cache-Control", "no-store"));
+    }
+
+    @Test
+    void diagnosticsRequireABearerAndExplicitSubmissionApproval() throws Exception {
+        String path = "/api/docks/diagnostic-log";
+        String readings = "{\"logicalProcessors\":8,\"installedApps\":0,\"driveStatus\":\"UNKNOWN\"}";
+        String body = "{\"installationId\":\"00000000-0000-4000-8000-000000000001\","
+                + "\"checkedAt\":\"2026-11-25T00:00:00Z\",\"readings\":" + readings;
+        mockMvc.perform(get(path)).andExpect(status().isUnauthorized());
+        mockMvc.perform(delete(path)).andExpect(status().isUnauthorized());
+        mockMvc.perform(post(path).contentType("application/json").content(body + "}"))
+                .andExpect(status().isBadRequest()).andExpect(header().string("Cache-Control", "no-store"));
+        mockMvc.perform(post(path).contentType("application/json").content(body + ",\"approved\":true}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void openingDocksSupportRequiresTheOwnerBoundary() throws Exception {
+        var body = "{\"reference\":\"00000000-0000-4000-8000-000000000001\"}";
+        mockMvc.perform(post("/api/admin/docks/support-reports").contentType("application/json").content(body))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/admin/docks/support-reports").contentType("application/json").content(body).with(csrf()))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/docks/reports/support-access"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/admin/docks/payment-review")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/admin/docks/payment-deliveries")).andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/admin/docks/payment-deliveries/evt_Fixture/retry"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/admin/docks/payment-deliveries/evt_Fixture/retry").with(csrf()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void researchTotalsAndPreferencesRequireTheirRespectiveSignIns() throws Exception {
+        mockMvc.perform(get("/api/admin/docks/research")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/docks/research")).andExpect(status().isUnauthorized());
     }
 
     @Test

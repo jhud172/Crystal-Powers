@@ -1,0 +1,1 @@
+ALTER TABLE docks_session ADD COLUMN issued_at TIMESTAMP WITH TIME ZONE;

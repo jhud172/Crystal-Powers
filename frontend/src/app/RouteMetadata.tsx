@@ -9,6 +9,9 @@ const pages: Record<string, [string, string]> = {
   "/portfolio": ["Selected projects | Crystal Powers", "Explore published Crystal Powers projects and the decisions behind their design and development."],
   "/support": ["Support & maintenance | Crystal Powers", "Help with website updates, fixes, maintenance and the next chapter after launch."],
   "/contact": ["Start a project | Crystal Powers", "Tell James about your next website, app or digital project. Work directly with the founder of Crystal Powers."],
+  "/docks": ["Crystal Docks for Windows | Crystal Powers", "Check your Windows 11 PC and understand what Crystal Docks finds."],
+  "/projects/docks": ["Crystal Docks for Windows | Crystal Powers", "Check your Windows 11 PC and understand what Crystal Docks finds."],
+  "/docks/support": ["Crystal Docks support | Crystal Powers", "Get help with the Windows app, accounts or subscription."],
   "/accessibility": ["Accessibility | Crystal Powers", "Use the Crystal Powers website with appearance choices, reduced effects, keyboard controls and a way to report access problems."],
 };
 export function RouteMetadata() {
@@ -17,6 +20,10 @@ export function RouteMetadata() {
   const path = pathname.replace(/\/+$/, "") || "/";
   useEffect(() => { document.querySelector('meta[name="robots"]')?.setAttribute("content", (pages[path] || (path==="/privacy" && ready===true)) ? "index, follow" : "noindex, nofollow"); }, [path,ready]);
   const details = pages[path] ?? (path==="/privacy" ? (ready===true ? ["Privacy & your data | Crystal Powers","How Crystal Powers handles personal information, contact details and project communications."] : ["Page not found | Crystal Powers","This page is unavailable. Explore the studio, published work or contact James."]) : path === "/admin" || path.startsWith("/admin/") ? ["Owner studio | Crystal Powers", "Private project management."] : path === "/team" || path.startsWith("/team/") ? ["Team workspace | Crystal Powers", "Private team communication."] : path === "/client" || path.startsWith("/client/") ? ["Client workspace | Crystal Powers", "Private project progress and conversations."] : ["Crystal Powers", "Independent websites, apps and digital experiences."]);
-  usePageMetadata(details[0], details[1], path);
+  const account = path === "/docks/reports" || path === "/account/dashboard" || path.startsWith("/account/dashboard/");
+  const productPage = path === "/docks" || path === "/projects/docks";
+  usePageMetadata(account ? "Product dashboard | Crystal Powers" : details[0],
+    account ? "Private product settings and device reports." : details[1],
+    productPage ? "/projects/docks" : path, productPage ? "/renders/docks/overview.png" : undefined);
   return null;
 }

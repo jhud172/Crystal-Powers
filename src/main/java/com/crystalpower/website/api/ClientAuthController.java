@@ -36,12 +36,16 @@ public class ClientAuthController {
     @PostMapping("/login") public Object login(@Valid @RequestBody Login body,HttpServletRequest request,HttpServletResponse response) {
         limiter.check("client-login:"+request.getRemoteAddr(),10,900);
         var previous=request.getSession(true);
-        var principal=clients.login(body.email(),body.password());
+        return signIn(previous, clients.login(body.email(),body.password()), null, request, response);
+    }
+
+    Object signIn(jakarta.servlet.http.HttpSession previous, ClientPrincipal principal, String productGrant, HttpServletRequest request, HttpServletResponse response) {
         return inSession(request,previous,()->{
             previous.invalidate(); SecurityContextHolder.clearContext();
             var current=request.getSession(true);
             return inSession(request,current,()->{
                 var context=SecurityContextHolder.createEmptyContext(); context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(principal,null,List.of(new SimpleGrantedAuthority("ROLE_CLIENT"))));
+                if (productGrant != null) current.setAttribute(com.crystalpower.website.service.ProductAccountLinks.BROWSER_GRANT, productGrant);
                 var bound=existingSessionRequest(request,current);
                 contexts.saveContext(context,bound,response); csrf.saveToken(null,bound,response); SecurityContextHolder.setContext(context);
                 return Map.of("authenticated",true,"client",principal);

@@ -3,6 +3,7 @@ package com.crystalpower.website.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,8 +25,10 @@ import java.util.UUID;
 
 /** Server-only Stripe boundary. Callers must persist and authorise billing intents before using it. */
 @Component
+@Primary
 public class StripeGateway {
     public static final String API_VERSION = "2026-09-30.endive";
+    private static final String CLAIMABLE_SANDBOX_API_VERSION = "2026-11-18.endive";
     public record Checkout(String id, String url, long expiresAt) {}
     private final ObjectMapper json;
     private final boolean enabled, liveMode;
@@ -41,7 +44,21 @@ public class StripeGateway {
     public boolean configured() {
         return enabled && connected();
     }
-    public boolean connected() { return secret.matches(liveMode ? "(?:sk|rk)_live_[A-Za-z0-9]+" : "(?:sk|rk)_test_[A-Za-z0-9]+") && webhookSecret.matches("whsec_[A-Za-z0-9]+") && validPublicUrl(); }
+    public boolean connected() {
+        boolean standardKey = secret.matches(liveMode ? "(?:sk|rk)_live_[A-Za-z0-9]+" : "(?:sk|rk)_test_[A-Za-z0-9]+");
+        return (standardKey || claimableSandboxKey()) && webhookSecret.matches("whsec_[A-Za-z0-9]+") && validPublicUrl();
+    }
+
+    private boolean claimableSandboxKey() {
+        if (enabled || liveMode || !secret.matches("rkcs_test_[A-Za-z0-9]+")) return false;
+        try {
+            var origin = URI.create(publicUrl);
+            return "http".equals(origin.getScheme())
+                    && ("127.0.0.1".equals(origin.getHost()) || "localhost".equals(origin.getHost()));
+        } catch (IllegalArgumentException invalid) { return false; }
+    }
+
+    private String apiVersion() { return claimableSandboxKey() ? CLAIMABLE_SANDBOX_API_VERSION : API_VERSION; }
     public void requireConnected() { if(!connected()) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,"Stripe billing management is not configured. Contact the team for help with an existing payment or subscription."); }
     public boolean liveMode() { return liveMode; }
     public void requireConfigured() { if (!configured()) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Payments are not configured. No charge or subscription has been created."); }
@@ -86,6 +103,63 @@ public class StripeGateway {
         if (!id.matches("cs_(test_|live_)?[A-Za-z0-9]+") || !response.path("livemode").isBoolean() || response.path("livemode").asBoolean() != liveMode || !bill.toString().equals(response.path("client_reference_id").asText()) || !attempt.toString().equals(response.path("metadata").path("checkout_attempt_id").asText()) || !bill.toString().equals(response.path("metadata").path("billing_request_id").asText()) || !customer.equals(response.path("customer").asText()) || response.path("amount_total").asLong(-1)!=pence || !providerUrl(url, "checkout.stripe.com")) throw unavailable();
         return new Checkout(id, url, response.path("expires_at").asLong());
     }
+
+    public Checkout docksCheckout(UUID account, UUID attempt, String priceId, long expiresAt) {
+        requireConnected();
+        if (!priceId.matches("price_[A-Za-z0-9]{1,94}"))
+            throw new IllegalArgumentException("Docks checkout requires a Stripe price.");
+        var response = post("/checkout/sessions", docksCheckoutFields(account, attempt, priceId, expiresAt),
+                "cp-docks-checkout-" + attempt);
+        String id = response.path("id").asText();
+        String url = response.path("url").asText();
+        if (!docksSessionId(id, liveMode) || !response.path("livemode").isBoolean()
+                || response.path("livemode").asBoolean() != liveMode
+                || !attempt.toString().equals(response.path("client_reference_id").asText())
+                || !account.toString().equals(response.path("metadata").path("docks_account_id").asText())
+                || response.path("expires_at").asLong(-1) != expiresAt || url.length() > 2048
+                || !providerUrl(url, "checkout.stripe.com"))
+            throw unavailable();
+        return new Checkout(id, url, expiresAt);
+    }
+
+    static boolean docksSessionId(String id, boolean live) {
+        return id.matches((live ? "cs_live_" : "cs_test_") + "[A-Za-z0-9]{1,90}");
+    }
+
+    void verifyDocksPrice(String priceId, DocksSubscriptions.Plan plan) {
+        if (!priceId.matches("price_[A-Za-z0-9]{1,94}")) throw unavailable();
+        if (!matchesDocksLivePrice(get("/prices/" + priceId), priceId, plan))
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "This Premium plan is not available.");
+    }
+
+    static boolean matchesDocksLivePrice(JsonNode price, String priceId, DocksSubscriptions.Plan plan) {
+        var recurring = price.path("recurring");
+        var amount = price.path("unit_amount");
+        return priceId.equals(price.path("id").asText()) && "price".equals(price.path("object").asText())
+                && price.path("livemode").isBoolean() && price.path("livemode").booleanValue()
+                && price.path("active").asBoolean() && "gbp".equals(price.path("currency").asText())
+                && "per_unit".equals(price.path("billing_scheme").asText())
+                && amount.isIntegralNumber() && amount.canConvertToInt() && amount.intValue() == plan.livePricePence()
+                && plan.interval().equals(recurring.path("interval").asText())
+                && recurring.path("interval_count").asInt() == 1 && "licensed".equals(recurring.path("usage_type").asText());
+    }
+
+    Map<String, String> docksCheckoutFields(UUID account, UUID attempt, String priceId, long expiresAt) {
+        Map<String, String> fields = new LinkedHashMap<>();
+        fields.put("mode", "subscription");
+        fields.put("locale", "en-GB");
+        fields.put("integration_identifier", "crystal-docks-premium-qmrvkxht");
+        fields.put("line_items[0][price]", priceId);
+        fields.put("line_items[0][quantity]", "1");
+        fields.put("client_reference_id", attempt.toString());
+        fields.put("metadata[docks_account_id]", account.toString());
+        fields.put("subscription_data[metadata][docks_account_id]", account.toString());
+        fields.put("subscription_data[metadata][docks_checkout_attempt]", attempt.toString());
+        fields.put("expires_at", Long.toString(expiresAt));
+        fields.put("success_url", publicUrl + "/docks/reports?checkout=returned");
+        fields.put("cancel_url", publicUrl + "/docks/reports?checkout=cancelled");
+        return fields;
+    }
     /** Requires a verified client's stored customer ID; never accept customer IDs from the browser. */
     public String customerPortal(String storedCustomerId, UUID attempt) {
         requireConnected();
@@ -93,6 +167,20 @@ public class StripeGateway {
         var response = post("/billing_portal/sessions", Map.of("customer", storedCustomerId, "return_url", publicUrl + "/client/billing"), "cp-portal-" + attempt);
         String url = response.path("url").asText();
         if (!providerUrl(url, "billing.stripe.com")) throw unavailable();
+        return url;
+    }
+
+    String docksPortal(String customerId, String configuration) {
+        requireConnected();
+        if (!customerId.matches("cus_[A-Za-z0-9]{1,96}")
+                || !configuration.matches("bpc_[A-Za-z0-9]{1,96}")) throw unavailable();
+        var portal = post("/billing_portal/sessions", Map.of("customer", customerId, "configuration", configuration,
+                "return_url", publicUrl + "/docks/reports"), "cp-docks-portal-" + UUID.randomUUID());
+        String url = portal.path("url").asText();
+        if (!"billing_portal.session".equals(portal.path("object").asText())
+                || !portal.path("livemode").isBoolean() || portal.path("livemode").asBoolean() != liveMode
+                || !customerId.equals(portal.path("customer").asText()) || !configuration.equals(portal.path("configuration").asText())
+                || url.length() > 2048 || !providerUrl(url, "billing.stripe.com")) throw unavailable();
         return url;
     }
     public String createCustomer(UUID account,String email,String name) {
@@ -109,6 +197,20 @@ public class StripeGateway {
         if(invoice==null || !invoice.matches("in_[A-Za-z0-9]+") || (after!=null && !after.matches("inpay_[A-Za-z0-9]+")))throw invalidSignature();
         var result=get("/invoice_payments?invoice="+invoice+"&limit=2"+(after==null ? "" : "&starting_after="+after),false);
         if(!"list".equals(result.path("object").asText()) || !result.path("data").isArray() || result.path("data").size()>2 || !result.path("has_more").isBoolean())throw unavailable();return result;
+    }
+    JsonNode docksPaidInvoicePayments(String paymentIntent) {
+        if (!paymentIntent.matches("pi_[A-Za-z0-9]{1,96}")) throw invalidSignature();
+        var payments = get("/invoice_payments?payment%5Btype%5D=payment_intent"
+                + "&payment%5Bpayment_intent%5D=" + paymentIntent + "&status=paid&limit=10", false);
+        if (!"list".equals(payments.path("object").asText()) || !payments.path("data").isArray()
+                || payments.path("data").size() > 10 || !payments.path("has_more").isBoolean()
+                || payments.path("has_more").asBoolean()) throw unavailable();
+        return payments.path("data");
+    }
+
+    JsonNode docksFraudWarning(String id) {
+        if (!id.matches("issfr_[A-Za-z0-9]{1,94}")) throw invalidSignature();
+        return get("/radar/early_fraud_warnings/" + id);
     }
     public JsonNode paymentIntent(String id) { if(id==null || !id.matches("pi_[A-Za-z0-9]+"))throw invalidSignature();return get("/payment_intents/"+id); }
     public JsonNode charge(String id) { if(id==null || !id.matches("ch_[A-Za-z0-9]+"))throw invalidSignature();return get("/charges/"+id); }
@@ -128,6 +230,16 @@ public class StripeGateway {
     /** Validate the exact raw bytes before parsing. The caller must persist/deduplicate and reconcile events. */
     public JsonNode verifyEvent(byte[] body, String signature) {
         requireConnected();
+        return verifyEvent(body, signature, webhookSecret);
+    }
+
+    public JsonNode verifyDocksEvent(byte[] body, String signature, String signingSecret) {
+        requireConnected();
+        if (!signingSecret.matches("whsec_[A-Za-z0-9]+")) throw invalidSignature();
+        return verifyEvent(body, signature, signingSecret);
+    }
+
+    private JsonNode verifyEvent(byte[] body, String signature, String signingSecret) {
         if (body == null || body.length > 262144 || signature == null || signature.length() > 4096) throw invalidSignature();
         String timestamp = null;
         for (String field : signature.split(",")) {
@@ -137,7 +249,7 @@ public class StripeGateway {
         try {
             if (timestamp == null || !timestamp.matches("[0-9]{1,12}") || Math.abs(Instant.now().getEpochSecond() - Long.parseLong(timestamp)) > 300) throw invalidSignature();
             Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(webhookSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            mac.init(new SecretKeySpec(signingSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             mac.update((timestamp + ".").getBytes(StandardCharsets.UTF_8));
             byte[] expected = mac.doFinal(body); boolean verified = false;
             for (String field : signature.split(",")) {
@@ -146,7 +258,7 @@ public class StripeGateway {
             }
             if (!verified) throw invalidSignature();
             JsonNode event = json.reader().with(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS).readTree(body);
-            if (event == null || !event.isObject() || !event.path("id").isTextual() || event.path("id").asText().length()>100 || !event.path("id").asText().matches("evt_[A-Za-z0-9]+") || !event.path("livemode").isBoolean() || event.path("livemode").asBoolean() != liveMode || !API_VERSION.equals(event.path("api_version").asText())) throw invalidSignature();
+            if (event == null || !event.isObject() || !event.path("id").isTextual() || event.path("id").asText().length()>100 || !event.path("id").asText().matches("evt_[A-Za-z0-9]+") || !event.path("livemode").isBoolean() || event.path("livemode").asBoolean() != liveMode || !apiVersion().equals(event.path("api_version").asText())) throw invalidSignature();
             return event;
         } catch (ResponseStatusException expected) { throw expected; }
         catch (Exception invalid) { throw invalidSignature(); }
@@ -155,7 +267,7 @@ public class StripeGateway {
         try {
             String form = fields.entrySet().stream().map(entry -> encode(entry.getKey()) + "=" + encode(entry.getValue())).collect(java.util.stream.Collectors.joining("&"));
             var request = HttpRequest.newBuilder(URI.create("https://api.stripe.com/v1" + path)).timeout(Duration.ofSeconds(20))
-                    .header("Authorization", "Bearer " + secret).header("Stripe-Version", API_VERSION).header("Idempotency-Key", key)
+                    .header("Authorization", "Bearer " + secret).header("Stripe-Version", apiVersion()).header("Idempotency-Key", key)
                     .header("Content-Type", "application/x-www-form-urlencoded").POST(HttpRequest.BodyPublishers.ofString(form)).build();
             long deadline=System.nanoTime()+Duration.ofSeconds(20).toNanos();var response = http.send(request, HttpResponse.BodyHandlers.ofInputStream());
             try (var input = response.body()) {
@@ -174,7 +286,7 @@ public class StripeGateway {
     private JsonNode get(String path,boolean modeRequired) {
         requireConnected();
         try {
-            var request=HttpRequest.newBuilder(URI.create("https://api.stripe.com/v1"+path)).timeout(Duration.ofSeconds(20)).header("Authorization","Bearer "+secret).header("Stripe-Version",API_VERSION).GET().build();
+            var request=HttpRequest.newBuilder(URI.create("https://api.stripe.com/v1"+path)).timeout(Duration.ofSeconds(20)).header("Authorization","Bearer "+secret).header("Stripe-Version",apiVersion()).GET().build();
             long deadline=System.nanoTime()+Duration.ofSeconds(20).toNanos();var response=http.send(request,HttpResponse.BodyHandlers.ofInputStream());
             try(var input=response.body()) {
                 byte[] bytes=readBody(input,deadline); if(response.statusCode()<200 || response.statusCode()>=300 || bytes.length>1048576) throw unavailable();

@@ -33,6 +33,8 @@ public class SpaController {
             "/contact/",
             "/accessibility",
             "/accessibility/",
+            "/docks",
+            "/docks/",
             "/admin/",
             "/admin/reset/",
             "/birthday/mission-vi/"

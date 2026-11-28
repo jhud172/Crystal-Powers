@@ -1,0 +1,304 @@
+package com.crystalpower.website.service;
+
+import org.springframework.beans.factory.annotation.Qualifier;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.server.ResponseStatusException;
+
+@Service
+public class DocksStripeEvents {
+    private final JdbcTemplate db;
+    private final TransactionTemplate tx;
+    private final StripeGateway stripe;
+    private final DocksBillingMode mode;
+    private final DocksStripeRisk paymentRisk;
+
+    record Reference(String subscriptionId, UUID attemptId, String sessionId) {}
+    record Delivery(String id, String type, boolean live, Reference subscription, DocksStripeRisk.Pointer risk) {}
+    private record Attempt(UUID id, UUID account, String price, String plan, String sessionId) {}
+    private record Status(String providerState, Long paidUntil) {}
+    private record RiskTarget(Attempt attempt, Reference reference, String invoice) {}
+    private record RiskUpdate(DocksStripeRisk.Source source, DocksStripeRisk.Outcome outcome, String invoice) {}
+    public record PaymentReview(String subscriptionId, String invoiceId, String chargeId, String kind, String outcome,
+                                boolean holdsAccess, long observedAtEpoch) {}
+
+    public DocksStripeEvents(JdbcTemplate db, TransactionTemplate tx,
+            @Qualifier("docksStripeGateway") StripeGateway stripe, DocksBillingMode mode,
+                            DocksStripeRisk paymentRisk) {
+        this.db = db;
+        this.tx = tx;
+        this.stripe = stripe;
+        this.mode = mode;
+        this.paymentRisk = paymentRisk;
+    }
+
+    Optional<Delivery> authenticate(byte[] raw, String signature) {
+        if (!mode.enabled()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        if (mode.webhook().isBlank())
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Docks subscription events are unavailable.");
+        var event = stripe.verifyDocksEvent(raw, signature, mode.webhook());
+        if (!event.path("livemode").isBoolean() || event.path("livemode").asBoolean() != mode.live())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unexpected Stripe event mode.");
+        String eventId = event.path("id").asText();
+        if (!eventId.matches("evt_[A-Za-z0-9]{1,96}"))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Stripe event ID.");
+        String type = event.path("type").asText();
+        var kind = DocksStripeRisk.kind(type);
+        if (kind != null) {
+            var pointer = DocksStripeRisk.pointer(kind, event.path("data").path("object"));
+            return Optional.of(new Delivery(eventId, type, mode.live(), null, pointer));
+        }
+        var reference = reference(event);
+        if (reference == null || (reference.attemptId() == null && resolveAttempt(reference).isEmpty()))
+            return Optional.empty();
+        return Optional.of(new Delivery(eventId, type, mode.live(), reference, null));
+    }
+
+    void process(Delivery delivery) {
+        if (!mode.enabled() || delivery.live() != mode.live())
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Stripe billing mode is unavailable.");
+        String eventId = delivery.id();
+        if (handled(eventId)) return;
+        if (delivery.risk() != null) {
+            receiveRisk(DocksStripeRisk.kind(delivery.type()), delivery.risk(), eventId);
+            return;
+        }
+        var reference = delivery.subscription();
+        var attempt = resolveAttempt(reference);
+        if (attempt.isEmpty()) return;
+        var matched = attempt.get();
+        tx.executeWithoutResult(status -> {
+            if (!lock(matched.account())) return;
+            if (!handled(eventId) && reconcile(matched, reference, null)) record(eventId, matched.id());
+        });
+    }
+
+    public List<PaymentReview> recentPaymentReviews() {
+        if (!mode.enabled()) return List.of();
+        return db.query("""
+                SELECT s.stripe_subscription_id, r.invoice_id, r.charge_id, r.kind, r.outcome,
+                       r.holds_access, r.observed_at_epoch
+                FROM docks_subscription_payment_risk r
+                JOIN docks_subscription_checkout a ON a.attempt_id = r.attempt_id
+                JOIN docks_subscription_status s ON s.attempt_id = a.attempt_id
+                WHERE a.live_mode = ?
+                ORDER BY r.observed_at_epoch DESC, r.risk_id LIMIT 50
+                """, (row, i) -> new PaymentReview(row.getString(1), row.getString(2), row.getString(3), row.getString(4),
+                    row.getString(5), row.getBoolean(6), row.getLong(7)), mode.live());
+    }
+
+    private void receiveRisk(DocksStripeRisk.Kind kind, DocksStripeRisk.Pointer pointer, String eventId) {
+        var source = paymentRisk.source(kind, pointer);
+        if (source.isEmpty()) return;
+        var targets = new ArrayList<RiskTarget>();
+        for (var invoice : paymentRisk.invoices(source.get())) {
+            var reference = providerReference(invoice.subscriptionId(), invoice.attemptId(), null);
+            resolveAttempt(reference).ifPresent(attempt -> targets.add(new RiskTarget(attempt, reference, invoice.id())));
+        }
+        if (targets.isEmpty()) return;
+
+        tx.executeWithoutResult(status -> {
+            // Normal lifecycle events take the same account lock before reading Stripe.
+            var present = new java.util.HashSet<UUID>();
+            targets.stream().map(target -> target.attempt().account()).distinct().sorted()
+                    .filter(this::lock).forEach(present::add);
+            if (handled(eventId)) return;
+            var outcome = paymentRisk.outcome(source.get());
+            UUID firstApplied = null;
+            for (var target : targets) {
+                if (present.contains(target.attempt().account())
+                        && reconcile(target.attempt(), target.reference(), new RiskUpdate(source.get(), outcome, target.invoice()))
+                        && firstApplied == null) firstApplied = target.attempt().id();
+            }
+            if (firstApplied != null) record(eventId, firstApplied);
+        });
+    }
+
+    private boolean reconcile(Attempt attempt, Reference reference, RiskUpdate risk) {
+
+        var existing = db.query("SELECT stripe_subscription_id FROM docks_subscription_status WHERE attempt_id = ?",
+                (row, i) -> row.getString(1), attempt.id());
+        if (!existing.isEmpty() && !existing.get(0).equals(reference.subscriptionId())) return false;
+        var subscription = stripe.subscription(reference.subscriptionId());
+        if (!reference.subscriptionId().equals(subscription.path("id").asText())
+                || !"subscription".equals(subscription.path("object").asText())
+                || !subscription.path("livemode").isBoolean() || subscription.path("livemode").asBoolean() != mode.live())
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Unexpected Stripe subscription.");
+
+        var metadata = subscription.path("metadata");
+        boolean matched = attempt.id().toString().equals(metadata.path("docks_checkout_attempt").asText())
+                && attempt.account().toString().equals(metadata.path("docks_account_id").asText());
+        if (!matched && (existing.isEmpty() || risk != null)) return false;
+        if (risk != null && !risk.source().customer().equals(subscription.path("customer").asText())) return false;
+
+        var now = Instant.now().getEpochSecond();
+        if (risk != null) saveRisk(attempt.id(), risk, now);
+        var state = matched ? readStatus(subscription, attempt, now) : new Status("unverified", null);
+        if ("paid".equals(state.providerState()) && blocked(attempt.id(), subscription.path("latest_invoice").path("id").asText()))
+            state = new Status("payment_review", null);
+        if (existing.isEmpty()) {
+            db.update("""
+                    INSERT INTO docks_subscription_status
+                        (stripe_subscription_id, attempt_id, provider_state, paid_until_epoch, updated_at_epoch)
+                    VALUES (?, ?, ?, ?, ?)
+                    """, reference.subscriptionId(), attempt.id(), state.providerState(), state.paidUntil(), now);
+        } else {
+            db.update("""
+                    UPDATE docks_subscription_status SET provider_state = ?, paid_until_epoch = ?, updated_at_epoch = ?
+                    WHERE stripe_subscription_id = ? AND attempt_id = ?
+                    """, state.providerState(), state.paidUntil(), now, reference.subscriptionId(), attempt.id());
+        }
+        return true;
+    }
+
+    private void saveRisk(UUID attempt, RiskUpdate update, long now) {
+        var source = update.source();
+        var outcome = update.outcome();
+        int edited = db.update("""
+                UPDATE docks_subscription_payment_risk SET outcome = ?, holds_access = ?, observed_at_epoch = ?
+                WHERE attempt_id = ? AND invoice_id = ? AND risk_id = ?
+                """, outcome.value(), outcome.holdsAccess(), now, attempt, update.invoice(), source.id());
+        if (edited == 0) db.update("""
+                INSERT INTO docks_subscription_payment_risk
+                    (attempt_id, invoice_id, risk_id, charge_id, kind, outcome, holds_access, observed_at_epoch)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, attempt, update.invoice(), source.id(), source.chargeId(), source.kind().value,
+                outcome.value(), outcome.holdsAccess(), now);
+        if (source.kind() == DocksStripeRisk.Kind.DISPUTE && !outcome.holdsAccess())
+            db.update("""
+                    UPDATE docks_subscription_payment_risk SET holds_access = FALSE, outcome = 'closed_after_dispute',
+                        observed_at_epoch = ?
+                    WHERE attempt_id = ? AND invoice_id = ? AND charge_id = ? AND kind = 'fraud_warning' AND holds_access
+                    """, now, attempt, update.invoice(), source.chargeId());
+    }
+
+    private boolean blocked(UUID attempt, String invoice) {
+        return db.queryForObject("""
+                SELECT COUNT(*) FROM docks_subscription_payment_risk WHERE attempt_id = ? AND invoice_id = ? AND holds_access
+                """, Integer.class, attempt, invoice) > 0;
+    }
+
+    private boolean lock(UUID account) {
+        return !db.query("SELECT id FROM docks_account WHERE id = ? FOR UPDATE",
+                (row, index) -> row.getObject(1, UUID.class), account).isEmpty();
+    }
+
+    private boolean handled(String eventId) {
+        return db.queryForObject("SELECT COUNT(*) FROM docks_subscription_event WHERE stripe_event_id = ?",
+                Integer.class, eventId) > 0;
+    }
+
+    private void record(String eventId, UUID attempt) {
+        db.update("INSERT INTO docks_subscription_event (stripe_event_id, attempt_id, handled_at_epoch) VALUES (?, ?, ?)",
+                eventId, attempt, Instant.now().getEpochSecond());
+    }
+
+    private Optional<Attempt> resolveAttempt(Reference reference) {
+        String fields = """
+                SELECT a.attempt_id, a.account_id, a.stripe_price, a.plan, a.stripe_session
+                FROM docks_subscription_checkout a
+                """;
+        var bySubscription = db.query(fields + """
+                JOIN docks_subscription_status s ON s.attempt_id = a.attempt_id
+                WHERE s.stripe_subscription_id = ? AND a.live_mode = ? AND a.account_id IS NOT NULL
+                """, this::readAttempt, reference.subscriptionId(), mode.live());
+        if (!bySubscription.isEmpty()) return Optional.of(bySubscription.get(0));
+        if (reference.attemptId() == null) return Optional.empty();
+        return db.query(fields + " WHERE a.attempt_id = ? AND a.live_mode = ? AND a.account_id IS NOT NULL",
+                this::readAttempt, reference.attemptId(), mode.live()).stream()
+                .filter(attempt -> reference.sessionId() == null || attempt.sessionId() == null
+                        || reference.sessionId().equals(attempt.sessionId())).findFirst();
+    }
+
+    private Attempt readAttempt(java.sql.ResultSet row, int index) throws java.sql.SQLException {
+        return new Attempt(row.getObject(1, UUID.class), row.getObject(2, UUID.class),
+                row.getString(3), row.getString(4), row.getString(5));
+    }
+
+    private static Status readStatus(JsonNode subscription, Attempt attempt, long now) {
+        String state = subscription.path("status").asText("unverified");
+        if (!state.matches("[a-z_]{1,24}")) state = "unverified";
+        if (!"active".equals(state)) return new Status(state, null);
+
+        var items = subscription.path("items");
+        var data = items.path("data");
+        if (!data.isArray() || data.size() != 1 || !items.path("has_more").isBoolean() || items.path("has_more").asBoolean())
+            return new Status("unverified", null);
+        var item = data.path(0);
+        var price = item.path("price");
+        String interval = DocksSubscriptions.Plan.valueOf(attempt.plan()).interval();
+        if (!attempt.price().equals(price.path("id").asText()) || item.path("quantity").asInt(-1) != 1
+                || !"gbp".equals(price.path("currency").asText())
+                || !interval.equals(price.path("recurring").path("interval").asText())
+                || price.path("recurring").path("interval_count").asInt(-1) != 1)
+            return new Status("unverified", null);
+
+        var invoice = subscription.path("latest_invoice");
+        if (!"paid".equals(invoice.path("status").asText()) || !invoice.path("id").asText().matches("in_[A-Za-z0-9]{1,96}")
+                || !subscription.path("customer").asText().matches("cus_[A-Za-z0-9]{1,96}")
+                || !subscription.path("customer").asText().equals(invoice.path("customer").asText())
+                || !subscription.path("id").asText().equals(invoice.path("parent").path("subscription_details").path("subscription").asText())
+                || !invoice.path("amount_paid").isIntegralNumber() || invoice.path("amount_paid").asLong() <= 0)
+            return new Status("unverified", null);
+        long end = item.path("current_period_end").asLong(-1);
+        boolean paidPeriod = false;
+        for (var line : invoice.path("lines").path("data")) {
+            var parent = line.path("parent");
+            var details = parent.path("subscription_item_details");
+            if ("subscription_item_details".equals(parent.path("type").asText())
+                    && details.path("proration").isBoolean() && !details.path("proration").asBoolean()
+                    && subscription.path("id").asText().equals(details.path("subscription").asText())
+                    && attempt.price().equals(line.path("pricing").path("price_details").path("price").asText())
+                    && line.path("period").path("end").asLong(-1) == end) {
+                paidPeriod = true;
+                break;
+            }
+        }
+        return paidPeriod && end > now && end <= now + 400L * 86400
+                ? new Status("paid", end) : new Status("unverified", null);
+    }
+
+    private Reference reference(JsonNode event) {
+        var object = event.path("data").path("object");
+        String subscription;
+        String attempt;
+        String session = null;
+        switch (event.path("type").asText()) {
+            case "checkout.session.completed", "checkout.session.async_payment_succeeded" -> {
+                subscription = object.path("subscription").asText();
+                attempt = object.path("client_reference_id").asText();
+                session = object.path("id").asText();
+                if (!StripeGateway.docksSessionId(session, mode.live())) return null;
+            }
+            case "customer.subscription.updated", "customer.subscription.deleted" -> {
+                subscription = object.path("id").asText();
+                attempt = object.path("metadata").path("docks_checkout_attempt").asText();
+            }
+            case "invoice.paid", "invoice.payment_failed" -> {
+                var parent = object.path("parent").path("subscription_details");
+                subscription = parent.path("subscription").asText();
+                attempt = parent.path("metadata").path("docks_checkout_attempt").asText();
+            }
+            default -> { return null; }
+        }
+        if (!subscription.matches("sub_[A-Za-z0-9]{1,96}")) return null;
+        return providerReference(subscription, attempt, session);
+    }
+
+    private static Reference providerReference(String subscription, String attempt, String session) {
+        UUID attemptId = null;
+        try {
+            if (!attempt.isBlank()) attemptId = UUID.fromString(attempt);
+        } catch (IllegalArgumentException ignored) { }
+        return new Reference(subscription, attemptId, session);
+    }
+}

@@ -5,6 +5,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.stereotype.Component;
 import javax.crypto.Cipher;
+import javax.crypto.Mac;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.HexFormat;
 
 @Component
 public class SecretVault {
@@ -59,5 +61,18 @@ public class SecretVault {
             cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, nonce));
             return new String(cipher.doFinal(ciphertext), StandardCharsets.UTF_8);
         } catch (Exception exception) { throw new IllegalStateException("Secret decryption failed", exception); }
+    }
+
+    public String fingerprint(String purpose, String value) {
+        try {
+            var mac = Mac.getInstance("HmacSHA256");
+            var algorithm = mac.getAlgorithm();
+            mac.init(new SecretKeySpec(key.getEncoded(), algorithm));
+            byte[] scopedKey = mac.doFinal(("fingerprint:" + purpose).getBytes(StandardCharsets.UTF_8));
+            mac.init(new SecretKeySpec(scopedKey, algorithm));
+            return HexFormat.of().formatHex(mac.doFinal(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (java.security.GeneralSecurityException exception) {
+            throw new IllegalStateException("Secret fingerprint failed", exception);
+        }
     }
 }

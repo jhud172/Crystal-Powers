@@ -17,6 +17,9 @@ const BirthdayMission = lazy(() => import("../routes/BirthdayMission"));
 const Admin = lazy(() => import("../routes/Admin"));
 const TeamEntry = lazy(() => import("../features/team/TeamEntry"));
 const ClientEntry = lazy(() => import("../features/client/ClientEntry"));
+const DocksReports = lazy(() => import("../routes/DocksReports"));
+const Docks = lazy(() => import("../routes/Docks"));
+const DocksSupport = lazy(() => import("../routes/Docks").then(module => ({ default: module.DocksSupport })));
 
 export default function App() {
   const location = useLocation();
@@ -29,12 +32,18 @@ export default function App() {
     );
   }
 
+  const privateLayout = /^\/(admin|team|client|account)(\/|$)|^\/docks\/reports(\/|$)/.test(location.pathname);
   return (
-    <PrivacyPublication enabled={!/^\/(admin|team|client)(\/|$)/.test(location.pathname)}><Layout owner={/^\/(admin|team|client)(\/|$)/.test(location.pathname)}>
+    <PrivacyPublication enabled={!privateLayout}><Layout owner={privateLayout}>
       <Routes>
         <Route path="/client/*" element={<Suspense fallback={<div className="studio-section" role="status">Opening your client workspace…</div>}><ClientEntry /></Suspense>} />
         <Route path="/team/*" element={<Suspense fallback={<div className="studio-section" role="status">Opening the team workspace…</div>}><TeamEntry /></Suspense>} />
         <Route path="/admin/*" element={<Suspense fallback={<div className="studio-section" role="status">Opening the owner studio…</div>}><Admin /></Suspense>} />
+        <Route path="/account/dashboard/:product?" element={<Suspense fallback={<div className="studio-section" role="status">Opening your dashboard…</div>}><DocksReports /></Suspense>} />
+        <Route path="/projects/docks" element={<Suspense fallback={<div className="studio-section" role="status">Opening Crystal Docks…</div>}><Docks /></Suspense>} />
+        <Route path="/docks/reports" element={<Navigate replace to={{ pathname: "/account/dashboard/docks", search: location.search, hash: location.hash }} />} />
+        <Route path="/docks" element={<Suspense fallback={<div className="studio-section" role="status">Opening Crystal Docks…</div>}><Docks /></Suspense>} />
+        <Route path="/docks/support" element={<Suspense fallback={<div className="studio-section" role="status">Opening Crystal Docks support…</div>}><DocksSupport /></Suspense>} />
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Navigate to="/" replace />} />
         <Route path="/about" element={<About />} />

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 import java.net.URI;
@@ -36,6 +37,14 @@ public class EmailTransport {
     }
     EmailTransport(JavaMailSender smtp, ObjectMapper json, String provider, String key, String from, HttpClient http) {
         this.smtp = smtp; this.json = json; this.provider = provider; this.key = key; this.from = from; this.http = http;
+    }
+    EmailTransport forDocksPilot(String pilotKey, String pilotFrom) {
+        if (!pilotKey.isBlank() || !pilotFrom.isBlank())
+            return new EmailTransport(null, json, "resend", pilotKey.strip(), pilotFrom.strip(), http);
+        // Keep the local integration fixture working without permitting a shared hosted transport.
+        if ("smtp".equals(provider) && smtp instanceof JavaMailSenderImpl local
+                && ("127.0.0.1".equals(local.getHost()) || "::1".equals(local.getHost()))) return this;
+        return new EmailTransport(null, json, "disabled", "", "", http);
     }
     public void send(Message message) {
         send(message, UUID.randomUUID().toString());

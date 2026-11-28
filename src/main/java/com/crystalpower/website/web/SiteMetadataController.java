@@ -20,12 +20,26 @@ public class SiteMetadataController {
     @GetMapping(value = "/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> sitemap() {
         StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
-        for (String path : List.of("/", "/about", "/services", "/portfolio", "/support", "/contact", "/accessibility")) append(xml, path);
+        for (String path : List.of("/", "/about", "/services", "/portfolio", "/support", "/contact", "/accessibility", "/projects/docks", "/docks/support")) append(xml, path);
         if(privacy.ready())append(xml,"/privacy");
         projects.published().forEach(project -> append(xml, "/portfolio/" + project.slug()));
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(Duration.ofSeconds(30)).mustRevalidate()).body(xml.append("</urlset>").toString());
     }
     @GetMapping(value = "/robots.txt", produces = MediaType.TEXT_PLAIN_VALUE)
-    public String robots() { return "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nDisallow: /birthday/\nSitemap: " + baseUrl + "/sitemap.xml\n"; }
+    public String robots() {
+        return """
+            User-agent: *
+            Allow: /
+            Disallow: /admin
+            Disallow: /account/
+            Disallow: /docks/reports
+            Disallow: /api/
+            Allow: /api/projects$
+            Allow: /api/projects/
+            Allow: /api/media/
+            Disallow: /birthday/
+            Sitemap: %s/sitemap.xml
+            """.formatted(baseUrl);
+    }
     private void append(StringBuilder xml, String path) { xml.append("<url><loc>").append(HtmlUtils.htmlEscape(baseUrl + path)).append("</loc></url>"); }
 }

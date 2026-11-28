@@ -36,10 +36,11 @@ def main():
         original, restored = [query(database, statement) for database in (source, args.target)]
         assert original == restored, f"Table rows differ: {table}"
         rows += json.loads(original)["rows"]
+    # PostgreSQL retains ordinal gaps after DROP COLUMN; pg_dump restores the visible order.
     schema_checks = [
         "SELECT coalesce(json_agg(row_to_json(t) ORDER BY t.tablename,t.indexname),'[]'::json) FROM (SELECT tablename,indexname,indexdef FROM pg_indexes WHERE schemaname='public') t",
         "SELECT coalesce(json_agg(row_to_json(t) ORDER BY t.relname),'[]'::json) FROM (SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind='r') t",
-        "SELECT coalesce(json_agg(row_to_json(t) ORDER BY t.table_name,t.ordinal_position),'[]'::json) FROM (SELECT table_name,ordinal_position,column_name,data_type,is_nullable,column_default FROM information_schema.columns WHERE table_schema='public') t",
+        "SELECT coalesce(json_agg(row_to_json(t) ORDER BY t.table_name,t.ordinal_position),'[]'::json) FROM (SELECT table_name,row_number() OVER (PARTITION BY table_name ORDER BY ordinal_position) AS ordinal_position,column_name,data_type,is_nullable,column_default,is_identity,identity_generation FROM information_schema.columns WHERE table_schema='public') t",
     ]
     for index, statement in enumerate(schema_checks):
         assert query(source, statement) == query(args.target, statement), f"Schema/constraint/index/RLS comparison failed: {index}"

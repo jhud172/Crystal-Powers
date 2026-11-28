@@ -1,0 +1,262 @@
+package com.crystalpower.website.service;
+
+import com.crystalpower.website.security.SecretVault;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Base64;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
+
+@Service
+public class DocksEmailSignIn {
+    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final int MAX_CODE_ATTEMPTS = 5;
+    static final String ISSUER = "crystal-powers-email";
+    private final JdbcTemplate db;
+    private final TransactionTemplate transaction;
+    private final EmailTransport mail;
+    private final boolean enabled;
+    private final DocksPilotAccess pilot;
+    private final SecretVault vault;
+
+    public record Session(String accessToken, OffsetDateTime expiresAt, UUID accountId) {}
+
+    @Autowired
+    public DocksEmailSignIn(JdbcTemplate db, TransactionTemplate transaction, EmailTransport mail,
+            @Value("${app.docks.email-enabled:false}") boolean enabled, DocksPilotAccess pilot,
+            @Value("${app.docks.pilot-resend-key:}") String pilotKey,
+            @Value("${app.docks.pilot-mail-from:}") String pilotFrom, SecretVault vault) {
+        this(db, transaction, pilot.restricted() ? mail.forDocksPilot(pilotKey, pilotFrom) : mail, enabled, pilot, vault);
+    }
+
+    public DocksEmailSignIn(JdbcTemplate db, TransactionTemplate transaction, EmailTransport mail,
+            boolean enabled, DocksPilotAccess pilot, SecretVault vault) {
+        this.db = db;
+        this.transaction = transaction;
+        this.mail = mail;
+        this.enabled = enabled;
+        this.pilot = pilot;
+        this.vault = vault;
+    }
+
+    public boolean available() {
+        return enabled && pilot.available() && mail.configured();
+    }
+
+    /** Returns quietly when rate limited, so the response never identifies registered addresses. */
+    public void request(String address) {
+        String email = normaliseEmail(address);
+        if (!pilot.allows(email)) return;
+        String code = String.format(Locale.ROOT, "%09d", RANDOM.nextInt(1_000_000_000));
+        String hash = emailCodeHash(email, code);
+        var now = now();
+        Boolean reserved = transaction.execute(status -> {
+            lockGate();
+            db.update("DELETE FROM docks_email_rate WHERE sent_at <= ?", now.minusHours(1));
+            db.update("DELETE FROM docks_email_challenge WHERE expires_at <= ?", now);
+            var recent = db.queryForObject("SELECT COUNT(*) FROM docks_email_rate", Integer.class);
+            String bucket = digest(email);
+            var last = db.query("SELECT sent_at FROM docks_email_rate WHERE bucket = ?",
+                    (row, i) -> row.getObject(1, OffsetDateTime.class), bucket);
+            if (recent >= 50 || (!last.isEmpty() && last.get(0).isAfter(now.minusMinutes(2)))) return false;
+            // Count every admitted request, including repeats to the same address.
+            db.update("INSERT INTO docks_email_rate(bucket, sent_at) VALUES (?, ?)", digest(randomToken()), now);
+            if (last.isEmpty()) db.update("INSERT INTO docks_email_rate(bucket, sent_at) VALUES (?, ?)", bucket, now);
+            else db.update("UPDATE docks_email_rate SET sent_at = ? WHERE bucket = ?", now, bucket);
+            db.update("DELETE FROM docks_email_challenge WHERE email = ?", email);
+            db.update("INSERT INTO docks_email_challenge(token_hash, email, expires_at) VALUES (?, ?, ?)",
+                    hash, email, now.plusMinutes(10));
+            return true;
+        });
+        if (!Boolean.TRUE.equals(reserved)) return;
+
+        try {
+            mail.send(new EmailTransport.Message(email, null, "Your Crystal Docks sign-in code",
+                    "<p>Enter this nine-digit code in Crystal Docks to sign in. It expires in 10 minutes.</p><p><strong>"
+                            + code + "</strong></p><p>If you did not request this code, you can ignore this email.</p>",
+                    List.of()));
+        } catch (EmailTransport.DeliveryException error) {
+            db.update("DELETE FROM docks_email_challenge WHERE token_hash = ?", hash);
+            throw error;
+        }
+    }
+
+    public Optional<Session> exchange(String address, String code) {
+        return exchange(address, code, false);
+    }
+
+    public Optional<Session> exchangeBrowser(String address, String code) {
+        if (code == null || !code.matches("[0-9]{9}")) return Optional.empty();
+        return exchange(address, code, true);
+    }
+
+    private Optional<Session> exchange(String address, String code, boolean browser) {
+        boolean numeric = code.matches("[0-9]{9}");
+        if (numeric && (address == null || address.isBlank())) return Optional.empty();
+        String email = numeric ? normaliseEmail(address) : null;
+        // Previously issued email codes can finish exchanging during the transition.
+        String hash = numeric ? emailCodeHash(email, code) : digest(code);
+        var now = now();
+        return transaction.execute(status -> {
+            lockGate();
+            var addresses = db.query("""
+                    SELECT email FROM docks_email_challenge
+                    WHERE token_hash = ? AND expires_at > ? AND failed_attempts < ?
+                    """, (row, i) -> row.getString(1), hash, now, MAX_CODE_ATTEMPTS);
+            if (addresses.isEmpty()) {
+                if (numeric) db.update("""
+                        UPDATE docks_email_challenge SET failed_attempts = failed_attempts + 1
+                        WHERE email = ? AND expires_at > ? AND failed_attempts < ?
+                        """, email, now, MAX_CODE_ATTEMPTS);
+                return Optional.empty();
+            }
+            db.update("DELETE FROM docks_email_challenge WHERE token_hash = ?", hash);
+            String verifiedEmail = addresses.get(0);
+            if (!pilot.allows(verifiedEmail)) return Optional.empty();
+            UUID account = identity(ISSUER, verifiedEmail).orElseGet(() -> {
+                var created = newAccount();
+                addIdentity(ISSUER, verifiedEmail, created);
+                return created;
+            });
+            return Optional.of(issueSession(account, browser));
+        });
+    }
+
+    private String emailCodeHash(String email, String code) {
+        return vault.fingerprint("docks-email-sign-in", email + "\n" + code);
+    }
+
+    boolean pilotAvailable() { return pilot.available(); }
+    boolean allowsGoogleIdentity(GoogleDocksProvider.Identity identity) { return pilot.allows(identity); }
+
+    boolean pilotAllowsAccount(UUID account) {
+        if (!pilot.restricted()) return true;
+        if (!pilot.available()) return false;
+        return db.query("SELECT subject FROM docks_identity WHERE account_id = ? AND issuer = ?",
+                (row, i) -> row.getString(1), account, ISSUER).stream().anyMatch(pilot::allows);
+    }
+
+    UUID googleIdentity(GoogleDocksProvider.Identity verified) {
+        String issuer = "https://accounts.google.com";
+        return transaction.execute(status -> {
+            lockGate();
+            return identity(issuer, verified.subject()).orElseGet(() -> {
+                UUID account;
+                if (verified.authoritativeEmail()) {
+                    String email = normaliseEmail(verified.email());
+                    account = identity(ISSUER, email).orElseGet(() -> {
+                        var created = newAccount();
+                        addIdentity(ISSUER, email, created);
+                        return created;
+                    });
+                } else {
+                    account = newAccount();
+                }
+                addIdentity(issuer, verified.subject(), account);
+                return account;
+            });
+        });
+    }
+
+    private Optional<UUID> identity(String issuer, String subject) {
+        return db.query("SELECT account_id FROM docks_identity WHERE issuer = ? AND subject = ?",
+                (row, i) -> row.getObject(1, UUID.class), issuer, subject).stream().findFirst();
+    }
+
+    private UUID newAccount() {
+        var account = UUID.randomUUID();
+        db.update("INSERT INTO docks_account(id, display_name) VALUES (?, ?)", account, "Crystal Docks customer");
+        return account;
+    }
+
+    private void addIdentity(String issuer, String subject, UUID account) {
+        db.update("INSERT INTO docks_identity(issuer, subject, account_id) VALUES (?, ?, ?)", issuer, subject, account);
+    }
+
+    Session issueSession(UUID account, boolean browser) {
+        var now = now();
+        db.update("DELETE FROM docks_session WHERE expires_at <= ?", now);
+        var access = randomToken();
+        var expires = now.plusDays(7);
+        db.update("INSERT INTO docks_session(token_hash, account_id, expires_at, issued_at, browser_session) VALUES (?, ?, ?, ?, ?)",
+                digest(access), account, expires, now, browser);
+        return new Session(access, expires, account);
+    }
+
+    static String normaliseEmail(String address) {
+        return address.trim().toLowerCase(Locale.ROOT);
+    }
+
+    public Optional<String> browserGrant(String authorization) {
+        String token = bearer(authorization);
+        if (token == null) return Optional.empty();
+        String hash = digest(token);
+        return browserAccount(hash).map(ignored -> hash);
+    }
+
+    Optional<UUID> browserAccount(String hash) {
+        return db.query("SELECT account_id FROM docks_session WHERE token_hash = ? AND expires_at > ? AND browser_session = TRUE",
+                (row, i) -> row.getObject(1, UUID.class), hash, now()).stream().filter(this::pilotAllowsAccount).findFirst();
+    }
+
+    public Optional<UUID> account(String authorization) {
+        String token = bearer(authorization);
+        if (token == null) return Optional.empty();
+        return db.query("SELECT account_id FROM docks_session WHERE token_hash = ? AND expires_at > ?",
+                (row, i) -> row.getObject(1, UUID.class), digest(token), now()).stream().filter(this::pilotAllowsAccount).findFirst();
+    }
+
+    Optional<UUID> recentlyVerifiedAccount(String authorization) {
+        String token = bearer(authorization);
+        if (token == null) return Optional.empty();
+        var time = now();
+        return db.query("""
+                SELECT account_id FROM docks_session WHERE token_hash = ? AND expires_at > ? AND issued_at > ?
+                """, (row, i) -> row.getObject(1, UUID.class), digest(token), time, time.minusMinutes(10))
+                .stream().filter(this::pilotAllowsAccount).findFirst();
+    }
+
+    public void signOut(String authorization) {
+        String token = bearer(authorization);
+        if (token != null) db.update("DELETE FROM docks_session WHERE token_hash = ?", digest(token));
+    }
+
+    private void lockGate() {
+        db.queryForObject("SELECT id FROM docks_email_gate WHERE id = 1 FOR UPDATE", Integer.class);
+    }
+
+    private static String bearer(String authorization) {
+        if (authorization == null || !authorization.matches("Bearer [A-Za-z0-9_-]{43}")) return null;
+        return authorization.substring(7);
+    }
+
+    static String randomToken() {
+        byte[] bytes = new byte[32];
+        RANDOM.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    static String digest(String value) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException error) {
+            throw new IllegalStateException("SHA-256 unavailable", error);
+        }
+    }
+
+    private static OffsetDateTime now() { return Instant.now().atOffset(ZoneOffset.UTC); }
+}

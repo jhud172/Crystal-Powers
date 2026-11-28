@@ -205,3 +205,42 @@
 .team-account-security .admin-password-toggle { width: 64px; text-align: center; }
 .team-account-security .admin-code-field input { width: 100%; min-width: 0; min-height: 48px; padding: 13px 15px; border: 1px solid var(--studio-control-line); border-radius: .5rem; background: var(--studio-raised); color: var(--studio-text); font: inherit; }
 .team-account-security input:disabled { opacity: .6; cursor: not-allowed; }
+.docks-diagnostic-details {
+  margin-block: 1rem;
+}
+
+.docks-diagnostic-details h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-block-end: 0.25rem;
+}
+
+.docks-configuration-list { margin: .75rem 0 1rem; }
+.docks-configuration-list > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .35rem 1rem;
+  padding: .6rem 0;
+  border-bottom: 1px solid var(--studio-line);
+}
+.docks-configuration-list dt { font-weight: 600; }
+.docks-configuration-list dd { margin: 0; }
+
+.docks-diagnostic-readings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: 0.75rem 1.25rem;
+  margin-block-start: 1rem;
+}
+
+.docks-diagnostic-readings dd {
+  font-weight: 600;
+  margin: 0;
+}
+
+.admin-form input.docks-log-reference {
+  font-family: ui-monospace, monospace;
+  font-size: clamp(0.7rem, 3.4vw, 0.875rem);
+  padding-inline: 0.65rem;
+}

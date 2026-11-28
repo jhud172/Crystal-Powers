@@ -1,0 +1,65 @@
+services:
+  - type: web
+    name: crystal-docks-pilot
+    plan: free
+    region: frankfurt
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeployTrigger: "off"
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: docks-pilot
+      - key: PUBLIC_URL
+        value: ${RENDER_EXTERNAL_URL}
+      - key: DOCKS_PG_HOST
+        fromDatabase:
+          name: crystal-docks-pilot-db
+          property: host
+      - key: DOCKS_PG_PORT
+        fromDatabase:
+          name: crystal-docks-pilot-db
+          property: port
+      - key: DOCKS_PG_DATABASE
+        fromDatabase:
+          name: crystal-docks-pilot-db
+          property: database
+      - key: DATABASE_URL
+        value: jdbc:postgresql://${DOCKS_PG_HOST}:${DOCKS_PG_PORT}/${DOCKS_PG_DATABASE}
+      - key: DATABASE_USERNAME
+        fromDatabase:
+          name: crystal-docks-pilot-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: crystal-docks-pilot-db
+          property: password
+      - key: APP_ENCRYPTION_KEY
+        generateValue: true
+      - key: MEDIA_PROVIDER
+        value: local
+      - key: MEDIA_DIRECTORY
+        value: /tmp/crystal-docks-pilot-media
+      - key: MAIL_PROVIDER
+        value: disabled
+      - key: DOCKS_PILOT_ALLOWED_EMAILS
+        value: ""
+      - key: DOCKS_EMAIL_ENABLED
+        value: "false"
+      - key: DOCKS_PILOT_MAIL_FROM
+        value: ""
+      - key: BILLING_ENABLED
+        value: "false"
+      - key: STRIPE_LIVE_MODE
+        value: "false"
+      - key: DOCKS_STRIPE_LIVE_ENABLED
+        value: "false"
+      - key: DOCKS_AI_ENABLED
+        value: "false"
+
+databases:
+  - name: crystal-docks-pilot-db
+    plan: free
+    region: frankfurt
+    postgresMajorVersion: "17"
+    ipAllowList: []

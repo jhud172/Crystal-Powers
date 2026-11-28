@@ -14,6 +14,7 @@ import org.springframework.security.web.context.SecurityContextHolderFilter;
 import com.crystalpower.website.service.OwnerService;
 import com.crystalpower.website.service.TeamAuthenticationService;
 import com.crystalpower.website.service.ClientAccessService;
+import com.crystalpower.website.service.ProductAccountLinks;
 
 @Configuration
 public class SecurityConfiguration {
@@ -30,7 +31,7 @@ public class SecurityConfiguration {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http,
-            HttpSessionSecurityContextRepository contexts, HttpSessionCsrfTokenRepository csrf, OwnerService owners, TeamAuthenticationService teams, ClientAccessService clients) throws Exception {
+            HttpSessionSecurityContextRepository contexts, HttpSessionCsrfTokenRepository csrf, OwnerService owners, TeamAuthenticationService teams, ClientAccessService clients, ProductAccountLinks links) throws Exception {
         http.authorizeHttpRequests(authorise -> authorise
                 .requestMatchers("/api/admin/auth/**").permitAll()
                 .requestMatchers("/api/team/auth/**").permitAll()
@@ -39,6 +40,35 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.POST,"/api/billing/stripe/webhook").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("OWNER")
                 .requestMatchers("/api/team/**").hasAnyRole("OWNER", "TEAM")
+                .requestMatchers(HttpMethod.POST, "/api/docks/auth/email/request",
+                        "/api/docks/auth/email/exchange", "/api/docks/auth/browser/exchange", "/api/docks/auth/sign-out",
+                        "/api/docks/devices", "/api/docks/trial", "/api/docks/access-key/redeem").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/docks/devices", "/api/docks/entitlement", "/api/docks/auth/email").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/docks/devices/{id}", "/api/docks/account").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/docks/reports", "/api/docks/reports/support-access").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/docks/reports", "/api/docks/reports/support-access",
+                        "/api/docks/reports/devices/{deviceId}").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/docks/reports/support-access").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/docks/billing/plans").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/docks/billing/checkout", "/api/docks/billing/portal",
+                        "/api/docks/billing/stripe/webhook").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/docks/household").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/docks/household/invitations", "/api/docks/household/invitations/{id}/accept").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/docks/household/invitations/{id}").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/docks/reports/preference", "/api/docks/reports/latest").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/docks/research").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/docks/diagnostic-log").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/docks/diagnostic-log").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/docks/diagnostic-log").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/docks/explanations/online").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/docks/releases/windows-x64",
+                        "/api/docks/releases/windows-x64/{version}/download").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/docks/explanations/online").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/docks/auth/google", "/api/docks/auth/google/callback").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/docks/auth/google/start", "/api/docks/auth/google/exchange",
+                        "/api/docks/auth/google/desktop-code", "/api/docks/auth/google/desktop-exchange").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/docks/research/preference", "/api/docks/research/contribution").permitAll()
+                .requestMatchers("/api/docks", "/api/docks/**").denyAll()
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .requestMatchers(HttpMethod.HEAD, "/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/contact", "/api/services", "/api/assistant/chat").permitAll()
@@ -46,11 +76,24 @@ public class SecurityConfiguration {
             .securityContext(context -> context.securityContextRepository(contexts))
             .addFilterAfter(new OwnerSessionFilter(owners), SecurityContextHolderFilter.class)
             .addFilterAfter(new TeamSessionFilter(teams), OwnerSessionFilter.class)
-            .addFilterAfter(new ClientSessionFilter(clients), TeamSessionFilter.class)
+            .addFilterAfter(new ClientSessionFilter(clients, links), TeamSessionFilter.class)
             .csrf(config -> config.csrfTokenRepository(csrf)
                     .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                     // Preserve existing anonymous form contracts; owner APIs always require CSRF.
-                    .ignoringRequestMatchers("/api/contact", "/api/services", "/api/billing/stripe/webhook"))
+                    .ignoringRequestMatchers("/api/contact", "/api/services", "/api/billing/stripe/webhook",
+                            "/api/docks/auth/email/request", "/api/docks/auth/email/exchange",
+                            "/api/docks/auth/sign-out", "/api/docks/devices", "/api/docks/trial",
+                            "/api/docks/access-key/redeem", "/api/docks/devices/{id}", "/api/docks/account",
+                            "/api/docks/reports", "/api/docks/reports/preference", "/api/docks/reports/latest",
+                            "/api/docks/reports/support-access", "/api/docks/reports/devices/{deviceId}",
+                            "/api/docks/research/preference", "/api/docks/research/contribution",
+                            "/api/docks/diagnostic-log",
+                            "/api/docks/explanations/online",
+                            "/api/docks/auth/google/start", "/api/docks/auth/google/exchange",
+                            "/api/docks/auth/google/desktop-code", "/api/docks/auth/google/desktop-exchange",
+                            "/api/docks/billing/checkout", "/api/docks/billing/portal", "/api/docks/billing/stripe/webhook",
+                            "/api/docks/household/invitations", "/api/docks/household/invitations/{id}/accept",
+                            "/api/docks/household/invitations/{id}"))
             .formLogin(config -> config.disable())
             .httpBasic(config -> config.disable())
             .logout(config -> config.disable())

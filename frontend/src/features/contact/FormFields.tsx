@@ -45,9 +45,10 @@ type Props = {
   errors: FieldErrors;
   onChange: (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   includeScope?: boolean;
+  docksSupport?: boolean;
 };
 
-export function ContactFields({ form, errors, onChange, includeScope = true }: Props) {
+export function ContactFields({ form, errors, onChange, includeScope = true, docksSupport = false }: Props) {
   const invalid = (name: string) => ({ "aria-invalid": !!errors[name], "aria-describedby": errors[name] ? `${name}-error` : undefined });
   return (
     <>
@@ -90,13 +91,13 @@ export function ContactFields({ form, errors, onChange, includeScope = true }: P
         </>
       ) : null}
       <div className="services-form-span-two">
-        <label htmlFor="message" className="field-label">{form.intent === "support" ? "What happened or what would you like changed?" : form.intent === "general" ? "Your question" : "Tell me about your idea"}</label>
-        <textarea id="message" name="message" value={form.message} onChange={onChange} rows={6} className="field-input resize-y" placeholder={form.intent === "support" ? "Which page or feature needs help, what happened and what should happen instead?" : form.intent === "general" ? "What would you like to ask James?" : "Project type, timings, priorities and anything important about the build."} required maxLength={2500} {...invalid("message")} />
+        <label htmlFor="message" className="field-label">{docksSupport ? "What do you need help with?" : form.intent === "support" ? "What happened or what would you like changed?" : form.intent === "general" ? "Your question" : "Tell me about your idea"}</label>
+        <textarea id="message" name="message" value={form.message} onChange={onChange} rows={6} className="field-input resize-y" placeholder={docksSupport ? "Describe the issue and include your support reference if you chose to share one." : form.intent === "support" ? "Which page or feature needs help, what happened and what should happen instead?" : form.intent === "general" ? "What would you like to ask James?" : "Project type, timings, priorities and anything important about the build."} required maxLength={2500} {...invalid("message")} />
         <ErrorText id="message-error" message={errors.message} />
       </div>
       <div className="services-form-span-two">
         <label htmlFor="extraInformation" className="field-label">Anything else? (optional)</label>
-        <textarea id="extraInformation" name="extraInformation" value={form.extraInformation} onChange={onChange} rows={4} className="field-input resize-y" placeholder="Anything else that should shape the quote or delivery plan." maxLength={2500} {...invalid("extraInformation")} />
+        <textarea id="extraInformation" name="extraInformation" value={form.extraInformation} onChange={onChange} rows={4} className="field-input resize-y" placeholder={docksSupport ? "For example, the Crystal Docks version shown in the app." : "Anything else that should shape the quote or delivery plan."} maxLength={2500} {...invalid("extraInformation")} />
         <ErrorText id="extraInformation-error" message={errors.extraInformation} />
       </div>
     </>
