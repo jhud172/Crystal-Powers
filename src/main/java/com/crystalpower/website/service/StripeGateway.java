@@ -2,6 +2,7 @@ package com.crystalpower.website.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
@@ -33,12 +34,20 @@ public class StripeGateway {
     private final ObjectMapper json;
     private final boolean enabled, liveMode;
     private final String secret, webhookSecret, publicUrl;
+    private final String standardApiVersion;
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NEVER).build();
     private final java.util.Set<java.io.InputStream> activeBodies=java.util.concurrent.ConcurrentHashMap.newKeySet();
     private final java.util.concurrent.ScheduledThreadPoolExecutor bodyDeadlines=new java.util.concurrent.ScheduledThreadPoolExecutor(1,runnable->{var thread=new Thread(runnable,"stripe-body-deadline");thread.setDaemon(true);return thread;});
+    @Autowired
     public StripeGateway(ObjectMapper json, @Value("${app.billing.enabled:false}") boolean enabled, @Value("${app.billing.live-mode:false}") boolean liveMode,
             @Value("${app.billing.stripe-secret:}") String secret, @Value("${app.billing.stripe-webhook-secret:}") String webhookSecret, @Value("${app.public-url:}") String publicUrl) {
+        this(json, enabled, liveMode, secret, webhookSecret, publicUrl, API_VERSION);
+    }
+
+    StripeGateway(ObjectMapper json, boolean enabled, boolean liveMode, String secret, String webhookSecret,
+            String publicUrl, String standardApiVersion) {
         this.json = json; this.enabled = enabled; this.liveMode = liveMode; this.secret = secret; this.webhookSecret = webhookSecret; this.publicUrl = publicUrl.replaceAll("/+$", "");
+        this.standardApiVersion = standardApiVersion;
         bodyDeadlines.setRemoveOnCancelPolicy(true);
     }
     public boolean configured() {
@@ -58,7 +67,7 @@ public class StripeGateway {
         } catch (IllegalArgumentException invalid) { return false; }
     }
 
-    private String apiVersion() { return claimableSandboxKey() ? CLAIMABLE_SANDBOX_API_VERSION : API_VERSION; }
+    private String apiVersion() { return claimableSandboxKey() ? CLAIMABLE_SANDBOX_API_VERSION : standardApiVersion; }
     public void requireConnected() { if(!connected()) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,"Stripe billing management is not configured. Contact the team for help with an existing payment or subscription."); }
     public boolean liveMode() { return liveMode; }
     public void requireConfigured() { if (!configured()) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Payments are not configured. No charge or subscription has been created."); }

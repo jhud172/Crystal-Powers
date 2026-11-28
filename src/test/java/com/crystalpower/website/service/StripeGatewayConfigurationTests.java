@@ -1,13 +1,20 @@
 package com.crystalpower.website.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /** Synthetic key shapes only; no Stripe request or real credential is used. */
 class StripeGatewayConfigurationTests {
@@ -50,7 +57,29 @@ class StripeGatewayConfigurationTests {
                     var mode = context.getBean(DocksBillingMode.class);
                     assertThat(mode.seatsEnabled()).isTrue();
                     assertThat(mode.checkoutEnabled()).isFalse();
+                    byte[] currentEvent = liveWebhookBody("2026-11-18.endive");
+                    byte[] otherVersionEvent = liveWebhookBody("2026-09-30.endive");
+                    String signingSecret = "whsec_SyntheticDocksOnly";
+                    assertThat(docks.verifyDocksEvent(currentEvent, sign(currentEvent, signingSecret), signingSecret)
+                            .path("id").asText()).isEqualTo("evt_DocksFixture");
+                    String otherVersionSignature = sign(otherVersionEvent, signingSecret);
+                    assertThatThrownBy(() -> docks.verifyDocksEvent(otherVersionEvent, otherVersionSignature, signingSecret))
+                            .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
                 });
+    }
+
+    private static byte[] liveWebhookBody(String version) {
+        return """
+                {"id":"evt_DocksFixture","livemode":true,"api_version":"%s"}
+                """.formatted(version).getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static String sign(byte[] body, String secret) throws GeneralSecurityException {
+        long timestamp = Instant.now().getEpochSecond();
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+        mac.update((timestamp + ".").getBytes(StandardCharsets.UTF_8));
+        return "t=" + timestamp + ",v1=" + HexFormat.of().formatHex(mac.doFinal(body));
     }
 
     @Test void sandboxRestrictedKeysSupportPaymentsAndReadOnlyManagementConfiguration() {
