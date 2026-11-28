@@ -34,6 +34,25 @@ class StripeGatewayConfigurationTests {
                 });
     }
 
+    @Test void dedicatedLiveDocksConnectionKeepsWebsiteBillingAndPublicCheckoutOff() {
+        new ApplicationContextRunner()
+                .withBean(ObjectMapper.class, ObjectMapper::new)
+                .withUserConfiguration(StripeGateway.class, DocksStripeConfiguration.class, DocksBillingMode.class)
+                .withPropertyValues("app.public-url=https://example.invalid", "app.billing.enabled=false",
+                        "app.docks.stripe-live-enabled=true", "app.docks.stripe-live-checkout-enabled=false",
+                        "app.docks.stripe-live-secret=rk_live_SyntheticLocalOnly",
+                        "app.docks.stripe-webhook-secret=whsec_SyntheticDocksOnly")
+                .run(context -> {
+                    assertThat(context.getBean(StripeGateway.class).connected()).isFalse();
+                    var docks = context.getBean("docksStripeGateway", StripeGateway.class);
+                    assertThat(docks.connected()).isTrue();
+                    assertThat(docks.liveMode()).isTrue();
+                    var mode = context.getBean(DocksBillingMode.class);
+                    assertThat(mode.seatsEnabled()).isTrue();
+                    assertThat(mode.checkoutEnabled()).isFalse();
+                });
+    }
+
     @Test void sandboxRestrictedKeysSupportPaymentsAndReadOnlyManagementConfiguration() {
         for (String key : List.of("sk_test_SyntheticLocalOnly", "rk_test_SyntheticLocalOnly")) {
             assertThat(gateway(true, false, key, "whsec_SyntheticLocalOnly", "http://127.0.0.1:18084").configured()).isTrue();
