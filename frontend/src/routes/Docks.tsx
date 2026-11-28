@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { PrivacyLink } from "../features/privacy/PrivacyPublication";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { EnquiryForm } from "../features/contact/EnquiryForm";
 import { EnquiryProvider } from "../features/contact/EnquiryContext";
@@ -92,6 +93,7 @@ export default function Docks() {
       <div><h2>Optional report sharing</h2><p>Device history stays on your PC. You can choose to share device summaries to view them online.</p></div>
     </section>
     <p><Link className="docks-report-link" to="/docks/support">Get Crystal Docks support <span aria-hidden="true">→</span></Link></p>
+    <PrivacyLink className="docks-report-link" />
   </article>;
 }
 
