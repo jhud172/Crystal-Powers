@@ -29,8 +29,16 @@ public class PageMetadataService {
     );
     private final ProjectService projects;
     private final PublicPrivacyService privacy;
+    private final DocksTerms docksTerms;
     private final String base;
-    public PageMetadataService(ProjectService projects, PublicPrivacyService privacy, @Value("${app.public-url}") String base) { this.projects = projects;this.privacy=privacy; this.base = base.replaceAll("/+$", ""); }
+
+    public PageMetadataService(ProjectService projects, PublicPrivacyService privacy, DocksTerms docksTerms,
+            @Value("${app.public-url}") String base) {
+        this.projects = projects;
+        this.privacy = privacy;
+        this.docksTerms = docksTerms;
+        this.base = base.replaceAll("/+$", "");
+    }
     public RenderedPage render(String path) throws IOException {
         path = path.replaceAll("/+$", "");
         if (path.isEmpty() || path.equals("/home")) path = "/";
@@ -49,6 +57,10 @@ public class PageMetadataService {
         boolean privatePage = ownerPage || teamPage || clientPage || specialPage || docksReports || accountPage;
         boolean missing = !PAGES.containsKey(publicPath) && !privatePage;
         if(path.equals("/privacy") && privacy.ready()){meta=new Meta("Privacy & your data | Crystal Powers","How Crystal Powers handles personal information, contact details and project communications.");missing=false;}
+        if (path.equals("/projects/docks/terms") && docksTerms.ready()) {
+            meta = new Meta("Crystal Docks terms | Crystal Powers", "Terms for the Crystal Docks website and account.");
+            missing = false;
+        }
         if (path.startsWith("/portfolio/")) {
             try {
                 var project = projects.published(path.substring("/portfolio/".length()));

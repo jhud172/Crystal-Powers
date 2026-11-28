@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { DashboardNavigation, DashboardProductView } from "../features/account/ProductDashboard";
 import { api } from "../features/portfolio/projectApi";
+import { PrivacyLink } from "../features/privacy/PrivacyPublication";
 import "../styles/pages/product-dashboard.css";
 
 type Summary = { deviceId: string; deviceLabel: string; checkedAt: string; cpuPercent: number | null; memoryPercent: number | null };
@@ -398,6 +399,7 @@ export default function DocksReports() {
       </details>
       </>}
     </> : <>
+      <PrivacyLink className="docks-report-link" />
       {signInMethods === null && <p role="status">Checking sign-in availability…</p>}
       {signInMethods && !signInMethods.email && !signInMethods.google && <p role="status">Sign-in is currently unavailable. Try again later.</p>}
       {googleEnabled && <button className="admin-secondary" type="button" disabled={busy}

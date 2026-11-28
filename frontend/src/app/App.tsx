@@ -18,6 +18,7 @@ const Admin = lazy(() => import("../routes/Admin"));
 const TeamEntry = lazy(() => import("../features/team/TeamEntry"));
 const ClientEntry = lazy(() => import("../features/client/ClientEntry"));
 const DocksReports = lazy(() => import("../routes/DocksReports"));
+const DocksTerms = lazy(() => import("../routes/DocksTerms"));
 const Docks = lazy(() => import("../routes/Docks"));
 const DocksSupport = lazy(() => import("../routes/Docks").then(module => ({ default: module.DocksSupport })));
 
@@ -33,14 +34,16 @@ export default function App() {
   }
 
   const privateLayout = /^\/(admin|team|client|account)(\/|$)|^\/docks\/reports(\/|$)/.test(location.pathname);
+  const productDashboard = /^\/(?:account\/dashboard|docks\/reports)(?:\/|$)/.test(location.pathname);
   return (
-    <PrivacyPublication enabled={!privateLayout}><Layout owner={privateLayout}>
+    <PrivacyPublication enabled={!privateLayout || productDashboard}><Layout owner={privateLayout}>
       <Routes>
         <Route path="/client/*" element={<Suspense fallback={<div className="studio-section" role="status">Opening your client workspace…</div>}><ClientEntry /></Suspense>} />
         <Route path="/team/*" element={<Suspense fallback={<div className="studio-section" role="status">Opening the team workspace…</div>}><TeamEntry /></Suspense>} />
         <Route path="/admin/*" element={<Suspense fallback={<div className="studio-section" role="status">Opening the owner studio…</div>}><Admin /></Suspense>} />
         <Route path="/account/dashboard/:product?" element={<Suspense fallback={<div className="studio-section" role="status">Opening your dashboard…</div>}><DocksReports /></Suspense>} />
         <Route path="/projects/docks" element={<Suspense fallback={<div className="studio-section" role="status">Opening Crystal Docks…</div>}><Docks /></Suspense>} />
+        <Route path="/projects/docks/terms" element={<Suspense fallback={<div className="studio-section" role="status">Opening Crystal Docks terms…</div>}><DocksTerms /></Suspense>} />
         <Route path="/docks/reports" element={<Navigate replace to={{ pathname: "/account/dashboard/docks", search: location.search, hash: location.hash }} />} />
         <Route path="/docks" element={<Suspense fallback={<div className="studio-section" role="status">Opening Crystal Docks…</div>}><Docks /></Suspense>} />
         <Route path="/docks/support" element={<Suspense fallback={<div className="studio-section" role="status">Opening Crystal Docks support…</div>}><DocksSupport /></Suspense>} />

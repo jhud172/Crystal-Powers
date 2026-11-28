@@ -190,6 +190,13 @@ class CrystalPowerApplicationTests {
     }
 
     @Test
+    void unpublishedDocksTermsAreUnavailable() throws Exception {
+        mockMvc.perform(get("/projects/docks/terms")).andExpect(status().isNotFound())
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow"));
+        mockMvc.perform(get("/api/site/docks-terms")).andExpect(status().isNotFound());
+    }
+
+    @Test
     void legacyRoutesRedirect() throws Exception {
         String[][] redirects = {
                 {"/home.html", "/"},
